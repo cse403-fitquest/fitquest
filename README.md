@@ -61,7 +61,7 @@ TBD
 
 - [Afuza Afuzarahman](https://github.com/afutofu) - Dude who made the repo
 - Steven - Cool dude
-- Dominic - Cool dude
+- Dominic - Cool dude who has edit access
 - Prayug - Cool dude
 - Adam - Cool dude
 - Colin - Cool dude
