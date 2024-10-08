@@ -25,7 +25,7 @@
 
 ## 📋 Prerequisites
 
-Project Before you start, you will need to have the following tools installed on your PC/Laptop:
+Before you start, you will need to have the following tools installed on your PC/Laptop:
 [Git](https://git-scm.com), [Node.js](https://nodejs.org/en/) (LTS).
 In addition, it is good to have an editor to work with the code such as [VSCode](https://code.visualstudio.com/).
 
@@ -35,6 +35,24 @@ In addition, it is good to have an editor to work with the code such as [VSCode]
    git clone https://github.com/cse403-fitquest/fitquest
    cd fitquest
    ```
+
+2. Install dependencies
+
+   ```bash
+   npm install
+   ```
+
+3. Run the app
+
+   ```bash
+   npx expo start -c
+   ```
+
+4. Setup device for development.
+
+   For now, the easiest and recommended way to view the app is to use your physical device through expo. On the Play Store (Android) or App Store (iOS), download Expo Go. When the app is running after completing step 3, scan the QR code given in the terminal in the Expo Go application.
+
+   But if you want to work with an emulator (android/ios) instead, follow instructions in this site: https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated
 
 ## 🚀 Technologies
 
