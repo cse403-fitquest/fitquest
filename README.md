@@ -54,6 +54,14 @@ In addition, it is good to have an editor to work with the code such as [VSCode]
 
    But if you want to work with an emulator (android/ios) instead, follow instructions in this site: https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated
 
+Configure linting
+
+1. Install the ESLint extention on VSCode if you haven't.
+
+2. Reload VSCode to see changes.
+
+3. For ease of use, make sure to turn enable format-on-save on VSCode settings.
+
 ## 🚀 Technologies
 
 This app was built with the following technologies:
