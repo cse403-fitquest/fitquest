@@ -86,8 +86,8 @@ TBD
 ## 👥 Contributors
 
 - [Afuza Afuzarahman](https://github.com/afutofu) - Dude who made the repo
-- Steven - Cool dude
-- Dominic - Cool dude
-- Prayug - Cool dude
-- Adam - Cool dude
-- Colin - Cool dude
+- [Steven Tang](https://github.com/ArcaneLG) - Cool dude
+- [Dominic Roser](https://github.com/Dominic-Roser) - Cool dude
+- [Prayug Sigdel](https://github.com/Prayug) - Cool dude
+- [Adam Benazouz](https://github.com/adamben04) - Cool dude
+- [Colin Dao](https://github.com/ColinDao) - Cool dude
