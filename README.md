@@ -73,7 +73,14 @@ This app was built with the following technologies:
 
 ## 🛣️ Roadmap
 
-- [ ] TBD
+- [ ] Setup Firebase SDK
+- [ ] Implement Sign Up
+- [ ] Implement Sign In
+- [ ] Implement Onboarding Wizard
+- [ ] Implement Profile
+- [ ] Implement Workout
+- [ ] Implement Quest
+- [ ] Implement Shop
 
 ## 🖼️ Images
 
