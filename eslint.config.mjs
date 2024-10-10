@@ -6,7 +6,7 @@ import prettier from 'eslint-plugin-prettier'; // Import Prettier plugin
 import prettierConfig from 'eslint-config-prettier'; // Import Prettier config
 
 export default [
-  { files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'] },
+  { files: ['./app/**/*.{js,mjs,cjs,ts,jsx,tsx}'] },
   { languageOptions: { globals: globals.browser } },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
