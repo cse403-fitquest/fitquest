@@ -1,8 +1,9 @@
-import { Colors } from '@/constants/Colors';
 import { Text, useColorScheme } from 'react-native';
+import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '@/constants/Colors';
 
-const Profile = () => {
+const Workout = () => {
   const colorScheme = useColorScheme();
 
   return (
@@ -18,10 +19,10 @@ const Profile = () => {
           color: Colors[colorScheme ?? 'light'].text,
         }}
       >
-        Profile
+        Workout
       </Text>
     </SafeAreaView>
   );
 };
 
-export default Profile;
+export default Workout;

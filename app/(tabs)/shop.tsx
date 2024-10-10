@@ -1,27 +1,28 @@
-import { Colors } from '@/constants/Colors';
 import { Text, useColorScheme } from 'react-native';
+import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '@/constants/Colors';
 
-const Profile = () => {
+const Shop = () => {
   const colorScheme = useColorScheme();
 
   return (
     <SafeAreaView
       className={`flex-1 items-center justify-center h-full`}
       style={{
-        backgroundColor: Colors[colorScheme ?? 'light'].background,
+        backgroundColor: Colors[colorScheme ?? 'dark'].background,
       }}
     >
       <Text
         className="text-3xl"
         style={{
-          color: Colors[colorScheme ?? 'light'].text,
+          color: Colors[colorScheme ?? 'dark'].text,
         }}
       >
-        Profile
+        Shop
       </Text>
     </SafeAreaView>
   );
 };
 
-export default Profile;
+export default Shop;
