@@ -87,6 +87,7 @@ Design Mockups: Figma (for final designs), FreeForm (for rough mockups)
         - Reviewers should provide constructive feedback.
 
     - Pull Requests:
+        - Ensure succint and descriptive title for title.
         - Include a summary of changes and reference relevant issues.
         - Ensure your branch is up to date with develop before creating a PR.
 
