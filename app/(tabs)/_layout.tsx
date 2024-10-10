@@ -15,19 +15,20 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           paddingBottom: 5,
+          backgroundColor: Colors[colorScheme ?? 'light'].background,
         },
       }}
     >
       {/* Profile */}
       <Tabs.Screen
-        name="profile"
+        name="index"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? 'body' : 'body-outline'}
               color={color}
-              size={22}
+              size={20}
             />
           ),
         }}
@@ -42,6 +43,7 @@ export default function TabLayout() {
             <TabBarIcon
               name={focused ? 'barbell' : 'barbell-outline'}
               color={color}
+              size={25}
             />
           ),
         }}
@@ -56,6 +58,7 @@ export default function TabLayout() {
             <TabBarIcon
               name={focused ? 'help' : 'help-outline'}
               color={color}
+              size={27}
             />
           ),
         }}
@@ -70,6 +73,7 @@ export default function TabLayout() {
             <TabBarIcon
               name={focused ? 'cart' : 'cart-outline'}
               color={color}
+              size={25}
             />
           ),
         }}
