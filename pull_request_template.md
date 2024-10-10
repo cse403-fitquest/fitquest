@@ -10,4 +10,5 @@ Brief description of your changes
 - [ ] Workout
 - [ ] Quest
 - [ ] Shop
+- [ ] Project Structure
 - [ ] Other
