@@ -78,7 +78,7 @@ Design Mockups: Figma (for final designs), FreeForm (for rough mockups)
 
         - Write clear and descriptive messages.
 
-        - Use the format: ```Type(scope): Brief description```.
+        - Use the format: ```type(scope): Brief description```.
 
         - Example: ```feat(login): Add user authentication```
 
