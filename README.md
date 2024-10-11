@@ -117,6 +117,7 @@ This app was built with the following technologies:
 - Typescript
 - React Native
 - Nativewind
+- Zustand
 - Firebase
 
 ## 🛣️ Roadmap
@@ -125,10 +126,26 @@ This app was built with the following technologies:
 - [ ] Implement Sign Up
 - [ ] Implement Sign In
 - [ ] Implement Onboarding Wizard
+   - [ ] Questionnaire
+   - [ ] Fitness level calculation
+   - [ ] Allocate attribute points
 - [ ] Implement Profile
+   - [ ] Avatar
+   - [ ] Attributes & inventory
+   - [ ] Workouts per week graph
 - [ ] Implement Workout
+   - [ ] Active workout session
+   - [ ] Workout templates
 - [ ] Implement Quest
+   - [ ] Active quest
+   - [ ] Available quests this week
+- [ ] Implement Combat
+   - [ ] Speed turn system
+   - [ ] Player and enemy sprite animations
+   - [ ] Player turn actions
 - [ ] Implement Shop
+   - [ ] Consumables and inventory items
+   - [ ] Confirmation on item purchase
 
 ## 🖼️ Images
 
@@ -139,9 +156,9 @@ This app was built with the following technologies:
 
 ## 👥 Contributors
 
-- [Afuza Afuzarahman](https://github.com/afutofu) - Dude who made the repo
-- [Steven Tang](https://github.com/ArcaneLG) - Cool dude
-- [Dominic Roser](https://github.com/Dominic-Roser) - Cool dude
-- [Prayug Sigdel](https://github.com/Prayug) - Cool dude
-- [Adam Benazouz](https://github.com/adamben04) - Cool dude
-- [Colin Dao](https://github.com/ColinDao) - Cool dude
+- [Afuza Afuzarahman](https://github.com/afutofu) - UI/UX/Frontend/Backend/QA
+- [Steven Tang](https://github.com/ArcaneLG) - UI/UX/Frontend
+- [Dominic Roser](https://github.com/Dominic-Roser) - Frontend/Backend/QA
+- [Prayug Sigdel](https://github.com/Prayug) - Frontend/Backend
+- [Adam Benazouz](https://github.com/adamben04) - Frontend/Backend
+- [Colin Dao](https://github.com/ColinDao) - Backend
