@@ -27,7 +27,14 @@ Ideation Document: https://docs.google.com/document/d/1L4IXKy5s5N5SYpA0G8PJkXzNN
 
 Requirements & Team Policies: https://docs.google.com/document/d/1aiOZFTHOV6nba4xewetuYG4Ufv-5H1SBLacX9GJaNyY/edit?usp=sharing
 
-Design Mockups: Figma (for final designs), FreeForm (for rough mockups)
+Architecture & Design: https://docs.google.com/document/d/1LfE5sc0uAw0bPjrn2jC1C1Me7Nxl9fY_hsiSP8TPetg/edit?usp=sharing
+
+Design Mockups:
+
+- Figma (for final designs): https://www.figma.com/design/LIfNEqx9rzFYnaeDRWCulX/FitQuest-UI-Design?node-id=0-1&t=YH8BQEe5HdIMdjBM-1
+
+
+- FreeForm (for rough mockups)
 
 
 ## Communication Channels and Policies
