@@ -1,7 +1,7 @@
 <h1 align="center">
     💪 FitQuest
 </h1>
-<p align="center">Gamified fitness app that transforms users' fitness journeys into engaging RPG-style adventures!</p>
+<p align="center">Gamified fitness app that transforms users' fitness progress into engaging RPG-style adventures!</p>
 
 <div align="center">
 
