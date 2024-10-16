@@ -3,9 +3,11 @@
 </h1>
 <p align="center">Gamified fitness app that transforms users' fitness journeys into engaging RPG-style adventures!</p>
 
-<!-- <p align="center">View Demo:
-<a href="https://rise-to-olympus.netlify.app/">rise-to-olympus.netlify.app</a>
-</p> -->
+<div align="center">
+
+   [Team Resources](./team-resources.md)
+
+</div>
 
 <p align="center">
   <a href="#-features">Features</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
@@ -13,7 +15,6 @@
   <a href="#-technologies">Technologies</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
   <a href="#%EF%B8%8F-roadmap">Roadmap</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
   <a href="#%EF%B8%8F-images">Images</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-  <!-- <a href="#%EF%B8%8F-roadmap">Walkthrough</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; -->
   <a href="#-contributors">Contributors</a>
 </p>
 
