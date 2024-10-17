@@ -1,7 +1,7 @@
 <h1 align="center">
     💪 FitQuest
 </h1>
-<p align="center">Gamified fitness app that transforms users' fitness journeys into engaging RPG-style adventures!</p>
+<p align="center">Gamified fitness app that transforms users' fitness progress into engaging RPG-style adventures!</p>
 
 <div align="center">
 
@@ -127,7 +127,7 @@ This app was built with the following technologies:
 - [ ] Implement Sign Up
 - [ ] Implement Sign In
 - [ ] Implement Onboarding Wizard
-   - [ ] Questionnaire
+   - [ ] Survey
    - [ ] Fitness level calculation
    - [ ] Allocate attribute points
 - [ ] Implement Profile
@@ -137,16 +137,20 @@ This app was built with the following technologies:
 - [ ] Implement Workout
    - [ ] Active workout session
    - [ ] Workout templates
+   - [ ] Calculate exp gain from workout
 - [ ] Implement Quest
    - [ ] Active quest
    - [ ] Available quests this week
-- [ ] Implement Combat
+- [ ] Implement Fight
    - [ ] Speed turn system
    - [ ] Player and enemy sprite animations
    - [ ] Player turn actions
 - [ ] Implement Shop
    - [ ] Consumables and inventory items
    - [ ] Confirmation on item purchase
+- [ ] Implement Social
+   - [ ] Display friends and requests
+   - [ ] Add friend
 
 ## 🖼️ Images
 
