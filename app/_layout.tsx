@@ -25,7 +25,7 @@ export default function RootLayout() {
     const fetchQuests = async () => {
       await getQuests();
     };
-    fetchQuests();
+    // fetchQuests();
   }, []);
 
   useEffect(() => {
@@ -39,11 +39,11 @@ export default function RootLayout() {
   }
 
   return (
-    // <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
     <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" />
     </Stack>
-    //</ThemeProvider>
   );
 }
