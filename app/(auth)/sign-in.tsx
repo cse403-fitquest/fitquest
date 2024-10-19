@@ -6,11 +6,85 @@ import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
 import { Href, Link } from 'expo-router';
 
+const BASE_ERRORS = {
+  general: '',
+  email: '',
+  password: '',
+} as const;
+
+interface ErrorState {
+  general: string;
+  email: string;
+  password: string;
+}
+
 const SignIn = () => {
-  const [form, setForm] = React.useState({
+  const [form, setForm] = React.useState<{ email: string; password: string }>({
     email: '',
     password: '',
   });
+
+  const [errors, setErrors] = React.useState<ErrorState>(BASE_ERRORS);
+
+  const resetForm = () => {
+    setForm({
+      email: '',
+      password: '',
+    });
+    setErrors(BASE_ERRORS);
+  };
+
+  const handleSignIn = () => {
+    let newErrors: ErrorState = { ...BASE_ERRORS };
+
+    // Validation logic
+
+    // Email validation
+    if (!form.email) {
+      newErrors = {
+        ...newErrors,
+        email: 'Email is required',
+      };
+    }
+
+    // Password validation
+    if (!form.password) {
+      newErrors = {
+        ...newErrors,
+        password: 'Password is required',
+      };
+    }
+
+    // If email is not empty, check if it's a valid email
+    if (!newErrors.email) {
+      // Email regex used from https://emailregex.com/
+      const emailRegex =
+        // eslint-disable-next-line no-control-regex
+        /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
+      if (!emailRegex.test(form.email)) {
+        newErrors = {
+          ...newErrors,
+          email: 'Must be a valid email address',
+        };
+      }
+    }
+
+    // If password is not empty, check if it's at least 6 characters long
+    if (!newErrors.password && form.password.length < 6) {
+      newErrors = {
+        ...newErrors,
+        password: 'Must be at least 6 characters long',
+      };
+    }
+
+    // If there are errors, set the errors and return
+    if (newErrors.email || newErrors.password) {
+      setErrors(newErrors);
+      return;
+    }
+
+    // RODO: Do sign in logic here
+  };
 
   return (
     <SafeAreaView className="flex-1 items-center justify-center h-full bg-off-white px-5">
@@ -19,41 +93,64 @@ const SignIn = () => {
         <Text className="text-2xl text-black font-semibold">Sign In</Text>
       </View>
 
-      <View className="w-full mb-10">
+      <View className="w-full mb-5">
         <FQTextInput
           label="Email"
           placeholder="Enter your email"
           value={form.email}
-          onChange={(e) =>
+          onChange={(e) => {
             setForm({
               ...form,
               email: e.nativeEvent.text,
-            })
-          }
+            });
+            setErrors({
+              ...errors,
+              email: '',
+            });
+          }}
+          error={errors.email}
           containerClassName="w-full mb-2"
         />
         <FQTextInput
           label="Password"
           placeholder="Enter your password"
           value={form.password}
-          onChange={(e) =>
+          onChange={(e) => {
             setForm({
               ...form,
               password: e.nativeEvent.text,
-            })
-          }
+            });
+            setErrors({
+              ...errors,
+              password: '',
+            });
+          }}
+          error={errors.password}
           containerClassName="w-full"
           secureTextEntry={true}
         />
       </View>
 
+      <View className="mb-5">
+        {errors.general ? (
+          <Text className="text-red-500 font-semibold text-sm">
+            {errors.general}
+          </Text>
+        ) : null}
+      </View>
+
       <View className="w-full max-w-[250px] mb-3">
-        <FQButton>SIGN IN</FQButton>
+        <FQButton
+          onPress={handleSignIn}
+          disabled={!!(errors.email || errors.password)}
+        >
+          SIGN IN
+        </FQButton>
       </View>
 
       <View className="flex flex-row justify-center items-center">
         <Text className="text-base font-regular">Don't have an account? </Text>
-        <Link href={'/sign-up' as Href}>
+        <Link href={'/sign-up' as Href} onPress={resetForm}>
           <Text className="text-blue font-bold text-base">Sign Up</Text>
         </Link>
       </View>
