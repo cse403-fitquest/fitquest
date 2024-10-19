@@ -33,14 +33,27 @@ export const signIn: (
     // Error caused by firebase auth will be an instance of FirebaseError
     if (error instanceof FirebaseError) {
       console.error('Error signing in with Firebase: ', error);
-      return {
-        user: null,
-        error: {
-          general: 'Error signing in. Please try again.',
-          email: '',
-          password: '',
-        },
-      };
+
+      switch (error.code) {
+        case AuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
+          return {
+            user: null,
+            error: {
+              general: 'Invalid email or password.',
+              email: '',
+              password: '',
+            },
+          };
+        default:
+          return {
+            user: null,
+            error: {
+              general: 'Error signing up. Please try again.',
+              email: '',
+              password: '',
+            },
+          };
+      }
     } else {
       console.log('Error signing in: ', error);
       return {

@@ -1,10 +1,11 @@
-import { Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Text, View } from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppTitle from '@/components/AppTitle';
 import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
 import { Href, Link } from 'expo-router';
+import { signIn } from '@/utils/auth';
 
 const DEFAULT_SIGN_IN_ERRORS = {
   general: '',
@@ -28,6 +29,8 @@ const SignIn = () => {
     DEFAULT_SIGN_IN_ERRORS,
   );
 
+  const [loading, setLoading] = React.useState(false);
+
   const resetForm = () => {
     setForm({
       email: '',
@@ -36,7 +39,7 @@ const SignIn = () => {
     setErrors(DEFAULT_SIGN_IN_ERRORS);
   };
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     let newErrors: ErrorState = { ...DEFAULT_SIGN_IN_ERRORS };
 
     // Validation logic
@@ -85,7 +88,23 @@ const SignIn = () => {
       return;
     }
 
-    // RODO: Do sign in logic here
+    // Sign in logic
+    setLoading(true);
+
+    // No need for try-catch block since signIn function handles errors
+    const signInResponse = await signIn(form.email, form.password);
+
+    if (signInResponse.error) {
+      setErrors(signInResponse.error);
+
+      if (signInResponse.error.general) {
+        Alert.alert('Sign In Error', signInResponse.error.general);
+      }
+    } else {
+      resetForm();
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -141,12 +160,18 @@ const SignIn = () => {
         ) : null}
       </View>
 
-      <View className="w-full max-w-[250px] mb-3">
+      <View className="w-full max-w-[250px] mb-5">
         <FQButton
           onPress={handleSignIn}
-          disabled={!!(errors.email || errors.password)}
+          disabled={!!(errors.email || errors.password || loading)}
         >
-          SIGN IN
+          {loading ? (
+            <View className="w-full flex-1 justify-center items-center">
+              <ActivityIndicator size="small" color="white" />
+            </View>
+          ) : (
+            <Text>SIGN IN</Text>
+          )}
         </FQButton>
       </View>
 

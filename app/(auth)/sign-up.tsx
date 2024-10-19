@@ -1,4 +1,4 @@
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Text, View } from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppTitle from '@/components/AppTitle';
@@ -134,6 +134,10 @@ const SignUp = () => {
 
     if (signUpResponse.error) {
       setErrors(signUpResponse.error);
+
+      if (signUpResponse.error.general) {
+        Alert.alert('Sign Up Error', signUpResponse.error.general);
+      }
     } else {
       resetForm();
     }
@@ -237,7 +241,7 @@ const SignUp = () => {
         ) : null}
       </View>
 
-      <View className="w-full max-w-[250px] mb-3">
+      <View className="w-full max-w-[250px] mb-5">
         <FQButton
           onPress={handleSignUp}
           disabled={

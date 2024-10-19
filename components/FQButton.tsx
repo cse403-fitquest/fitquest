@@ -7,12 +7,12 @@ const FQButton: FC<TouchableOpacityProps> = (props) => {
   return (
     <TouchableOpacity
       {...props}
-      className={clsx('p-4 rounded', {
+      className={clsx('p-4 rounded min-h-[60px]', {
         'bg-blue': !props.disabled,
         'bg-gray': props.disabled,
       })}
     >
-      <Text className={`text-white text-center font-bold text-lg`}>
+      <Text className={`w-full text-white text-center font-bold text-lg`}>
         {props.children}
       </Text>
     </TouchableOpacity>
