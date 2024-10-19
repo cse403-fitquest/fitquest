@@ -11,17 +11,21 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor:
+          Colors[colorScheme ?? 'light'].tabBarActiveTintColor,
+        tabBarInactiveTintColor:
+          Colors[colorScheme ?? 'light'].tabBarInactiveTintColor,
         headerShown: false,
         tabBarStyle: {
           paddingBottom: 5,
-          backgroundColor: Colors[colorScheme ?? 'light'].background,
+          height: 60,
+          backgroundColor: Colors[colorScheme ?? 'light'].tabBarBackgroundColor,
         },
       }}
     >
       {/* Profile */}
       <Tabs.Screen
-        name="index"
+        name="profile"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
@@ -78,6 +82,22 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      {/* Social */}
+      <Tabs.Screen
+        name="social"
+        options={{
+          title: 'Social',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? 'people' : 'people-outline'}
+              color={color}
+              size={20}
+            />
+          ),
+        }}
+      />
+
       {/* <Tabs.Screen
         name="index"
         options={{
