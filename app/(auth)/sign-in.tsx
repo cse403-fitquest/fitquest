@@ -6,7 +6,7 @@ import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
 import { Href, Link } from 'expo-router';
 
-const BASE_ERRORS = {
+const DEFAULT_SIGN_IN_ERRORS = {
   general: '',
   email: '',
   password: '',
@@ -24,18 +24,20 @@ const SignIn = () => {
     password: '',
   });
 
-  const [errors, setErrors] = React.useState<ErrorState>(BASE_ERRORS);
+  const [errors, setErrors] = React.useState<ErrorState>(
+    DEFAULT_SIGN_IN_ERRORS,
+  );
 
   const resetForm = () => {
     setForm({
       email: '',
       password: '',
     });
-    setErrors(BASE_ERRORS);
+    setErrors(DEFAULT_SIGN_IN_ERRORS);
   };
 
   const handleSignIn = () => {
-    let newErrors: ErrorState = { ...BASE_ERRORS };
+    let newErrors: ErrorState = { ...DEFAULT_SIGN_IN_ERRORS };
 
     // Validation logic
 
@@ -73,7 +75,7 @@ const SignIn = () => {
     if (!newErrors.password && form.password.length < 6) {
       newErrors = {
         ...newErrors,
-        password: 'Must be at least 6 characters long',
+        password: 'Password are at least 6 characters long',
       };
     }
 
