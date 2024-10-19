@@ -1,10 +1,12 @@
-import { Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppTitle from '@/components/AppTitle';
 import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
 import { Href, Link } from 'expo-router';
+import { signUp } from '@/utils/auth';
+import { SignUpErrorState } from '@/types/auth';
 
 const DEFAULT_SIGN_UP_ERRORS = {
   general: '',
@@ -14,14 +16,6 @@ const DEFAULT_SIGN_UP_ERRORS = {
   rePassword: '',
 } as const;
 
-interface ErrorState {
-  general: string;
-  username: string;
-  email: string;
-  password: string;
-  rePassword: string;
-}
-
 const SignUp = () => {
   const [form, setForm] = React.useState({
     username: '',
@@ -30,9 +24,11 @@ const SignUp = () => {
     rePassword: '',
   });
 
-  const [errors, setErrors] = React.useState<ErrorState>(
+  const [errors, setErrors] = React.useState<SignUpErrorState>(
     DEFAULT_SIGN_UP_ERRORS,
   );
+
+  const [loading, setLoading] = React.useState(false);
 
   const resetForm = () => {
     setForm({
@@ -44,8 +40,8 @@ const SignUp = () => {
     setErrors(DEFAULT_SIGN_UP_ERRORS);
   };
 
-  const handleSignUp = () => {
-    let newErrors: ErrorState = { ...DEFAULT_SIGN_UP_ERRORS };
+  const handleSignUp = async () => {
+    let newErrors: SignUpErrorState = { ...DEFAULT_SIGN_UP_ERRORS };
 
     // Validation logic
 
@@ -130,7 +126,19 @@ const SignUp = () => {
       return;
     }
 
-    // RODO: Do sign in logic here
+    // Sign up logic
+    setLoading(true);
+
+    // No need for try-catch block since signUp function handles errors
+    const signUpResponse = await signUp(form.email, form.password);
+
+    if (signUpResponse.error) {
+      setErrors(signUpResponse.error);
+    } else {
+      resetForm();
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -237,11 +245,18 @@ const SignUp = () => {
               errors.username ||
               errors.email ||
               errors.password ||
-              errors.rePassword
+              errors.rePassword ||
+              loading
             )
           }
         >
-          SIGN UP
+          {loading ? (
+            <View>
+              <ActivityIndicator size="small" color="white" />
+            </View>
+          ) : (
+            <Text>SIGN UP</Text>
+          )}
         </FQButton>
       </View>
 
