@@ -78,6 +78,22 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      {/* Onboarding */}
+      <Tabs.Screen
+        name="(profile)"
+        options={{
+          title: 'Onboarding',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? 'book' : 'book-outline'}
+              color={color}
+              size={25}
+            />
+          ),
+        }}
+      />
+
       {/* <Tabs.Screen
         name="index"
         options={{

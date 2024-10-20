@@ -19,7 +19,7 @@ const Shop = () => {
           color: Colors[colorScheme ?? 'dark'].text,
         }}
       >
-        Shop
+        Shop Hi World
       </Text>
     </SafeAreaView>
   );
