@@ -1,6 +1,6 @@
 import { FIREBASE_AUTH } from '@/firebaseConfig';
 import { useFonts } from 'expo-font';
-import { Href, Slot, Stack, router } from 'expo-router';
+import { Href, router, Slot, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect } from 'react';
@@ -16,13 +16,12 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    // Check user session and navigate to the appropriate screen
-
+    // Setup observer to reroute user based on auth state change
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
       if (user) {
         // User is signed in, see docs for a list of available properties
         console.log('User is signed in');
-        console.log(user);
+        // console.log(user);
 
         // Navigate to the appropriate screen
         router.replace('/sign-out' as Href);
@@ -48,9 +47,9 @@ export default function RootLayout() {
 
   return (
     <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" />
     </Stack>
   );

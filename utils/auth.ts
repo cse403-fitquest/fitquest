@@ -21,7 +21,7 @@ import {
 export const signIn: (
   email: string,
   password: string,
-) => Promise<SignInResponse> = async (email: string, password: string) => {
+) => Promise<SignInResponse> = async (email, password) => {
   try {
     // Sign in logic
     const userCredential = await signInWithEmailAndPassword(
@@ -31,7 +31,7 @@ export const signIn: (
     );
 
     return {
-      user: userCredential,
+      userCredential: userCredential,
       error: null,
     };
   } catch (error: unknown) {
@@ -42,7 +42,7 @@ export const signIn: (
       switch (error.code) {
         case AuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
           return {
-            user: null,
+            userCredential: null,
             error: {
               general: 'Invalid email or password.',
               email: '',
@@ -51,7 +51,7 @@ export const signIn: (
           };
         default:
           return {
-            user: null,
+            userCredential: null,
             error: {
               general: 'Error signing up. Please try again.',
               email: '',
@@ -62,7 +62,7 @@ export const signIn: (
     } else {
       console.log('Error signing in: ', error);
       return {
-        user: null,
+        userCredential: null,
         error: {
           general: 'Error signing in. Please try again.',
           email: '',
@@ -93,7 +93,7 @@ export const signUp: (
 
     // Return userCredential
     return {
-      user: userCredential,
+      userCredential: userCredential,
       error: null,
     };
   } catch (error) {
@@ -104,7 +104,7 @@ export const signUp: (
       switch (error.code) {
         case AuthErrorCodes.EMAIL_EXISTS:
           return {
-            user: null,
+            userCredential: null,
             error: {
               general: 'Email already exists.',
               username: '',
@@ -115,7 +115,7 @@ export const signUp: (
           };
         default:
           return {
-            user: null,
+            userCredential: null,
             error: {
               general: 'Error signing up. Please try again.',
               username: '',
@@ -128,7 +128,7 @@ export const signUp: (
     } else {
       console.log('Error signing in: ', error);
       return {
-        user: null,
+        userCredential: null,
         error: {
           general: 'Error signing up. Please try again.',
           username: '',
@@ -139,6 +139,14 @@ export const signUp: (
       };
     }
   }
+};
+
+/**
+ * Check if a user is logged in
+ * @returns a boolean indicating if the user is logged in
+ */
+export const isLoggedIn = () => {
+  return FIREBASE_AUTH.currentUser !== null;
 };
 
 /**

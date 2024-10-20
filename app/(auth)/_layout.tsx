@@ -1,7 +1,13 @@
-import { Stack } from 'expo-router';
+import { isLoggedIn } from '@/utils/auth';
+import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
 const AuthLayout = () => {
+  if (isLoggedIn()) {
+    router.back();
+    return null;
+  }
+
   return (
     <>
       <Stack>

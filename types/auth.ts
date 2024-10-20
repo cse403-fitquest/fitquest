@@ -15,12 +15,12 @@ export type SignUpErrorState = {
 };
 
 export type SignInResponse = {
-  user: UserCredential | null;
+  userCredential: UserCredential | null;
   error: SignInErrorState | null;
 };
 
 export type SignUpResponse = {
-  user: UserCredential | null;
+  userCredential: UserCredential | null;
   error: SignUpErrorState | null;
 };
 
@@ -30,4 +30,20 @@ export type SignOutResponse = {
 
 export type DeleteAccountResponse = {
   error: string | null;
+};
+
+export type User = {
+  id: string;
+  profileInfo: {
+    email: string;
+    username: string;
+    age: number;
+    height: number;
+    weight: number;
+  };
+  spriteID: string;
+  attributes: { power: number; speed: number; health: number };
+  exp: number;
+  gold: number;
+  createdAt: number;
 };
