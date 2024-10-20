@@ -1,10 +1,16 @@
-import { ActivityIndicator, Alert, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppTitle from '@/components/AppTitle';
 import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
-import { Href, Link } from 'expo-router';
+import { Href, router } from 'expo-router';
 import { signUp } from '@/utils/auth';
 import { SignUpErrorState } from '@/types/auth';
 
@@ -145,6 +151,18 @@ const SignUp = () => {
     setLoading(false);
   };
 
+  const renderSignUpButtonContent = () => {
+    if (loading) {
+      return (
+        <View className="h-full justify-center items-center">
+          <ActivityIndicator size="small" color="white" />
+        </View>
+      );
+    }
+
+    return 'SIGN UP';
+  };
+
   return (
     <SafeAreaView className="flex-1 items-center justify-center h-full bg-off-white px-5">
       <View className="w-full mb-10">
@@ -254,13 +272,7 @@ const SignUp = () => {
             )
           }
         >
-          {loading ? (
-            <View>
-              <ActivityIndicator size="small" color="white" />
-            </View>
-          ) : (
-            <Text>SIGN UP</Text>
-          )}
+          {renderSignUpButtonContent()}
         </FQButton>
       </View>
 
@@ -268,9 +280,14 @@ const SignUp = () => {
         <Text className="text-base font-regular">
           Already have an account?{' '}
         </Text>
-        <Link href={'/sign-in' as Href} onPress={resetForm}>
+        <TouchableOpacity
+          onPress={() => {
+            resetForm();
+            router.replace('/sign-in' as Href);
+          }}
+        >
           <Text className="text-blue font-bold text-base">Sign In</Text>
-        </Link>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

@@ -23,3 +23,11 @@ export type SignUpResponse = {
   user: UserCredential | null;
   error: SignUpErrorState | null;
 };
+
+export type SignOutResponse = {
+  error: string | null;
+};
+
+export type DeleteAccountResponse = {
+  error: string | null;
+};

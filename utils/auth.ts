@@ -1,5 +1,10 @@
 import { FIREBASE_AUTH } from '@/firebaseConfig';
-import { SignInResponse, SignUpResponse } from '@/types/auth';
+import {
+  DeleteAccountResponse,
+  SignInResponse,
+  SignOutResponse,
+  SignUpResponse,
+} from '@/types/auth';
 import { FirebaseError } from 'firebase/app';
 import {
   AuthErrorCodes,
@@ -136,6 +141,56 @@ export const signUp: (
   }
 };
 
-export const logout = async () => {
-  await FIREBASE_AUTH.signOut();
+/**
+ * Sign out the current user
+ * @returns a promise that resolves when the user is signed out
+ */
+export const signOut: () => Promise<SignOutResponse> = async () => {
+  try {
+    await FIREBASE_AUTH.signOut();
+    return {
+      error: null,
+    };
+  } catch (error: unknown) {
+    console.log(error);
+    return {
+      error: 'Error signing out. Please try again.',
+    };
+  }
+};
+
+export const deleteAccount: () => Promise<DeleteAccountResponse> = async () => {
+  const user = FIREBASE_AUTH.currentUser;
+
+  if (user) {
+    try {
+      await user.delete();
+      return {
+        error: null,
+      };
+    } catch (error: unknown) {
+      console.log(error);
+
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/requires-recent-login':
+            return {
+              error: 'Please reauthenticate before deleting your account.',
+            };
+          default:
+            return {
+              error: 'Error deleting account. Please try again.',
+            };
+        }
+      }
+
+      return {
+        error: 'Error deleting account. Please try again.',
+      };
+    }
+  }
+
+  return {
+    error: 'Error deleting account. Account not found.',
+  };
 };

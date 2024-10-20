@@ -25,7 +25,7 @@ export default function RootLayout() {
         console.log(user);
 
         // Navigate to the appropriate screen
-        router.replace('/logout' as Href);
+        router.replace('/sign-out' as Href);
       } else {
         // User is signed out
         console.log('User is signed out');

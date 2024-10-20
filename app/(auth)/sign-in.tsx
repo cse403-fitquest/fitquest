@@ -1,10 +1,16 @@
-import { ActivityIndicator, Alert, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppTitle from '@/components/AppTitle';
 import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
-import { Href, Link } from 'expo-router';
+import { Href, router } from 'expo-router';
 import { signIn } from '@/utils/auth';
 
 const DEFAULT_SIGN_IN_ERRORS = {
@@ -107,6 +113,18 @@ const SignIn = () => {
     setLoading(false);
   };
 
+  const renderSignInButtonContent = () => {
+    if (loading) {
+      return (
+        <View className="h-full justify-center items-center">
+          <ActivityIndicator size="small" color="white" />
+        </View>
+      );
+    }
+
+    return 'SIGN IN';
+  };
+
   return (
     <SafeAreaView className="flex-1 items-center justify-center h-full bg-off-white px-5">
       <View className="w-full mb-10">
@@ -165,21 +183,20 @@ const SignIn = () => {
           onPress={handleSignIn}
           disabled={!!(errors.email || errors.password || loading)}
         >
-          {loading ? (
-            <View className="w-full flex-1 justify-center items-center">
-              <ActivityIndicator size="small" color="white" />
-            </View>
-          ) : (
-            <Text>SIGN IN</Text>
-          )}
+          {renderSignInButtonContent()}
         </FQButton>
       </View>
 
       <View className="flex flex-row justify-center items-center">
         <Text className="text-base font-regular">Don't have an account? </Text>
-        <Link href={'/sign-up' as Href} onPress={resetForm}>
+        <TouchableOpacity
+          onPress={() => {
+            resetForm();
+            router.replace('/sign-up' as Href);
+          }}
+        >
           <Text className="text-blue font-bold text-base">Sign Up</Text>
-        </Link>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

@@ -28,9 +28,9 @@ export default function TabLayout() {
       >
         {/* Profile */}
         <Tabs.Screen
-          name="logout"
+          name="sign-out"
           options={{
-            title: 'Logout',
+            title: 'Sign Out',
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={focused ? 'body' : 'body-outline'}
