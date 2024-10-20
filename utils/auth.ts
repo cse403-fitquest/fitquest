@@ -135,3 +135,7 @@ export const signUp: (
     }
   }
 };
+
+export const logout = async () => {
+  await FIREBASE_AUTH.signOut();
+};

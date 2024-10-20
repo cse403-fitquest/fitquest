@@ -1,16 +1,10 @@
-// import {
-//   DarkTheme,
-//   DefaultTheme,
-//   ThemeProvider,
-// } from '@react-navigation/native';
-import { getQuests } from '@/firebaseConfig';
+import { FIREBASE_AUTH } from '@/firebaseConfig';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Href, Slot, Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-
-// import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -22,10 +16,24 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    const fetchQuests = async () => {
-      await getQuests();
-    };
-    // fetchQuests();
+    // Check user session and navigate to the appropriate screen
+
+    onAuthStateChanged(FIREBASE_AUTH, (user) => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        console.log('User is signed in');
+        console.log(user);
+
+        // Navigate to the appropriate screen
+        router.replace('/logout' as Href);
+      } else {
+        // User is signed out
+        console.log('User is signed out');
+
+        // Navigate to the appropriate screen
+        router.replace('/sign-in' as Href);
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -35,7 +43,7 @@ export default function RootLayout() {
   }, [loaded]);
 
   if (!loaded) {
-    return null;
+    return <Slot />;
   }
 
   return (
