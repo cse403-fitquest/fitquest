@@ -3,7 +3,11 @@ import React, { FC } from 'react';
 import { TouchableOpacity } from 'react-native';
 import clsx from 'clsx';
 
-const FQButton: FC<TouchableOpacityProps> = (props) => {
+interface IFQButtonProps extends TouchableOpacityProps {
+  secondary?: boolean;
+}
+
+const FQButton: FC<IFQButtonProps> = (props) => {
   const renderChildren = () => {
     if (typeof props.children === 'string') {
       return (
@@ -20,8 +24,9 @@ const FQButton: FC<TouchableOpacityProps> = (props) => {
     <TouchableOpacity
       {...props}
       className={clsx('relative p-4 rounded h-[60px] ', {
-        'bg-blue': !props.disabled,
-        'bg-gray': props.disabled,
+        'bg-blue': !props.secondary,
+        'bg-gray': props.secondary,
+        'opacity-40': props.disabled,
       })}
     >
       {renderChildren()}
