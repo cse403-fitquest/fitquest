@@ -1,8 +1,11 @@
+import { useUserStore } from '@/store/user';
 import { signOut } from '@/utils/auth';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SignOut = () => {
+  const { user } = useUserStore();
+
   const handleSignOut = async () => {
     const signOutResponse = await signOut();
 
@@ -16,7 +19,7 @@ const SignOut = () => {
       <Text className="text-3xl text-black mb-5">Sign Out</Text>
       <Text className="mb-5">
         Temporary screen used for signing out. Will be deleted once Profile
-        settings screen is implemented.
+        settings screen is implemented. Current user id is: {user?.id}
       </Text>
 
       <View className="items-center justify-center">

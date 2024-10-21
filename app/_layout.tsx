@@ -1,4 +1,5 @@
 import { FIREBASE_AUTH } from '@/firebaseConfig';
+import { useUserStore } from '@/store/user';
 import { useFonts } from 'expo-font';
 import { Href, router, Slot, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -15,6 +16,8 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
+  const { setUser } = useUserStore();
+
   useEffect(() => {
     // Setup observer to reroute user based on auth state change
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
@@ -28,6 +31,9 @@ export default function RootLayout() {
       } else {
         // User is signed out
         console.log('User is signed out');
+
+        // Clear user data
+        setUser(null);
 
         // Navigate to the appropriate screen
         router.replace('/sign-in' as Href);
