@@ -5,9 +5,9 @@ import { Colors } from '@/constants/Colors';
 const buttonStr = "Start Workout"
 
 const Workout = () => {
-  const colorScheme = useColorScheme();
-
   return (
+    <SafeAreaView className="flex-1 items-center justify-center h-full bg-off-white">
+      <Text className="text-3xl text-black">Workout</Text>
     <SafeAreaView
       className={`flex-1 items-center justify-center h-full`}
       style={{

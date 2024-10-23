@@ -1,11 +1,13 @@
 <h1 align="center">
     💪 FitQuest
 </h1>
-<p align="center">Gamified fitness app that transforms users' fitness journeys into engaging RPG-style adventures!</p>
+<p align="center">Gamified fitness app that transforms users' fitness progress into engaging RPG-style adventures!</p>
 
-<!-- <p align="center">View Demo:
-<a href="https://rise-to-olympus.netlify.app/">rise-to-olympus.netlify.app</a>
-</p> -->
+<div align="center">
+
+   [Team Resources](./team-resources.md)
+
+</div>
 
 <p align="center">
   <a href="#-features">Features</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
@@ -13,7 +15,6 @@
   <a href="#-technologies">Technologies</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
   <a href="#%EF%B8%8F-roadmap">Roadmap</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
   <a href="#%EF%B8%8F-images">Images</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-  <!-- <a href="#%EF%B8%8F-roadmap">Walkthrough</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; -->
   <a href="#-contributors">Contributors</a>
 </p>
 
@@ -123,10 +124,10 @@ This app was built with the following technologies:
 ## 🛣️ Roadmap
 
 - [x] Setup Firebase SDK
-- [ ] Implement Sign Up
-- [ ] Implement Sign In
+- [x] Implement Sign Up
+- [x] Implement Sign In
 - [ ] Implement Onboarding Wizard
-   - [ ] Questionnaire
+   - [ ] Survey
    - [ ] Fitness level calculation
    - [ ] Allocate attribute points
 - [ ] Implement Profile
@@ -136,21 +137,26 @@ This app was built with the following technologies:
 - [ ] Implement Workout
    - [ ] Active workout session
    - [ ] Workout templates
+   - [ ] Calculate exp gain from workout
 - [ ] Implement Quest
    - [ ] Active quest
    - [ ] Available quests this week
-- [ ] Implement Combat
+- [ ] Implement Fight
    - [ ] Speed turn system
    - [ ] Player and enemy sprite animations
    - [ ] Player turn actions
 - [ ] Implement Shop
    - [ ] Consumables and inventory items
    - [ ] Confirmation on item purchase
+- [ ] Implement Social
+   - [ ] Display friends and requests
+   - [ ] Add friend
 
 ## 🖼️ Images
 
 <div align="center">
 
+  <img src="./readme-images/auth-screens.png" width="400"> &nbsp;
 
 </div>
 

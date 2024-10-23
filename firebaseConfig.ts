@@ -1,10 +1,12 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: 'AIzaSyDZq4Z6931YsBCyafLXMM9ZtdqZWlyhXro',
@@ -17,9 +19,15 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const FIREBASE_APP = initializeApp(firebaseConfig);
 
-const db = getFirestore(app);
+// Get a reference to the authentication service
+export const FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
+// Get a reference to the database service
+export const FIREBASE_DB = getFirestore(FIREBASE_APP);
 
 export interface Quest {
   id: string;
@@ -29,7 +37,7 @@ export interface Quest {
 // Get a list of quests from your database
 export const getQuests = async () => {
   try {
-    const questsCol = collection(db, 'quests');
+    const questsCol = collection(FIREBASE_DB, 'quests');
     const questSnapshot = await getDocs(questsCol);
     const questList = questSnapshot.docs.map((doc) => {
       console.log(doc.id, '=>', doc.data());
