@@ -28,6 +28,7 @@ const FQButton: FC<IFQButtonProps> = (props) => {
         'bg-gray': props.secondary,
         'opacity-40': props.disabled,
       })}
+      testID='FQButton'
     >
       {renderChildren()}
     </TouchableOpacity>
