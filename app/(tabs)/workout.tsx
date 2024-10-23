@@ -10,9 +10,6 @@ const Workout = () => {
       <Text className="text-3xl text-black">Workout</Text>
     <SafeAreaView
       className={`flex-1 items-center justify-center h-full`}
-      style={{
-        backgroundColor: Colors[colorScheme ?? 'light'].background,
-      }}
     >
     <TouchableOpacity
     onPress={()=>{
@@ -28,31 +25,22 @@ const Workout = () => {
     <Text style={{ color: 'white', fontSize: 18 } }>{buttonStr}</Text>
   </TouchableOpacity>
       <Text
-        className="text-3xl"
-        style={{
-          color: Colors[colorScheme ?? 'light'].text,
-        }}
+        className="text-3xl text-black"
       >
         Create Template
       </Text>
       <Text
-        className="text-3xl"
-        style={{
-          color: Colors[colorScheme ?? 'light'].text,
-        }}
+        className="text-3xl text-black"
       >
         My Templates
       </Text>
       <Text
-        className="text-3xl"
-        style={{
-          color: Colors[colorScheme ?? 'light'].text,
-        }}
+        className="text-3xl text-black"
       >
         Example Templates
       </Text>
     </SafeAreaView>
-    
+  </SafeAreaView>
   );
 };
 
