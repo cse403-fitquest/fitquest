@@ -26,5 +26,4 @@ describe('FQTextInput', () => {
     const fqButton = getByTestId('FQTextInput-input');
     expect(fqButton).toBeTruthy();
   });
-
 });
