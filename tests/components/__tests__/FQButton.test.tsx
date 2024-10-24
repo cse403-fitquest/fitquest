@@ -5,7 +5,7 @@ import FQButton from '@/components/FQButton';
 describe('FQButton', () => {
   it('renders correctly with default props', () => {
     const { getByTestId, getByText } = render(
-      <FQButton onPress={() => {}}>Click Me</FQButton>
+      <FQButton onPress={() => {}}>Click Me</FQButton>,
     );
 
     const button = getByTestId('FQButton');
@@ -15,12 +15,11 @@ describe('FQButton', () => {
     expect(buttonText).toBeTruthy();
   });
 
-
   it('applies secondary styles when secondary prop is true', () => {
     const { getByTestId } = render(
       <FQButton secondary onPress={() => {}}>
         Secondary Button
-      </FQButton>
+      </FQButton>,
     );
 
     const button = getByTestId('FQButton');
@@ -35,7 +34,7 @@ describe('FQButton', () => {
     expect(button.props.style).toEqual(
       expect.objectContaining({
         backgroundColor: '#7E7E7E', // Replace with actual color if different
-      })
+      }),
     );
   });
 
@@ -43,7 +42,7 @@ describe('FQButton', () => {
     const { getByTestId } = render(
       <FQButton disabled onPress={() => {}}>
         Disabled Button
-      </FQButton>
+      </FQButton>,
     );
 
     const button = getByTestId('FQButton');
@@ -52,7 +51,7 @@ describe('FQButton', () => {
     expect(button.props.style).toEqual(
       expect.objectContaining({
         opacity: 0.4, // Replace with actual opacity if different
-      })
+      }),
     );
   });
 
@@ -60,7 +59,7 @@ describe('FQButton', () => {
     const onPressMock = jest.fn();
 
     const { getByTestId } = render(
-      <FQButton onPress={onPressMock}>Press Me</FQButton>
+      <FQButton onPress={onPressMock}>Press Me</FQButton>,
     );
 
     const button = getByTestId('FQButton');
@@ -76,7 +75,7 @@ describe('FQButton', () => {
     const { getByTestId } = render(
       <FQButton disabled onPress={onPressMock}>
         Disabled Press
-      </FQButton>
+      </FQButton>,
     );
 
     const button = getByTestId('FQButton');
