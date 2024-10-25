@@ -1,21 +1,22 @@
+/* eslint-disable no-undef */
 /** @type {import('tailwindcss').Config} */
-// eslint-disable-next-line no-undef
+
+const colors = require('tailwindcss/colors');
+
 module.exports = {
   content: ['./app/**/*.{js,jsx,ts,tsx}', './components/**/*.{js,jsx,ts,tsx}'],
   theme: {
-    extend: {
-      colors: {
-        blue: '#00AEEF',
-        purple: '#662D91',
-        green: '#39B54A',
-        yellow: {
-          DEFAULT: '#FFD200',
-          600: '#9F8A01', // Use for Gold
-        },
-        'gray-dark': '#333333',
-        gray: '#7E7E7E',
-        'off-white': 'BEBEBE',
-      },
+    colors: {
+      blue: '#00AEEF',
+      purple: '#662D91',
+      green: '#39B54A',
+      yellow: '#FFD200',
+      gold: '#9F8A01',
+      pink: '#FB7DE6',
+      'gray-dark': '#333333',
+      gray: '#7E7E7E',
+      'off-white': 'BEBEBE',
+      red: colors.red,
     },
   },
   plugins: [],

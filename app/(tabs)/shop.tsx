@@ -1,4 +1,4 @@
-import { FlatList, Text, View } from 'react-native';
+import { FlatList, ScrollView, Text, View } from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Item, ItemType } from '@/types/item';
@@ -85,17 +85,70 @@ const MOCK_ITEMS: Item[] = [
     spriteID: 'sword',
     createdAt: currentDate,
   },
+  {
+    id: 'rherheb',
+    type: ItemType.ACCESSORY,
+    name: 'Rock Pendant',
+    power: 5,
+    speed: 0,
+    health: 5,
+    cost: 100,
+    spriteID: 'sword',
+    createdAt: currentDate,
+  },
+  {
+    id: 'afea4twegwerg',
+    type: ItemType.ACCESSORY,
+    name: 'Fire Pendant',
+    power: 5,
+    speed: 5,
+    health: 0,
+    cost: 100,
+    spriteID: 'sword',
+    createdAt: currentDate,
+  },
+  {
+    id: 'gssgsgsgs',
+    type: ItemType.POTION_SMALL,
+    name: 'Small Health Potion',
+    power: 0,
+    speed: 0,
+    health: 0,
+    cost: 50,
+    spriteID: 'sword',
+    createdAt: currentDate,
+  },
+  {
+    id: 'gssgsgsgsdsfs',
+    type: ItemType.POTION_MEDIUM,
+    name: 'Medium Health Potion',
+    power: 0,
+    speed: 0,
+    health: 0,
+    cost: 75,
+    spriteID: 'sword',
+    createdAt: currentDate,
+  },
+  {
+    id: 'gssgfsfsasgsgs',
+    type: ItemType.POTION_LARGE,
+    name: 'Large Health Potion',
+    power: 0,
+    speed: 0,
+    health: 0,
+    cost: 100,
+    spriteID: 'sword',
+    createdAt: currentDate,
+  },
 ];
 
 const Shop = () => {
   return (
     <SafeAreaView className="relative flex-1 items-center h-full bg-off-white">
-      <View className="w-full h-full px-6 py-8">
+      <ScrollView className="w-full h-full px-6 py-8">
         <View className="flex-row justify-between items-center">
           <Text className="text-2xl text-gray-black mb-5">Shop</Text>
-          <Text className="text-lg text-yellow-600 mb-5 font-semibold">
-            500 Gold
-          </Text>
+          <Text className="text-lg text-gold mb-5 font-semibold">500 Gold</Text>
         </View>
 
         <View className="w-full  mb-5">
@@ -128,7 +181,10 @@ const Shop = () => {
             ACCESSORIES
           </Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(MOCK_ITEMS, ItemType.ARMOR)}
+            data={filterItemsByTypeAndSortByCost(
+              MOCK_ITEMS,
+              ItemType.ACCESSORY,
+            )}
             renderItem={({ item }) => <ItemCard item={item} />}
             ItemSeparatorComponent={() => <View className="w-3" />}
             className="grow-0 m-0"
@@ -140,18 +196,40 @@ const Shop = () => {
           <Text className="text-xl text-gray-black font-bold mb-2">
             POTIONS
           </Text>
-          <FlatList
-            data={filterItemsByTypeAndSortByCost(
-              MOCK_ITEMS,
-              ItemType.POTION_SMALL,
-            )}
-            renderItem={({ item }) => <ItemCard item={item} />}
-            ItemSeparatorComponent={() => <View className="w-3" />}
-            className="grow-0 m-0"
-            horizontal
-          />
+          <View className="flex-row gap-3">
+            <FlatList
+              data={filterItemsByTypeAndSortByCost(
+                MOCK_ITEMS,
+                ItemType.POTION_SMALL,
+              )}
+              renderItem={({ item }) => <ItemCard item={item} />}
+              ItemSeparatorComponent={() => <View className="w-3" />}
+              className="grow-0 m-0"
+              horizontal
+            />
+            <FlatList
+              data={filterItemsByTypeAndSortByCost(
+                MOCK_ITEMS,
+                ItemType.POTION_MEDIUM,
+              )}
+              renderItem={({ item }) => <ItemCard item={item} />}
+              ItemSeparatorComponent={() => <View className="w-3" />}
+              className="grow-0 m-0"
+              horizontal
+            />
+            <FlatList
+              data={filterItemsByTypeAndSortByCost(
+                MOCK_ITEMS,
+                ItemType.POTION_LARGE,
+              )}
+              renderItem={({ item }) => <ItemCard item={item} />}
+              ItemSeparatorComponent={() => <View className="w-3" />}
+              className="grow-0 m-0"
+              horizontal
+            />
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -163,12 +241,12 @@ const ItemCard: React.FC<{ item: Item }> = ({ item }) => {
     <View className="flex-col justify-center items-center">
       <View
         className={clsx(
-          'rounded w-24 h-24 border border-gray shadow-lg shadow-black mb-2',
-          { 'bg-red-800': item.type === ItemType.WEAPON },
-          { 'bg-blue-800': item.type === ItemType.ARMOR },
-          { 'bg-green-800': item.type === ItemType.ACCESSORY },
+          'rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2',
           {
-            'bg-red-300': [
+            'bg-red-800': item.type === ItemType.WEAPON,
+            'bg-blue': item.type === ItemType.ARMOR,
+            'bg-green': item.type === ItemType.ACCESSORY,
+            'bg-pink': [
               ItemType.POTION_SMALL,
               ItemType.POTION_MEDIUM,
               ItemType.POTION_LARGE,
@@ -176,7 +254,7 @@ const ItemCard: React.FC<{ item: Item }> = ({ item }) => {
           },
         )}
       ></View>
-      <Text className="text-lg text-yellow-600 mb-5 font-semibold">
+      <Text className="text-lg text-gold mb-5 font-semibold">
         {item.cost} Gold
       </Text>
     </View>
