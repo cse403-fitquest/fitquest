@@ -11,6 +11,7 @@ export type Item = {
   id: string;
   type: ItemType;
   name: string;
+  description: string;
   power: number;
   speed: number;
   health: number;
