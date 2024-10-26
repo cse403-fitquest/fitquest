@@ -1,9 +1,12 @@
 import { FlatList, TouchableOpacity, Text, View } from 'react-native';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { UserFriend } from '@/types/friend';
 import { BASE_USER } from '@/constants/user';
 import { User } from '@/types/auth';
+import { Ionicons } from '@expo/vector-icons';
+import FQModal from '@/components/FQModal';
+import FQTextInput from '@/components/FQTextInput';
 
 const MOCK_USER_FRIENDS: UserFriend = {
   id: '1',
@@ -80,8 +83,65 @@ const MOCK_USER_FRIENDS: UserFriend = {
   ],
 };
 
+enum ModalDataOptions {
+  ADD_FRIEND = 'ADD_FRIEND',
+  REMOVE_FRIEND = 'REMOVE_FRIEND',
+}
+
 const Social = () => {
-  // const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalDataOption, setModalDataOption] = useState<{
+    option: ModalDataOptions;
+    email: string;
+    emailError?: string;
+    user: User | null;
+  }>({
+    option: ModalDataOptions.ADD_FRIEND,
+    email: '',
+    user: null,
+  });
+
+  const modalData: {
+    title: string;
+    confirmButtonText: string;
+    children: React.ReactNode;
+  } = useMemo(() => {
+    switch (modalDataOption.option) {
+      case ModalDataOptions.ADD_FRIEND:
+        return {
+          title: 'Add Friend',
+          confirmButtonText: 'ADD',
+          children: (
+            <View className="mt-5 w-[240px]">
+              <FQTextInput
+                onChangeText={(text) =>
+                  setModalDataOption({ ...modalDataOption, email: text })
+                }
+                label="Email"
+                value={modalDataOption.email}
+                error={modalDataOption.emailError}
+              />
+            </View>
+          ),
+        };
+      case ModalDataOptions.REMOVE_FRIEND:
+        return {
+          title: 'Remove Friend',
+          confirmButtonText: 'REMOVE',
+          children: (
+            <Text className="text-lg font-medium">
+              Are you sure you want to remove this friend?
+            </Text>
+          ),
+        };
+      default:
+        return {
+          title: '',
+          children: null,
+          confirmButtonText: '',
+        };
+    }
+  }, [modalDataOption]);
 
   const [sections, setSections] = useState<
     { key: string; title: string; data: User[] | string[] }[]
@@ -213,9 +273,23 @@ const Social = () => {
     } else if (item.key === 'friends') {
       return (
         <View className="mb-5">
-          <Text className="text-xl text-gray-dark font-bold mb-2">
-            {item.title}
-          </Text>
+          <View className="flex-row justify-between items-center">
+            <Text className="text-xl text-gray-dark font-bold mb-2">
+              {item.title}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setModalDataOption({
+                  option: ModalDataOptions.ADD_FRIEND,
+                  email: '',
+                  user: null,
+                });
+                setModalVisible(true);
+              }}
+            >
+              <Ionicons name="add" size={24} color="#00AEEF" />
+            </TouchableOpacity>
+          </View>
           <FlatList
             data={item.data as User[]}
             keyExtractor={(friend) => friend.id}
@@ -231,8 +305,78 @@ const Social = () => {
     return null;
   };
 
+  const handleModalConfirm = () => {
+    if (modalDataOption.option === ModalDataOptions.ADD_FRIEND) {
+      // Send friend request
+      // Add email to sentRequests
+
+      // Handle errors
+      let emailError: string = '';
+      const emailInput = modalDataOption.email.trim();
+
+      // Validate email
+      // Email validation
+      // Check if email input is empty
+      if (!emailInput) {
+        emailError = 'Email is required';
+      }
+
+      // Check for email regex
+      // If email is not empty, check if it's a valid email
+      if (!emailError) {
+        // Email regex used from https://emailregex.com/
+        const emailRegex =
+          // eslint-disable-next-line no-control-regex
+          /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
+        if (!emailRegex.test(emailInput)) {
+          emailError = 'Must be a valid email address';
+        }
+      }
+
+      // Check if email is already in sent requests
+      const sentRequests = sections.find(
+        (section) => section.key === 'sentRequests',
+      )?.data as string[];
+      if (sentRequests.includes(modalDataOption.email)) {
+        emailError = 'Request already sent';
+      }
+
+      if (emailError) {
+        // Handle email error
+        setModalDataOption({
+          ...modalDataOption,
+          emailError,
+        });
+        return;
+      }
+
+      setSections(
+        sections.map((section) => {
+          if (section.key === 'sentRequests') {
+            return {
+              ...section,
+              data: [...(section.data as string[]), modalDataOption.email],
+            };
+          }
+          return section;
+        }),
+      );
+    }
+    setModalVisible(false);
+  };
+
   return (
     <SafeAreaView className="relative w-full flex-col justify-start items-start bg-off-white px-6">
+      <FQModal
+        visible={modalVisible}
+        setVisible={setModalVisible}
+        title={modalData.title}
+        onConfirm={() => handleModalConfirm()}
+        confirmText={modalData.confirmButtonText}
+        cancelText="CANCEL"
+      >
+        {modalData.children}
+      </FQModal>
       <FlatList
         data={sections}
         keyExtractor={(section) => section.key}
