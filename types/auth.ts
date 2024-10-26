@@ -45,5 +45,10 @@ export type User = {
   attributes: { power: number; speed: number; health: number };
   exp: number;
   gold: number;
+  currentQuest: string;
+  privacySettings: {
+    isLastWorkoutPublic: boolean;
+    isCurrentQuestPublic: boolean;
+  };
   createdAt: number;
 };
