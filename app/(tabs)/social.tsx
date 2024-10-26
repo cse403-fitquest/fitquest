@@ -111,23 +111,49 @@ const Social = () => {
     if (item.key === 'sentRequests') {
       return (
         <View className="mb-5">
-          <Text className="text-xl text-gray-black font-bold mb-2">
+          <Text className="text-xl text-gray-dark font-bold mb-2">
             {item.title}
           </Text>
           <FlatList
             data={item.data as string[]}
             keyExtractor={(friend) => friend}
             renderItem={({ item }) => (
-              <Text className="text-lg font-medium">{item}</Text>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-lg font-medium">{item}</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    // Cancel request
+                    // Remove email from sentRequests
+                    setSections(
+                      sections.map((section) => {
+                        if (section.key === 'sentRequests') {
+                          return {
+                            ...section,
+                            data: (section.data as string[]).filter(
+                              (email) => email !== item,
+                            ),
+                          };
+                        }
+                        return section;
+                      }),
+                    );
+                  }}
+                >
+                  <Text className="text-sm font-bold text-red-500">CANCEL</Text>
+                </TouchableOpacity>
+              </View>
             )}
             ItemSeparatorComponent={() => <View className="h-1" />}
+            ListEmptyComponent={() => (
+              <Text className="text-lg font-medium">No sent requests</Text>
+            )}
           />
         </View>
       );
     } else if (item.key === 'incomingRequests') {
       return (
         <View className="mb-5">
-          <Text className="text-xl text-gray-black font-bold mb-2">
+          <Text className="text-xl text-gray-dark font-bold mb-2">
             {item.title}
           </Text>
           <FlatList
@@ -138,22 +164,56 @@ const Social = () => {
                 user={item}
                 onAccept={() => {
                   // Accept request
-                  // TODO: Remove user from pendingRequests and add to friends
+                  // Remove user from incomingRequests and add to friends
+                  setSections(
+                    sections.map((section) => {
+                      if (section.key === 'friends') {
+                        return {
+                          ...section,
+                          data: [item, ...(section.data as User[])],
+                        };
+                      } else if (section.key === 'incomingRequests') {
+                        return {
+                          ...section,
+                          data: (section.data as User[]).filter(
+                            (user) => user.id !== item.id,
+                          ),
+                        };
+                      }
+                      return section;
+                    }),
+                  );
                 }}
                 onDeny={() => {
                   // Deny request
-                  // TODO: Remove user from pendingRequests
+                  // Remove user from incomingRequests
+                  setSections(
+                    sections.map((section) => {
+                      if (section.key === 'incomingRequests') {
+                        return {
+                          ...section,
+                          data: (section.data as User[]).filter(
+                            (user) => user.id !== item.id,
+                          ),
+                        };
+                      }
+                      return section;
+                    }),
+                  );
                 }}
               />
             )}
             ItemSeparatorComponent={() => <View className="h-1" />}
+            ListEmptyComponent={() => (
+              <Text className="text-lg font-medium">No incoming requests</Text>
+            )}
           />
         </View>
       );
     } else if (item.key === 'friends') {
       return (
         <View className="mb-5">
-          <Text className="text-xl text-gray-black font-bold mb-2">
+          <Text className="text-xl text-gray-dark font-bold mb-2">
             {item.title}
           </Text>
           <FlatList
@@ -161,6 +221,9 @@ const Social = () => {
             keyExtractor={(friend) => friend.id}
             renderItem={({ item }) => <FriendItem user={item} />}
             ItemSeparatorComponent={() => <View className="h-1" />}
+            ListEmptyComponent={() => (
+              <Text className="text-lg font-medium">No friends</Text>
+            )}
           />
         </View>
       );
@@ -170,17 +233,18 @@ const Social = () => {
 
   return (
     <SafeAreaView className="relative w-full flex-col justify-start items-start bg-off-white px-6">
-      <View className="pt-4"></View>
       <FlatList
         data={sections}
         keyExtractor={(section) => section.key}
         renderItem={({ item }) => renderSection(item)}
         ListHeaderComponent={
-          <Text className="text-2xl text-gray-black mb-5 w-full">Social</Text>
+          <Text className="text-2xl text-gray-black mb-5 w-full pt-6">
+            Social
+          </Text>
         }
+        ListFooterComponent={<View className="pb-6" />}
         showsVerticalScrollIndicator={false}
       />
-      <View className="pb-4"></View>
     </SafeAreaView>
   );
 };
