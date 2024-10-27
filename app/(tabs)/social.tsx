@@ -1,5 +1,12 @@
-import { FlatList, TouchableOpacity, Text, View } from 'react-native';
-import React, { useMemo, useState } from 'react';
+import {
+  FlatList,
+  TouchableOpacity,
+  Text,
+  View,
+  PanResponder,
+  Animated,
+} from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { UserFriend } from '@/types/friend';
 import { BASE_USER } from '@/constants/user';
@@ -95,10 +102,12 @@ const Social = () => {
     email: string;
     emailError?: string;
     user: User | null;
+    friend: User | null;
   }>({
     option: ModalDataOptions.ADD_FRIEND,
     email: '',
     user: null,
+    friend: null,
   });
 
   const modalData: {
@@ -130,7 +139,8 @@ const Social = () => {
           confirmButtonText: 'REMOVE',
           children: (
             <Text className="text-lg font-medium">
-              Are you sure you want to remove this friend?
+              Are you sure you want to remove{' '}
+              {modalDataOption.friend?.profileInfo.username}?
             </Text>
           ),
         };
@@ -283,6 +293,7 @@ const Social = () => {
                   option: ModalDataOptions.ADD_FRIEND,
                   email: '',
                   user: null,
+                  friend: null,
                 });
                 setModalVisible(true);
               }}
@@ -293,7 +304,22 @@ const Social = () => {
           <FlatList
             data={item.data as User[]}
             keyExtractor={(friend) => friend.id}
-            renderItem={({ item }) => <FriendItem user={item} />}
+            renderItem={({ item }) => (
+              <FriendItem
+                user={item}
+                onDelete={() => {
+                  // Open modal to confirm removal
+
+                  setModalDataOption({
+                    option: ModalDataOptions.REMOVE_FRIEND,
+                    email: '',
+                    user: item,
+                    friend: item,
+                  });
+                  setModalVisible(true);
+                }}
+              />
+            )}
             ItemSeparatorComponent={() => <View className="h-1" />}
             ListEmptyComponent={() => (
               <Text className="text-lg font-medium">No friends</Text>
@@ -361,12 +387,28 @@ const Social = () => {
           return section;
         }),
       );
+    } else if (modalDataOption.option === ModalDataOptions.REMOVE_FRIEND) {
+      // Remove friend
+      // Remove user from friends
+      setSections(
+        sections.map((section) => {
+          if (section.key === 'friends') {
+            return {
+              ...section,
+              data: (section.data as User[]).filter(
+                (user) => user.id !== modalDataOption.friend?.id,
+              ),
+            };
+          }
+          return section;
+        }),
+      );
     }
     setModalVisible(false);
   };
 
   return (
-    <SafeAreaView className="relative w-full flex-col justify-start items-start bg-off-white px-6">
+    <SafeAreaView className="relative w-full flex-col justify-start items-start bg-offWhite px-6">
       <FQModal
         visible={modalVisible}
         setVisible={setModalVisible}
@@ -382,9 +424,7 @@ const Social = () => {
         keyExtractor={(section) => section.key}
         renderItem={({ item }) => renderSection(item)}
         ListHeaderComponent={
-          <Text className="text-2xl text-gray-black mb-5 w-full pt-6">
-            Social
-          </Text>
+          <Text className="text-2xl text-black mb-5 w-full pt-6">Social</Text>
         }
         ListFooterComponent={<View className="pb-6" />}
         showsVerticalScrollIndicator={false}
@@ -415,22 +455,70 @@ const IncomingRequestItem: React.FC<{
   );
 };
 
-const FriendItem: React.FC<{ user: User }> = ({ user }) => {
+const FriendItem: React.FC<{ user: User; onDelete: () => void }> = ({
+  user,
+  onDelete,
+}) => {
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dx < 0) {
+          translateX.setValue(gestureState.dx);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        console.log(gestureState.dx);
+        if (gestureState.dx < -100) {
+          Animated.spring(translateX, {
+            toValue: -100,
+            useNativeDriver: true,
+          }).start();
+        } else {
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    }),
+  ).current;
+
   return (
-    <View>
-      <View className="flex-row justify-between items-end w-full">
-        <Text className="text-lg font-medium">{user.profileInfo.username}</Text>
-        {user.privacySettings.isLastWorkoutPublic ? (
-          <Text className="text-xs font-medium">Last Workout: 3d ago</Text>
-        ) : null}
-      </View>
-      {user.privacySettings.isCurrentQuestPublic ? (
-        <Text className="font-medium text-xs">
-          On Quest: <Text className="font-bold">Hunt Big Chungus</Text>
-        </Text>
-      ) : (
-        <Text className="font-medium text-xs">-</Text>
-      )}
+    <View className="relative">
+      <Animated.View
+        style={{
+          flex: 1,
+          transform: [{ translateX: translateX }],
+        }}
+      >
+        <View {...panResponder.panHandlers} className=" z-10">
+          <View className="flex-row justify-between items-end w-full">
+            <Text className="text-lg font-medium">
+              {user.profileInfo.username}
+            </Text>
+            {user.privacySettings.isLastWorkoutPublic ? (
+              <Text className="text-xs font-medium">Last Workout: 3d ago</Text>
+            ) : null}
+          </View>
+          {user.privacySettings.isCurrentQuestPublic ? (
+            <Text className="font-medium text-xs">
+              On Quest: <Text className="font-bold">Hunt Big Chungus</Text>
+            </Text>
+          ) : (
+            <Text className="font-medium text-xs">-</Text>
+          )}
+        </View>
+        <TouchableOpacity
+          onPress={onDelete}
+          className="absolute right-[-100px] h-full justify-center items-center bg-red-500 w-[90px]"
+        >
+          <Text className="text-white font-bold">DELETE</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 };
