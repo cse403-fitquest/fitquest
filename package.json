@@ -18,7 +18,7 @@
       "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(expo-modules-core|@react-native|expo|unimodules|react-native|react-native-gesture-handler)/)"
+      "node_modules/(?!(expo-modules-core|@react-native|expo|unimodules|react-native|react-native-gesture-handler|@?firebase)/)"
     ],
     "moduleFileExtensions": [
       "ts",

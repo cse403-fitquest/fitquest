@@ -11,7 +11,7 @@ import AppTitle from '@/components/AppTitle';
 import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
 import { Href, router } from 'expo-router';
-import { signUp } from '@/utils/auth';
+import { isEmailValid, signUp } from '@/utils/auth';
 import { SignUpErrorState } from '@/types/auth';
 import { useUserStore } from '@/store/user';
 import { BASE_USER } from '@/constants/user';
@@ -97,11 +97,7 @@ const SignUp = () => {
 
     // If email is not empty, check if it's a valid email
     if (!newErrors.email) {
-      // Email regex used from https://emailregex.com/
-      const emailRegex =
-        // eslint-disable-next-line no-control-regex
-        /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
-      if (!emailRegex.test(form.email)) {
+      if (!isEmailValid(form.email)) {
         newErrors = {
           ...newErrors,
           email: 'Must be a valid email address',
