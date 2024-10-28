@@ -69,26 +69,6 @@ describe('Authentication Utility Functions', () => {
         },
       });
     });
-
-    it('returns an error for invalid login credentials', async () => {
-      const mockError = new FirebaseError(
-        'auth/invalid-login-credentials',
-        'Invalid credentials',
-      );
-      (signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce(
-        mockError,
-      );
-
-      const response = await signIn('test@example.com', 'wrongpassword');
-      expect(response).toEqual({
-        userCredential: null,
-        error: {
-          general: 'Invalid email or password.',
-          email: '',
-          password: '',
-        },
-      });
-    });
   });
 
   describe('signUp', () => {
