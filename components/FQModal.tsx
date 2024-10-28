@@ -38,7 +38,7 @@ const FQModal: FC<IFQModal> = ({
       testID="FQButton"
     >
       <View className="relative w-full h-full justify-center items-center">
-        <View className="relative border border-gray shadow-lg rounded p-7 bg-white min-w-[200px] max-w-[75%]">
+        <View className="relative border border-gray shadow-lg rounded p-7 bg-white min-w-[200px] max-w-[90%]">
           <View>
             <Text
               className="text-xl text-black font-bold"

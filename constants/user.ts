@@ -13,5 +13,10 @@ export const BASE_USER: User = {
   attributes: { power: 0, speed: 0, health: 0 },
   exp: 0,
   gold: 0,
+  currentQuest: '',
+  privacySettings: {
+    isLastWorkoutPublic: true,
+    isCurrentQuestPublic: true,
+  },
   createdAt: 0,
 };
