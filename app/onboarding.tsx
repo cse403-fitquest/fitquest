@@ -2,6 +2,8 @@ import { Text, View } from 'react-native';
 import React from 'react';
 import { Link } from 'expo-router';
 import { RadioGroup } from 'react-native-radio-buttons-group';
+//const { frequency, setFrequency } = useOnboardingStore();
+//import { useOnboardingStore } from '@store/onboarding';
 
 /* Onboarding Wizard
  * This component will be used to guide the user through a series of questions to set up their profile.
