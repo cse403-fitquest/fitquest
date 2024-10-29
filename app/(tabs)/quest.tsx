@@ -6,14 +6,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-// Example quests data
 const quests = [
   { 
     questId: '1', 
     name: 'Hunt Big Chungus', 
     color: 'red', 
-    milestones: Array.from({length: 20}, (_, i) => (i + 1) * 50), // 20 milestones, 50 points each
-    bossThreshold: 500, // Fight boss at 50%
+    milestones: Array.from({length: 20}, (_, i) => (i + 1) * 50), 
+    bossThreshold: 500, 
     duration: 7 * 24 * 60 * 60 * 1000
   },
   { 
@@ -42,10 +41,9 @@ const quests = [
   },
 ];
 
-// Quest state data
 let questData = {
-  activeQuests: {}, // Maps userID -> active quest data (including progress, objective milestones)
-  questProgress: {}, // Maps questID -> completion percentage
+  activeQuests: {}, 
+  questProgress: {}, 
 };
 
 const startQuest = async (userID, questID, setActiveQuest) => {
@@ -92,7 +90,6 @@ const Quest = () => {
     const allMilestones = quest.milestones;
     const remainingMilestones = allMilestones.filter(milestone => milestone > currentProgress);
     
-    // Always show 6 milestones, pad with completed ones if needed
     if (remainingMilestones.length < 6) {
       const completedMilestones = allMilestones
         .filter(milestone => milestone <= currentProgress)
@@ -119,8 +116,8 @@ const Quest = () => {
   const confirmAbandon = async () => {
     await AsyncStorage.removeItem('activeQuest');
     setActiveQuest(null);
-    setCurrentNodeIndex(0); // Reset the node index on abandon
-    setVisualProgress(0); // Reset visual progress on abandon
+    setCurrentNodeIndex(0);
+    setVisualProgress(0);
     setShowAbandonModal(false);
   };
 
