@@ -1,14 +1,6 @@
-import {
-  Text,
-  View,
-  TouchableOpacity,
-  useColorScheme,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -73,7 +65,6 @@ const startQuest = async (userID, questID, setActiveQuest) => {
 };
 
 const Quest = () => {
-  const colorScheme = useColorScheme();
   const userID = 'user123';
   const [activeQuest, setActiveQuest] = useState(null);
   // const [setShowFightModal] = useState(false);
