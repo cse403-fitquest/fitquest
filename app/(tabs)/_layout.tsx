@@ -90,6 +90,7 @@ export default function TabLayout() {
         />
 
         {/* Onboarding */}
+        {/*}
         <Tabs.Screen
           name="(profile)"
           options={{
@@ -103,6 +104,7 @@ export default function TabLayout() {
             ),
           }}
         />
+        */}
 
         {/* <Tabs.Screen
         {/* Quest */}
@@ -115,21 +117,6 @@ export default function TabLayout() {
                 name={focused ? 'help' : 'help-outline'}
                 color={color}
                 size={27}
-              />
-            ),
-          }}
-        />
-
-        {/* Shop */}
-        <Tabs.Screen
-          name="shop"
-          options={{
-            title: 'Shop',
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? 'cart' : 'cart-outline'}
-                color={color}
-                size={25}
               />
             ),
           }}
