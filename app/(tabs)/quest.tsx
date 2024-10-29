@@ -1,14 +1,6 @@
-import {
-  Text,
-  View,
-  TouchableOpacity,
-  useColorScheme,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -99,7 +91,6 @@ const startQuest = async (
 };
 
 const Quest = () => {
-  const colorScheme = useColorScheme();
   const userID = 'user123';
   const [activeQuest, setActiveQuest] = useState<ActiveQuest | null>(null);
   const [, setShowAbandonModal] = useState<boolean>(false);
@@ -219,7 +210,7 @@ const Quest = () => {
 
   const renderMilestoneNodes = (quest: ActiveQuest, progress: number) => {
     // Add a starting point (initial node)
-    const startingPoint = '';
+    const startingPoint = 'start';
     const nextMilestones = getNextMilestones(
       {
         questId: quest.questID,
@@ -304,26 +295,23 @@ const Quest = () => {
   };
 
   return (
-    <SafeAreaView
-      className="flex-1"
-      style={{
-        backgroundColor: Colors[colorScheme ?? 'light'].tabBarActiveTintColor,
-      }}
-    >
-      <View className="flex-1 p-4">
+    <SafeAreaView className={`flex-1 bg-offWhite px-6 pt-8`}>
+      <View className="flex-1">
         <View className="mb-8">
-          <Text className="text-3xl mb-4 font-bold text-black">
-            Active Quest
+          <Text className="text-2xl text-gray-black mb-5">Quest</Text>
+
+          <Text className="text-xl mb-4 font-bold text-grayDark">
+            ACTIVE QUEST
           </Text>
 
           {activeQuest ? (
-            <View className="bg-gray-200 p-6 rounded-xl border border-gray-400 relative shadow-md min-h-[150px] max-h-[225px]">
-              <Text className="text-xl font-bold mb-2">
+            <View className="bg-white p-6 rounded-xl border border-gray relative shadow-black shadow-lg min-h-[150px] max-h-[225px]">
+              <Text className="text-lg font-semibold mb-2">
                 {activeQuest.questName}
               </Text>
               {renderMilestoneNodes(activeQuest, activeQuest.progress)}
               <TouchableOpacity
-                className="absolute right-10 p-2"
+                className="absolute right-[40px] p-2"
                 onPress={handleAdvance}
               >
                 <Ionicons
@@ -350,22 +338,31 @@ const Quest = () => {
           )}
         </View>
 
-        <Text className="text-3xl mb-4 font-bold">Quest Board</Text>
+        <Text className="text-xl mb-4 font-bold text-grayDark">
+          QUEST BOARD
+        </Text>
         <ScrollView className="flex-1">
           {quests.map((quest, index) => (
             <TouchableOpacity
               key={index}
-              className="bg-white p-3 mb-4 rounded-xl shadow-sm border border-gray-200"
+              className="bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[90px] justify-center items-between"
               onPress={() =>
                 confirmAction('Start', quest, userID, setActiveQuest)
               }
             >
               <View className="flex-row items-center justify-between">
-                <Text className="text-xl font-semibold">{quest.name}</Text>
-                <View className={`w-10 h-10 rounded-full shadow-md`} />
-                {/* <View
-                  className={'w-10 h-10 rounded-full bg-${quest.color}-500'}
-                /> */}
+                <Text className="text-lg font-semibold">{quest.name}</Text>
+                <View
+                  className="w-10 h-10 rounded-full"
+                  style={{
+                    backgroundColor: quest.color,
+                    elevation: 2,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 1.41,
+                  }}
+                />
               </View>
             </TouchableOpacity>
           ))}
