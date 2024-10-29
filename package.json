@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "test": "jest",
     "test:dev": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "npx eslint app/ components/ utils/ store/ constants/ hooks/"
   },
   "jest": {
     "preset": "jest-expo",
@@ -18,7 +18,7 @@
       "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(expo-modules-core|@react-native|expo|unimodules|react-native|react-native-gesture-handler)/)"
+      "node_modules/(?!(expo-modules-core|@react-native|expo|unimodules|react-native|react-native-gesture-handler|@?firebase)/)"
     ],
     "moduleFileExtensions": [
       "ts",

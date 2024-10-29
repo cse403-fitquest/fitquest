@@ -7,10 +7,33 @@ import {
 } from '@/types/auth';
 import { FirebaseError } from 'firebase/app';
 import {
-  AuthErrorCodes,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
+
+export enum FirebaseAuthErrorCodes {
+  INVALID_LOGIN_CREDENTIALS = 'auth/invalid-login-credentials',
+  EMAIL_EXISTS = 'auth/email-already-in-use',
+  USER_DISABLED = 'auth/user-disabled',
+  USER_NOT_FOUND = 'auth/user-not-found',
+  WEAK_PASSWORD = 'auth/weak-password',
+  WRONG_PASSWORD = 'auth/wrong-password',
+  REQUIRES_RECENT_LOGIN = 'auth/requires-recent-login',
+  TOO_MANY_REQUESTS = 'auth/too-many-requests',
+  OPERATION_NOT_ALLOWED = 'auth/operation-not-allowed',
+}
+
+/**
+ * Check if an email is valid
+ * @param email user's email
+ * @returns a boolean indicating if the email is valid
+ */
+export const isEmailValid = (email: string): boolean => {
+  const emailRegex =
+    // eslint-disable-next-line no-control-regex
+    /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
+  return emailRegex.test(email);
+};
 
 /**
  * Sign in with email and password
@@ -40,7 +63,7 @@ export const signIn: (
       console.error('Error signing in with Firebase: ', error);
 
       switch (error.code) {
-        case AuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
+        case FirebaseAuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
           return {
             userCredential: null,
             error: {
@@ -102,7 +125,7 @@ export const signUp: (
       console.error('Error signing in with Firebase: ', error);
 
       switch (error.code) {
-        case AuthErrorCodes.EMAIL_EXISTS:
+        case FirebaseAuthErrorCodes.EMAIL_EXISTS:
           return {
             userCredential: null,
             error: {
