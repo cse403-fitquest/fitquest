@@ -124,8 +124,8 @@ This app was built with the following technologies:
 ## 🛣️ Roadmap
 
 - [x] Setup Firebase SDK
-- [ ] Implement Sign Up
-- [ ] Implement Sign In
+- [x] Implement Sign Up
+- [x] Implement Sign In
 - [ ] Implement Onboarding Wizard
    - [ ] Survey
    - [ ] Fitness level calculation
@@ -156,6 +156,7 @@ This app was built with the following technologies:
 
 <div align="center">
 
+  <img src="./readme-images/auth-screens.png" width="400"> &nbsp;
 
 </div>
 

@@ -74,39 +74,6 @@ export default function TabLayout() {
           }}
         />
 
-        {/* Shop */}
-        <Tabs.Screen
-          name="shop"
-          options={{
-            title: 'Shop',
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? 'cart' : 'cart-outline'}
-                color={color}
-                size={25}
-              />
-            ),
-          }}
-        />
-
-        {/* Onboarding */}
-        {/*}
-        <Tabs.Screen
-          name="(profile)"
-          options={{
-            title: 'Onboarding',
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? 'book' : 'book-outline'}
-                color={color}
-                size={25}
-              />
-            ),
-          }}
-        />
-        */}
-
-        {/* <Tabs.Screen
         {/* Quest */}
         <Tabs.Screen
           name="quest"
@@ -117,6 +84,21 @@ export default function TabLayout() {
                 name={focused ? 'help' : 'help-outline'}
                 color={color}
                 size={27}
+              />
+            ),
+          }}
+        />
+
+        {/* Shop */}
+        <Tabs.Screen
+          name="shop"
+          options={{
+            title: 'Shop',
+            tabBarIcon: ({ color, focused }) => (
+              <TabBarIcon
+                name={focused ? 'cart' : 'cart-outline'}
+                color={color}
+                size={25}
               />
             ),
           }}

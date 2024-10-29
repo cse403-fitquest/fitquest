@@ -2,11 +2,14 @@ import globals from 'globals';
 import pluginJs from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import pluginReact from 'eslint-plugin-react';
-import prettier from 'eslint-plugin-prettier'; // Import Prettier plugin
+import prettier, { environments } from 'eslint-plugin-prettier'; // Import Prettier plugin
 import prettierConfig from 'eslint-config-prettier'; // Import Prettier config
 
 export default [
-  { files: ['./app/**/*.{js,mjs,cjs,ts,jsx,tsx}'] },
+  { files: ['./app/**/*.{js,mjs,cjs,ts,jsx,tsx}', './components/**/*.{js,mjs,cjs,ts,jsx,tsx}', './tests/**/*.{js,mjs,cjs,ts,jsx,tsx}'] },
+  {environments: {
+    node: true,
+  }},
   { languageOptions: { globals: globals.browser } },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
