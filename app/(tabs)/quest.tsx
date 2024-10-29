@@ -204,17 +204,12 @@ const Quest = () => {
           Progress: {percentage}%
         </Text>
 
-        <View
-          className="flex-row justify-between items-center"
-          style={{ height: 80 }}
-        >
+        <View className="flex-row justify-between items-center h-[80px]">
           {nextMilestones.map((milestone, index) => (
             <View key={milestone} className="items-center">
               <View
+                className="w-6 h-6 rounded-full flex items-center justify-center border-2"
                 style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 12,
                   backgroundColor:
                     milestone === quest.bossThreshold
                       ? '#ff4444'
@@ -223,7 +218,6 @@ const Quest = () => {
                         : isBossNearby && milestone > quest.bossThreshold
                           ? '#FFD700'
                           : '#808080',
-                  borderWidth: 2,
                   borderColor:
                     milestone === quest.bossThreshold ? '#ff0000' : '#404040',
                   elevation: 3,
@@ -246,38 +240,23 @@ const Quest = () => {
   };
 
   return (
-    <SafeAreaView
-      className={`flex-1`}
-      style={{
-        backgroundColor: Colors[colorScheme ?? 'light'].background,
-      }}
-    >
-      <View className="flex-1 p-4">
+    <SafeAreaView className={`flex-1 bg-offWhite px-6 pt-8`}>
+      <View className="flex-1">
         <View className="mb-8">
-          <Text
-            className="text-3xl mb-4 font-bold"
-            style={{
-              color: Colors[colorScheme ?? 'light'].text,
-            }}
-          >
-            Active Quest
+          <Text className="text-2xl text-gray-black mb-5">Quest</Text>
+
+          <Text className="text-xl mb-4 font-bold text-grayDark">
+            ACTIVE QUEST
           </Text>
 
           {activeQuest ? (
-            <View
-              className="bg-gray-200 p-6 rounded-xl border border-gray-400 relative shadow-md"
-              style={{ minHeight: 150, maxHeight: 225 }}
-            >
-              <Text className="text-xl font-bold mb-2">
+            <View className="bg-white p-6 rounded-xl border border-gray relative shadow-black shadow-lg min-h-[150px] max-h-[225px]">
+              <Text className="text-lg font-semibold mb-2">
                 {activeQuest.questName}
               </Text>
               {renderMilestoneNodes(activeQuest, activeQuest.progress)}
               <TouchableOpacity
-                style={{
-                  position: 'absolute',
-                  right: 40,
-                  padding: 8,
-                }}
+                className="absolute right-[40px] p-2"
                 onPress={handleAdvance}
               >
                 <Ionicons
@@ -288,21 +267,14 @@ const Quest = () => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={{
-                  position: 'absolute',
-                  right: 0,
-                  padding: 8,
-                }}
+                className="absolute right-0 p-2"
                 onPress={handleAbandon}
               >
                 <Ionicons name="trash-outline" size={30} color="lightgray" />
               </TouchableOpacity>
             </View>
           ) : (
-            <View
-              className="bg-gray-200 p-6 rounded-xl flex items-center justify-center"
-              style={{ minHeight: 180 }}
-            >
+            <View className="bg-gray-200 p-6 rounded-xl flex items-center justify-center min-h-[180px]">
               <Text className="text-lg mb-2">No Active Quest</Text>
               <Text className="text-gray-600">
                 Start a quest from the quest board below
@@ -311,23 +283,23 @@ const Quest = () => {
           )}
         </View>
 
-        <Text className="text-3xl mb-4 font-bold">Quest Board</Text>
+        <Text className="text-xl mb-4 font-bold text-grayDark">
+          QUEST BOARD
+        </Text>
         <ScrollView className="flex-1">
           {quests.map((quest, index) => (
             <TouchableOpacity
               key={index}
-              className="bg-white p-3 mb-4 rounded-xl shadow-sm border border-gray-200"
+              className="bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[90px] justify-center items-between"
               onPress={() =>
                 confirmAction('Start', quest, userID, setActiveQuest)
               }
             >
               <View className="flex-row items-center justify-between">
-                <Text className="text-xl font-semibold">{quest.name}</Text>
+                <Text className="text-lg font-semibold">{quest.name}</Text>
                 <View
+                  className="w-10 h-10 rounded-full"
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
                     backgroundColor: quest.color,
                     elevation: 2,
                     shadowColor: '#000',
