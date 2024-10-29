@@ -76,7 +76,7 @@ const Quest = () => {
   const colorScheme = useColorScheme();
   const userID = 'user123';
   const [activeQuest, setActiveQuest] = useState(null);
-  const [setShowFightModal] = useState(false);
+  // const [setShowFightModal] = useState(false);
   const [setShowAbandonModal] = useState(false);
   const router = useRouter();
   const [setVisualProgress] = useState(0);
@@ -145,14 +145,14 @@ const Quest = () => {
           text: 'OK',
           onPress: () => startQuest(userID, quest.questId, setActiveQuest),
         },
-      ]
+      ],
     );
   }
 
   const handleAdvance = () => {
     if (activeQuest) {
       const nextMilestone = activeQuest.milestones.find(
-        (milestone) => milestone > activeQuest.progress
+        (milestone) => milestone > activeQuest.progress,
       );
 
       if (nextMilestone) {
