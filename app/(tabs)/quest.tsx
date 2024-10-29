@@ -1,4 +1,11 @@
-import { Text, View, TouchableOpacity, useColorScheme, ScrollView, Alert, Animated } from 'react-native';
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  useColorScheme,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
@@ -7,43 +14,43 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 const quests = [
-  { 
-    questId: '1', 
-    name: 'Hunt Big Chungus', 
-    color: 'red', 
-    milestones: Array.from({length: 20}, (_, i) => (i + 1) * 50), 
-    bossThreshold: 500, 
-    duration: 7 * 24 * 60 * 60 * 1000
-  },
-  { 
-    questId: '2', 
-    name: 'Hunt Jimmy Two-Toes', 
-    color: 'purple', 
-    milestones: Array.from({length: 20}, (_, i) => (i + 1) * 50),
+  {
+    questId: '1',
+    name: 'Hunt Big Chungus',
+    color: 'red',
+    milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),
     bossThreshold: 500,
-    duration: 7 * 24 * 60 * 60 * 1000
+    duration: 7 * 24 * 60 * 60 * 1000,
   },
-  { 
-    questId: '3', 
-    name: 'Hunt The Swamp Hydra', 
-    color: 'green', 
-    milestones: Array.from({length: 20}, (_, i) => (i + 1) * 50),
+  {
+    questId: '2',
+    name: 'Hunt Jimmy Two-Toes',
+    color: 'purple',
+    milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),
     bossThreshold: 500,
-    duration: 7 * 24 * 60 * 60 * 1000
+    duration: 7 * 24 * 60 * 60 * 1000,
   },
-  { 
-    questId: '4', 
-    name: 'Hunt The Lightning Ogre', 
-    color: 'yellow', 
-    milestones: Array.from({length: 20}, (_, i) => (i + 1) * 50),
+  {
+    questId: '3',
+    name: 'Hunt The Swamp Hydra',
+    color: 'green',
+    milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),
     bossThreshold: 500,
-    duration: 7 * 24 * 60 * 60 * 1000
+    duration: 7 * 24 * 60 * 60 * 1000,
+  },
+  {
+    questId: '4',
+    name: 'Hunt The Lightning Ogre',
+    color: 'yellow',
+    milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),
+    bossThreshold: 500,
+    duration: 7 * 24 * 60 * 60 * 1000,
   },
 ];
 
-let questData = {
-  activeQuests: {}, 
-  questProgress: {}, 
+const questData = {
+  activeQuests: {},
+  questProgress: {},
 };
 
 const startQuest = async (userID, questID, setActiveQuest) => {
@@ -56,7 +63,10 @@ const startQuest = async (userID, questID, setActiveQuest) => {
       milestones: selectedQuest.milestones,
       timer: Date.now(),
     };
-    await AsyncStorage.setItem('activeQuest', JSON.stringify(questData.activeQuests[userID]));
+    await AsyncStorage.setItem(
+      'activeQuest',
+      JSON.stringify(questData.activeQuests[userID]),
+    );
     setActiveQuest(questData.activeQuests[userID]);
     console.log(`Quest ${selectedQuest.name} started for user ${userID}`);
   }
@@ -66,10 +76,10 @@ const Quest = () => {
   const colorScheme = useColorScheme();
   const userID = 'user123';
   const [activeQuest, setActiveQuest] = useState(null);
-  const [showFightModal, setShowFightModal] = useState(false);
-  const [showAbandonModal, setShowAbandonModal] = useState(false);
+  const [setShowFightModal] = useState(false);
+  const [setShowAbandonModal] = useState(false);
   const router = useRouter();
-  const [visualProgress, setVisualProgress] = useState(0);
+  const [setVisualProgress] = useState(0);
   const [currentNodeIndex, setCurrentNodeIndex] = useState(0);
 
   useEffect(() => {
@@ -82,21 +92,18 @@ const Quest = () => {
     loadActiveQuest();
   }, []);
 
-  const handleFight = () => {
-    setShowFightModal(true);
-  };
-
   const getNextMilestones = (quest, currentProgress) => {
     const allMilestones = quest.milestones;
-    const remainingMilestones = allMilestones.filter(milestone => milestone > currentProgress);
-    
+    const remainingMilestones = allMilestones.filter(
+      (milestone) => milestone > currentProgress,
+    );
     if (remainingMilestones.length < 6) {
       const completedMilestones = allMilestones
-        .filter(milestone => milestone <= currentProgress)
+        .filter((milestone) => milestone <= currentProgress)
         .slice(-6 + remainingMilestones.length);
       return [...completedMilestones, ...remainingMilestones];
     }
-    
+
     return remainingMilestones.slice(0, 6);
   };
 
@@ -107,8 +114,12 @@ const Quest = () => {
         'Abandoning the quest will reset its progress if you decide to embark on it again.',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Abandon Quest', style: 'destructive', onPress: confirmAbandon },
-        ]
+          {
+            text: 'Abandon Quest',
+            style: 'destructive',
+            onPress: confirmAbandon,
+          },
+        ],
       );
     }
   };
@@ -147,9 +158,9 @@ const Quest = () => {
       if (nextMilestone) {
         if (currentNodeIndex >= 4) {
           setCurrentNodeIndex(1);
-          setVisualProgress(prev => prev + 4);
+          setVisualProgress((prev) => prev + 4);
         } else {
-          setCurrentNodeIndex(prev => prev + 1);
+          setCurrentNodeIndex((prev) => prev + 1);
         }
 
         const updatedQuest = {
@@ -158,14 +169,10 @@ const Quest = () => {
         };
 
         if (nextMilestone >= activeQuest.bossThreshold) {
-          Alert.alert(
-            'Boss Fight!',
-            'The boss has appeared!',
-            [
-              { text: 'Fight!', onPress: () => router.push('/boss-fight') },
-              { text: 'Later', style: 'cancel' },
-            ]
-          );
+          Alert.alert('Boss Fight!', 'The boss has appeared!', [
+            { text: 'Fight!', onPress: () => router.push('/boss-fight') },
+            { text: 'Later', style: 'cancel' },
+          ]);
         }
 
         setActiveQuest(updatedQuest);
@@ -176,14 +183,18 @@ const Quest = () => {
 
   const calculateQuestPercentage = (quest, progress) => {
     const totalMilestones = quest.milestones.length;
-    const completedMilestones = quest.milestones.filter(m => m <= progress).length;
+    const completedMilestones = quest.milestones.filter(
+      (m) => m <= progress,
+    ).length;
     return Math.round((completedMilestones / totalMilestones) * 100);
   };
 
   const renderMilestoneNodes = (quest, progress) => {
     const nextMilestones = getNextMilestones(quest, progress);
     const isBossNearby = nextMilestones.some(
-      milestone => milestone >= quest.bossThreshold && milestone <= quest.bossThreshold + 300
+      (milestone) =>
+        milestone >= quest.bossThreshold &&
+        milestone <= quest.bossThreshold + 300,
     );
     const percentage = calculateQuestPercentage(quest, progress);
 
@@ -193,7 +204,10 @@ const Quest = () => {
           Progress: {percentage}%
         </Text>
 
-        <View className="flex-row justify-between items-center" style={{ height: 80 }}>
+        <View
+          className="flex-row justify-between items-center"
+          style={{ height: 80 }}
+        >
           {nextMilestones.map((milestone, index) => (
             <View key={milestone} className="items-center">
               <View
@@ -201,15 +215,17 @@ const Quest = () => {
                   width: 24,
                   height: 24,
                   borderRadius: 12,
-                  backgroundColor: milestone === quest.bossThreshold 
-                    ? '#ff4444'
-                    : index <= currentNodeIndex
-                      ? '#4CAF50'
-                      : isBossNearby && milestone > quest.bossThreshold 
-                        ? '#FFD700'
-                        : '#808080',
+                  backgroundColor:
+                    milestone === quest.bossThreshold
+                      ? '#ff4444'
+                      : index <= currentNodeIndex
+                        ? '#4CAF50'
+                        : isBossNearby && milestone > quest.bossThreshold
+                          ? '#FFD700'
+                          : '#808080',
                   borderWidth: 2,
-                  borderColor: milestone === quest.bossThreshold ? '#ff0000' : '#404040',
+                  borderColor:
+                    milestone === quest.bossThreshold ? '#ff0000' : '#404040',
                   elevation: 3,
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 2 },
@@ -218,7 +234,9 @@ const Quest = () => {
                 }}
               />
               {milestone === quest.bossThreshold && (
-                <Text className="text-sm text-red-500 mt-2 font-bold">BOSS</Text>
+                <Text className="text-sm text-red-500 mt-2 font-bold">
+                  BOSS
+                </Text>
               )}
             </View>
           ))}
@@ -246,8 +264,13 @@ const Quest = () => {
           </Text>
 
           {activeQuest ? (
-            <View className="bg-gray-200 p-6 rounded-xl border border-gray-400 relative shadow-md" style={{ minHeight: 150, maxHeight: 225 }}>
-              <Text className="text-xl font-bold mb-2">{activeQuest.questName}</Text>
+            <View
+              className="bg-gray-200 p-6 rounded-xl border border-gray-400 relative shadow-md"
+              style={{ minHeight: 150, maxHeight: 225 }}
+            >
+              <Text className="text-xl font-bold mb-2">
+                {activeQuest.questName}
+              </Text>
               {renderMilestoneNodes(activeQuest, activeQuest.progress)}
               <TouchableOpacity
                 style={{
@@ -257,7 +280,11 @@ const Quest = () => {
                 }}
                 onPress={handleAdvance}
               >
-                <Ionicons name="arrow-forward-circle-outline" size={30} color="lightblue" />
+                <Ionicons
+                  name="arrow-forward-circle-outline"
+                  size={30}
+                  color="lightblue"
+                />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -272,9 +299,14 @@ const Quest = () => {
               </TouchableOpacity>
             </View>
           ) : (
-            <View className="bg-gray-200 p-6 rounded-xl flex items-center justify-center" style={{ minHeight: 180 }}>
+            <View
+              className="bg-gray-200 p-6 rounded-xl flex items-center justify-center"
+              style={{ minHeight: 180 }}
+            >
               <Text className="text-lg mb-2">No Active Quest</Text>
-              <Text className="text-gray-600">Start a quest from the quest board below</Text>
+              <Text className="text-gray-600">
+                Start a quest from the quest board below
+              </Text>
             </View>
           )}
         </View>
@@ -285,7 +317,9 @@ const Quest = () => {
             <TouchableOpacity
               key={index}
               className="bg-white p-3 mb-4 rounded-xl shadow-sm border border-gray-200"
-              onPress={() => confirmAction('Start', quest, userID, setActiveQuest)}
+              onPress={() =>
+                confirmAction('Start', quest, userID, setActiveQuest)
+              }
             >
               <View className="flex-row items-center justify-between">
                 <Text className="text-xl font-semibold">{quest.name}</Text>
