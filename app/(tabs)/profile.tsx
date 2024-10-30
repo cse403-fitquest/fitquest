@@ -161,24 +161,24 @@ const Profile = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <View className="flex-row justify-between items-center p-4">
-        <View>
-          <Text className="text-gray-500">Welcome back,</Text>
-          <Text className="text-2xl font-bold">
-            {MOCK_USER.profileInfo.username}
-          </Text>
+    <SafeAreaView className=" bg-offWhite">
+      <ScrollView className="w-full h-full px-6 py-8">
+        {/* Header */}
+        <View className="flex-row justify-between items-center">
+          <View>
+            <Text className="text-gray-500">Welcome back,</Text>
+            <Text className="text-2xl font-bold">
+              {MOCK_USER.profileInfo.username}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setIsSettingsVisible(true)}
+            className="p-2"
+          >
+            <Ionicons name="settings-outline" size={24} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          onPress={() => setIsSettingsVisible(true)}
-          className="p-2"
-        >
-          <Ionicons name="settings-outline" size={24} />
-        </TouchableOpacity>
-      </View>
 
-      <ScrollView>
         <View className="h-48 items-center justify-center">
           <Image
             source={require('../../assets/images/react-logo.png')} // TODO: Replace with actual sprite, just used a placeholder image from assets for now
@@ -187,17 +187,22 @@ const Profile = () => {
         </View>
 
         {/* Experience Bar */}
-        <View className="px-4 mb-4">
-          <View className="w-full h-2 bg-gray-200 rounded-full">
-            <View className="w-1/3 h-full bg-yellow rounded-full" />
+        <View className="mb-4">
+          <View className="border border-gray rounded">
+            <View className="w-full h-2 bg-gray-200 rounded">
+              <View className="w-1/3 h-full bg-yellow rounded" />
+            </View>
           </View>
+
           <Text className="text-xs text-center text-gray-500 mt-1">
             300 EXP TILL LEVEL
           </Text>
         </View>
 
-        <View className="px-4 mb-4">
-          <Text className="font-bold mb-2">ATTRIBUTES</Text>
+        <View className=" mb-6">
+          <Text className="font-bold text-xl text-grayDark mb-2">
+            ATTRIBUTES
+          </Text>
           <View className="space-y-2">
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-500">
@@ -221,8 +226,8 @@ const Profile = () => {
         </View>
 
         {/* Items Grid */}
-        <View className="px-4">
-          <Text className="font-bold mb-2">ITEMS</Text>
+        <View className="">
+          <Text className="font-bold mb-2 text-xl text-grayDark">ITEMS</Text>
           <View className="flex-row flex-wrap gap-y-4">
             {MOCK_EQUIPPED_ITEMS.map((item) => (
               <View key={item.id} className="w-1/3 flex items-center">
@@ -232,8 +237,11 @@ const Profile = () => {
           </View>
         </View>
 
-        <View className="px-4 mt-8">
-          <Text className="font-bold mb-8">WORKOUTS PER WEEK</Text>
+        {/* Workouts per Week */}
+        <View className="mt-8">
+          <Text className="font-bold mb-8 text-xl text-grayDark">
+            WORKOUTS PER WEEK
+          </Text>
 
           <View className="mt-4">
             <View className="h-[250px] flex-row items-end justify-between mb-2">
@@ -252,7 +260,7 @@ const Profile = () => {
               ))}
             </View>
 
-            <View className="flex-row justify-between">
+            <View className="flex-row justify-between h-[50px]">
               {['9/16', '9/23', '9/30', '10/7', '10/14'].map((date) => (
                 <Text key={date} className="text-gray-500 text-sm">
                   {date}
@@ -261,6 +269,9 @@ const Profile = () => {
             </View>
           </View>
         </View>
+
+        {/* ScrollView end padding */}
+        <View className="h-[30px]"></View>
       </ScrollView>
 
       <FQModal
@@ -268,15 +279,9 @@ const Profile = () => {
         setVisible={setIsSettingsVisible}
         title="Profile Settings"
         onConfirm={() => setIsSettingsVisible(false)}
+        cancelText="CLOSE"
       >
-        <View className="p-4">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-xl font-bold">Profile Settings</Text>
-            <TouchableOpacity onPress={() => setIsSettingsVisible(false)}>
-              <Ionicons name="close" size={24} />
-            </TouchableOpacity>
-          </View>
-
+        <View className="py-4 w-[220px]">
           <View className="space-y-4">
             <View>
               <Text className="text-gray-500 mb-1">Username</Text>
@@ -320,7 +325,7 @@ const Profile = () => {
               </TouchableOpacity>
             </View>
 
-            <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center justify-between mb-2">
               <Text className="text-gray-500">Share Last Workout Date</Text>
               <TouchableOpacity
                 onPress={() => setIsLastWorkoutPublic(!isLastWorkoutPublic)}
@@ -341,13 +346,19 @@ const Profile = () => {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity className="py-2" onPress={handleSignOut}>
-              <Text className="text-red-500 text-center">Sign Out</Text>
-            </TouchableOpacity>
+            <View>
+              <TouchableOpacity onPress={handleSignOut}>
+                <Text className="text-red-500 text-center font-semibold text-sm mb-2">
+                  SIGN OUT
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity className="py-2">
-              <Text className="text-red-500 text-center">DELETE ACCOUNT</Text>
-            </TouchableOpacity>
+              <TouchableOpacity>
+                <Text className="text-red-500 text-center font-semibold text-sm">
+                  DELETE ACCOUNT
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </FQModal>
