@@ -5,17 +5,17 @@ addDoc(): A firebase firestore function that adds a new document to a specified 
 updateDoc(): A firebase firestore function that updates an existing document in a specified collection in the database.
 deleteDoc(): A firebase firestore function that deletes an existing document in a specified collection in the database.*/
 // Import the necessary functions from Firebase SDK
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-app-id.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-storage-bucket.appspot.com",
-  messagingSenderId: "your-sender-id",
-  appId: "your-app-id"
+  apiKey: 'your-api-key',
+  authDomain: 'your-app-id.firebaseapp.com',
+  projectId: 'your-project-id',
+  storageBucket: 'your-storage-bucket.appspot.com',
+  messagingSenderId: 'your-sender-id',
+  appId: 'your-app-id',
 };
 
 // Initialize Firebase app and Firestore
@@ -29,19 +29,18 @@ const getDocument = async (collection: string, documentId: string) => {
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      console.log("Document data:", docSnap.data());
+      console.log('Document data:', docSnap.data());
       return docSnap.data(); // Return document data
     } else {
-      console.log("No such document!");
+      console.log('No such document!');
       return null; // Handle no document case
     }
   } catch (error) {
-    console.error("Error fetching document:", error);
+    console.error('Error fetching document:', error);
     throw error; // Handle errors
   }
 };
 
 // Example usage:
 // getDocument('users', 'user-id-here').then(data => console.log(data));
-console.log(getDocument("muscles", "Biceps"));
-
+console.log(getDocument('muscles', 'Biceps'));
