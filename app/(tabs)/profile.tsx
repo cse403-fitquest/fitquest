@@ -348,16 +348,17 @@ const Profile = () => {
 
             <View>
               <TouchableOpacity onPress={handleSignOut}>
-                <Text className="text-red-500 text-center font-semibold text-sm mb-2">
+                <Text className="text-red-500 text-center font-semibold text-sm">
                   SIGN OUT
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity>
+              {/* Won't delete account for now */}
+              {/* <TouchableOpacity>
                 <Text className="text-red-500 text-center font-semibold text-sm">
                   DELETE ACCOUNT
                 </Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
         </View>
