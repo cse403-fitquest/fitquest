@@ -9,6 +9,7 @@ import {
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { User } from '@/types/auth';
 import { Item } from '@/types/item';
+import { APIResponse } from '@/types/general';
 
 const userConverter = {
   toFirestore: (data: User) => data,
@@ -25,12 +26,12 @@ const itemConverter = {
  * Purchase an item for the user.
  * @param {string} userID - The user's unique ID.
  * @param {string} itemID - The item ID to purchase.
- * @returns {Promise<void>}
+ * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
-const purchaseItem: (userID: string, itemID: string) => Promise<void> = async (
-  userID,
-  itemID,
-) => {
+const purchaseItem: (
+  userID: string,
+  itemID: string,
+) => Promise<APIResponse> = async (userID, itemID) => {
   try {
     const itemCollection = collection(FIREBASE_DB, 'items').withConverter(
       itemConverter,
@@ -83,8 +84,18 @@ const purchaseItem: (userID: string, itemID: string) => Promise<void> = async (
     });
 
     console.log('Purchase successful! Item added to inventory.');
+
+    return {
+      success: true,
+      error: null,
+    };
   } catch (error) {
     console.error('Error purchasing item:', error);
+
+    return {
+      success: false,
+      error: 'Error purchasing item.',
+    };
   }
 };
 

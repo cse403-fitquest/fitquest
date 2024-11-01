@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import React, { useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { UserFriend } from '@/types/friend';
+import { UserFriend } from '@/types/social';
 import { BASE_USER } from '@/constants/user';
 import { User } from '@/types/auth';
 import { Ionicons } from '@expo/vector-icons';

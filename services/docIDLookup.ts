@@ -14,7 +14,7 @@ import {
  * @param {string} schema - Target schema
  * @param {string} db_field - Document field to check
  * @param {string} data - Known data for the field
- * @returns {Promise<void>}
+ * @returns {Promise<{ id: string; data: DocumentData } | null>} Returns the document ID and data if found, otherwise null
  */
 export const id_lookup: (
   schema: string,

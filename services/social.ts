@@ -1,17 +1,18 @@
 import { doc, updateDoc, arrayRemove, arrayUnion } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
+import { APIResponse } from '@/types/general';
 
 // Function to handle accepting friend requests
 /**
  * Purchase an item for the user.
  * @param {string} senderID - The user that sent the friend request.
  * @param {string} receiverID - The user accepting the friend request.
- * @returns {Promise<void>}
+ * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
 export const acceptFriendRequest: (
   senderID: string,
   receiverID: string,
-) => Promise<void> = async (senderID, receiverID) => {
+) => Promise<APIResponse> = async (senderID, receiverID) => {
   try {
     // Get fromUser reference
     const fromUserRef = doc(FIREBASE_DB, `friends`, senderID);
@@ -32,8 +33,17 @@ export const acceptFriendRequest: (
     });
 
     console.log('Friend request accepted!');
+
+    return {
+      success: true,
+      error: null,
+    };
   } catch (error) {
     console.error('Error accepting friend request: ', error);
+    return {
+      success: false,
+      error: 'Error accepting friend request.',
+    };
   }
 };
 
@@ -42,12 +52,12 @@ export const acceptFriendRequest: (
  * Purchase an item for the user.
  * @param {string} senderID - The user that sent the friend request.
  * @param {string} receiverID - The user receiving the friend request.
- * @returns {Promise<void>}
+ * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
 export const sendFriendRequest: (
   senderID: string,
   receiverID: string,
-) => Promise<void> = async (senderID, receiverID) => {
+) => Promise<APIResponse> = async (senderID, receiverID) => {
   try {
     // Get fromUser reference
     const fromUserRef = doc(FIREBASE_DB, `friends`, senderID);
@@ -66,8 +76,18 @@ export const sendFriendRequest: (
     });
 
     console.log('Friend request sent!');
+
+    return {
+      success: true,
+      error: null,
+    };
   } catch (error) {
     console.error('Error sending friend request: ', error);
+
+    return {
+      success: false,
+      error: 'Error sending friend request.',
+    };
   }
 };
 
@@ -76,12 +96,12 @@ export const sendFriendRequest: (
  * Purchase an item for the user.
  * @param {string} senderID - The user that sent the friend request.
  * @param {string} receiverID - The user rejecting the friend request.
- * @returns {Promise<void>}
+ * @returns {Promise<APIResponse>} Returns an object containing the success status and error message
  */
 export const rejectFriendRequest: (
   senderID: string,
   receiverID: string,
-) => Promise<void> = async (senderID, receiverID) => {
+) => Promise<APIResponse> = async (senderID, receiverID) => {
   try {
     // Get fromUser reference
     const fromUserRef = doc(FIREBASE_DB, `friends`, senderID);
@@ -100,8 +120,18 @@ export const rejectFriendRequest: (
     });
 
     console.log('Friend request rejected!');
+
+    return {
+      success: true,
+      error: null,
+    };
   } catch (error) {
     console.error('Error rejecting friend request: ', error);
+
+    return {
+      success: false,
+      error: 'Error rejecting friend request.',
+    };
   }
 };
 
@@ -110,12 +140,12 @@ export const rejectFriendRequest: (
  * Purchase an item for the user.
  * @param {string} senderID - Friend of toUser.
  * @param {string} receiverID - The user deleting the friend request.
- * @returns {Promise<void>}
+ * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
 export const deleteFriend: (
   senderID: string,
   receiverID: string,
-) => Promise<void> = async (senderID, receiverID) => {
+) => Promise<APIResponse> = async (senderID, receiverID) => {
   try {
     // Get fromUser reference
     const fromUserRef = doc(FIREBASE_DB, `friends`, senderID);
@@ -134,7 +164,17 @@ export const deleteFriend: (
     });
 
     console.log('Friend removed!');
+
+    return {
+      success: true,
+      error: null,
+    };
   } catch (error) {
     console.error('Error removing friend: ', error);
+
+    return {
+      success: false,
+      error: 'Error removing friend.',
+    };
   }
 };
