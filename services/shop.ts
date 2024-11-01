@@ -4,8 +4,21 @@ import {
   updateDoc,
   collection,
   arrayUnion,
+  QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
+import { User } from '@/types/auth';
+import { Item } from '@/types/item';
+
+const userConverter = {
+  toFirestore: (data: User) => data,
+  fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as User,
+};
+
+const itemConverter = {
+  toFirestore: (data: Item) => data,
+  fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as Item,
+};
 
 // Function to handle the purchase of an item
 /**
@@ -19,15 +32,26 @@ const purchaseItem: (userID: string, itemID: string) => Promise<void> = async (
   itemID,
 ) => {
   try {
+    const itemCollection = collection(FIREBASE_DB, 'items').withConverter(
+      itemConverter,
+    );
+    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
+      userConverter,
+    );
+
     // Get item data
-    const itemRef = doc(FIREBASE_DB, `items`, itemID);
+    const itemRef = doc(itemCollection, itemID);
     const itemSnap = await getDoc(itemRef);
     const itemData = itemSnap.data();
 
     // Get user data
-    const userRef = doc(FIREBASE_DB, 'users', userID);
+    const userRef = doc(userCollection, userID);
     const userSnap = await getDoc(userRef);
     const userData = userSnap.data();
+
+    if (!itemData || !userData) {
+      throw new Error('Item or user data not found.');
+    }
 
     // Check if user does not have enough gold for item
     if (userData.gold < itemData.cost) {
@@ -39,19 +63,22 @@ const purchaseItem: (userID: string, itemID: string) => Promise<void> = async (
     await updateDoc(userRef, { gold: newBalance });
 
     // Item type
-    const itemType = itemData.type.spec;
+    const itemType = itemData.type;
 
-    // Correspondoing inventory type
-    const itemInvType = `${itemType}s`;
+    // Correspondoing inventory type, default to equipment
+    let itemInvType = 'equipments';
 
-    // Item type inventory reference
-    const inventoryRef = collection(
-      FIREBASE_DB,
-      `users/${userID}/${itemInvType}`,
-    );
+    if (
+      itemType === 'POTION_SMALL' ||
+      itemType === 'POTION_MEDIUM' ||
+      itemType === 'POTION_LARGE'
+    ) {
+      // Update inventory type to consumables
+      itemInvType = 'consumables';
+    }
 
-    // Add item document ID to proper inventory
-    await updateDoc(inventoryRef, {
+    // Add item document ID to user's inventory
+    await updateDoc(userRef, {
       [itemInvType]: arrayUnion(itemID),
     });
 
