@@ -1,31 +1,34 @@
 import { doc, updateDoc, arrayRemove, arrayUnion } from 'firebase/firestore';
-import { db } from './firebaseConfig';
+import { FIREBASE_DB } from '@/firebaseConfig';
 
 // Function to handle accepting friend requests
 /**
  * Purchase an item for the user.
- * @param {string} fromUserDocID - The user that sent the friend request.
- * @param {string} toUserDocID - The user accepting the friend request.
+ * @param {string} senderID - The user that sent the friend request.
+ * @param {string} receiverID - The user accepting the friend request.
  * @returns {Promise<void>}
  */
-export const acceptFriendRequest = async (fromUserDocID, toUserDocID) => {
+export const acceptFriendRequest: (
+  senderID: string,
+  receiverID: string,
+) => Promise<void> = async (senderID, receiverID) => {
   try {
     // Get fromUser reference
-    const fromUserRef = doc(db, `friends`, fromUserDocID);
+    const fromUserRef = doc(FIREBASE_DB, `friends`, senderID);
 
     // Get toUser reference
-    const toUserRef = doc(db, `friends`, toUserDocID);
+    const toUserRef = doc(FIREBASE_DB, `friends`, receiverID);
 
     // Remove fromUser from toUser's pending requests and add to friends
     await updateDoc(toUserRef, {
-      pendingFriendRequest: arrayRemove(fromUserDocID),
-      friends: arrayUnion(fromUserDocID),
+      pendingFriendRequest: arrayRemove(senderID),
+      friends: arrayUnion(senderID),
     });
 
     // Remove toUser from fromUser's sent requests and add to friends
     await updateDoc(fromUserRef, {
-      sentFriendRequest: arrayRemove(toUserDocID),
-      friends: arrayUnion(toUserDocID),
+      sentFriendRequest: arrayRemove(receiverID),
+      friends: arrayUnion(receiverID),
     });
 
     console.log('Friend request accepted!');
@@ -37,26 +40,29 @@ export const acceptFriendRequest = async (fromUserDocID, toUserDocID) => {
 // Function to handle accepting friend requests
 /**
  * Purchase an item for the user.
- * @param {string} fromUserDocID - The user that sent the friend request.
- * @param {string} toUserDocID - The user receiving the friend request.
+ * @param {string} senderID - The user that sent the friend request.
+ * @param {string} receiverID - The user receiving the friend request.
  * @returns {Promise<void>}
  */
-export const sendFriendRequest = async (fromUserDocID, toUserDocID) => {
+export const sendFriendRequest: (
+  senderID: string,
+  receiverID: string,
+) => Promise<void> = async (senderID, receiverID) => {
   try {
     // Get fromUser reference
-    const fromUserRef = doc(db, `friends`, fromUserDocID);
+    const fromUserRef = doc(FIREBASE_DB, `friends`, senderID);
 
     // Get toUser reference
-    const toUserRef = doc(db, `friends`, toUserDocID);
+    const toUserRef = doc(FIREBASE_DB, `friends`, receiverID);
 
     // Add toUser to fromUser's sent friend requests
     await updateDoc(fromUserRef, {
-      sentFriendRequest: arrayUnion(toUserDocID),
+      sentFriendRequest: arrayUnion(receiverID),
     });
 
     // Add fromUser from toUser's pending friend requests
     await updateDoc(toUserRef, {
-      pendingFriendRequest: arrayUnion(fromUserDocID),
+      pendingFriendRequest: arrayUnion(senderID),
     });
 
     console.log('Friend request sent!');
@@ -68,26 +74,29 @@ export const sendFriendRequest = async (fromUserDocID, toUserDocID) => {
 // Function to handle accepting friend requests
 /**
  * Purchase an item for the user.
- * @param {string} fromUserDocID - The user that sent the friend request.
- * @param {string} toUserDocID - The user rejecting the friend request.
+ * @param {string} senderID - The user that sent the friend request.
+ * @param {string} receiverID - The user rejecting the friend request.
  * @returns {Promise<void>}
  */
-export const rejectFriendRequest = async (fromUserDocID, toUserDocID) => {
+export const rejectFriendRequest: (
+  senderID: string,
+  receiverID: string,
+) => Promise<void> = async (senderID, receiverID) => {
   try {
     // Get fromUser reference
-    const fromUserRef = doc(db, `friends`, fromUserDocID);
+    const fromUserRef = doc(FIREBASE_DB, `friends`, senderID);
 
     // Get toUser reference
-    const toUserRef = doc(db, `friends`, toUserDocID);
+    const toUserRef = doc(FIREBASE_DB, `friends`, receiverID);
 
     // Remove toUser from fromUser's sent requests
     await updateDoc(fromUserRef, {
-      sentFriendRequest: arrayRemove(toUserDocID),
+      sentFriendRequest: arrayRemove(receiverID),
     });
 
     // Remove fromUser from toUser's pending requests
     await updateDoc(toUserRef, {
-      pendingFriendRequest: arrayRemove(fromUserDocID),
+      pendingFriendRequest: arrayRemove(senderID),
     });
 
     console.log('Friend request rejected!');
@@ -99,26 +108,29 @@ export const rejectFriendRequest = async (fromUserDocID, toUserDocID) => {
 // Function to handle accepting friend requests
 /**
  * Purchase an item for the user.
- * @param {string} fromUserDocID - Friend of toUser.
- * @param {string} toUserDocID - The user deleting the friend request.
+ * @param {string} senderID - Friend of toUser.
+ * @param {string} receiverID - The user deleting the friend request.
  * @returns {Promise<void>}
  */
-export const deleteFriend = async (fromUserDocID, toUserDocID) => {
+export const deleteFriend: (
+  senderID: string,
+  receiverID: string,
+) => Promise<void> = async (senderID, receiverID) => {
   try {
     // Get fromUser reference
-    const fromUserRef = doc(db, `friends`, fromUserDocID);
+    const fromUserRef = doc(FIREBASE_DB, `friends`, senderID);
 
     // Get toUser reference
-    const toUserRef = doc(db, `friends`, toUserDocID);
+    const toUserRef = doc(FIREBASE_DB, `friends`, receiverID);
 
     // Remove toUser from fromUser's friends
     await updateDoc(fromUserRef, {
-      friends: arrayRemove(toUserDocID),
+      friends: arrayRemove(receiverID),
     });
 
     // Remove fromUser from toUser's friends
     await updateDoc(toUserRef, {
-      friends: arrayRemove(fromUserDocID),
+      friends: arrayRemove(senderID),
     });
 
     console.log('Friend removed!');

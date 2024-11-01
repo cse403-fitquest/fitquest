@@ -5,24 +5,27 @@ import {
   collection,
   arrayUnion,
 } from 'firebase/firestore';
-import { db } from './firebaseConfig';
+import { FIREBASE_DB } from '@/firebaseConfig';
 
 // Function to handle the purchase of an item
 /**
  * Purchase an item for the user.
- * @param {string} userDocID - The user's unique ID.
- * @param {string} itemDocID - The item ID to purchase.
+ * @param {string} userID - The user's unique ID.
+ * @param {string} itemID - The item ID to purchase.
  * @returns {Promise<void>}
  */
-const purchaseItem = async (userDocID, itemDocID) => {
+const purchaseItem: (userID: string, itemID: string) => Promise<void> = async (
+  userID,
+  itemID,
+) => {
   try {
     // Get item data
-    const itemRef = doc(db, `items`, itemDocID);
+    const itemRef = doc(FIREBASE_DB, `items`, itemID);
     const itemSnap = await getDoc(itemRef);
     const itemData = itemSnap.data();
 
     // Get user data
-    const userRef = doc(db, 'users', userDocID);
+    const userRef = doc(FIREBASE_DB, 'users', userID);
     const userSnap = await getDoc(userRef);
     const userData = userSnap.data();
 
@@ -42,11 +45,14 @@ const purchaseItem = async (userDocID, itemDocID) => {
     const itemInvType = `${itemType}s`;
 
     // Item type inventory reference
-    const inventoryRef = collection(db, `users/${userDocID}/${itemInvType}`);
+    const inventoryRef = collection(
+      FIREBASE_DB,
+      `users/${userID}/${itemInvType}`,
+    );
 
     // Add item document ID to proper inventory
     await updateDoc(inventoryRef, {
-      [itemInvType]: arrayUnion(itemDocID),
+      [itemInvType]: arrayUnion(itemID),
     });
 
     console.log('Purchase successful! Item added to inventory.');
