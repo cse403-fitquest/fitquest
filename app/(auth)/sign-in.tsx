@@ -11,7 +11,7 @@ import AppTitle from '@/components/AppTitle';
 import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
 import { Href, router } from 'expo-router';
-import { signIn } from '@/utils/auth';
+import { signIn } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { BASE_USER } from '@/constants/user';
 
