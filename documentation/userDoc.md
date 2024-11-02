@@ -36,7 +36,7 @@ Installation Steps:
 
     - Locate the FitQuest icon on your device's home screen and tap to open.
 
-**Note:** Ensure your device meets the minimum OS requirements and has sufficient storage space for installation.
+> **Note:** Ensure your device meets the minimum OS requirements and has sufficient storage space for installation.
 
 #
 
@@ -104,7 +104,7 @@ Using FitQuest:
 
 **5. How to Report a Bug**
 
-To help us improve FitQuest, please report any bugs you encounter using our GitHub Issues tracker.
+To help us improve FitQuest, please report any bugs you encounter using our [GitHub Issues](https://github.com/cse403-fitquest/fitquest/issues) tracker.
 
 **Reporting a Bug:**
 
