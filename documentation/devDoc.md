@@ -37,7 +37,7 @@ The FitQuest source code is hosted on GitHub. To obtain the source code, follow 
 ### **2. Directory Structure Layout**
 The FitQuest project follows a modular directory structure to enhance maintainability and scalability. Below is an overview of the directory layout:
 
-```
+```bash
 fitquest/
 ├── .github/
 │   └── workflows/            # GitHub Actions workflow configurations
