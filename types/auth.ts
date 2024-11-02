@@ -1,4 +1,4 @@
-import { UserCredential } from 'firebase/auth';
+import { APIResponse } from './general';
 
 export type SignInErrorState = {
   general: string;
@@ -14,23 +14,21 @@ export type SignUpErrorState = {
   rePassword: string;
 };
 
-export type SignInResponse = {
-  userCredential: UserCredential | null;
-  error: SignInErrorState | null;
+export type SignInResponse = APIResponse & {
+  data: {
+    user: User;
+  } | null;
 };
 
-export type SignUpResponse = {
-  userCredential: UserCredential | null;
-  error: SignUpErrorState | null;
+export type SignUpResponse = APIResponse & {
+  data: {
+    user: User;
+  } | null;
 };
 
-export type SignOutResponse = {
-  error: string | null;
-};
+export type SignOutResponse = APIResponse & {};
 
-export type DeleteAccountResponse = {
-  error: string | null;
-};
+export type DeleteAccountResponse = APIResponse & {};
 
 export type User = {
   id: string;
@@ -50,5 +48,9 @@ export type User = {
     isLastWorkoutPublic: boolean;
     isCurrentQuestPublic: boolean;
   };
-  createdAt: number;
+  attributePoints: number;
+  friends: string[];
+  sentFriendRequests: string[];
+  incomingFriendRequests: string[];
+  createdAt: Date;
 };

@@ -13,7 +13,7 @@ import FQModal from '@/components/FQModal';
 import { User } from '@/types/auth';
 import clsx from 'clsx';
 import { Item, ItemType } from '@/types/item';
-import { signOut } from '@/utils/auth';
+import { signOut } from '@/services/auth';
 
 const MOCK_EQUIPPED_ITEMS: Item[] = [
   {

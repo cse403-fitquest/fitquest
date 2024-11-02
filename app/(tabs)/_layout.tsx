@@ -5,7 +5,7 @@ import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { StatusBar } from 'expo-status-bar';
-import { isLoggedIn } from '@/utils/auth';
+import { isLoggedIn } from '@/services/auth';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();

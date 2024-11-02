@@ -105,21 +105,24 @@ const SignIn = () => {
     const signInResponse = await signIn(form.email, form.password);
 
     if (signInResponse.error) {
-      setErrors(signInResponse.error);
+      setErrors({
+        ...errors,
+        general: signInResponse.error,
+      });
 
-      if (signInResponse.error.general) {
-        Alert.alert('Sign In Error', signInResponse.error.general);
+      if (signInResponse.error) {
+        Alert.alert('Sign In Error', signInResponse.error);
       }
     } else {
       // If there is no error, reset the form and save the user to global state
       resetForm();
 
       // Set the user to global state
-      if (signInResponse.userCredential?.user) {
-        const user = signInResponse.userCredential.user;
+      if (signInResponse.data?.user) {
+        const user = signInResponse.data.user;
         setUser({
           ...BASE_USER,
-          id: user.uid,
+          id: user.id,
         });
       } else {
         Alert.alert('Sign In Error', 'An error occurred while signing in');

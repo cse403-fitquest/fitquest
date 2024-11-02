@@ -1,4 +1,4 @@
-import { isLoggedIn } from '@/utils/auth';
+import { isLoggedIn } from '@/services/auth';
 import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 

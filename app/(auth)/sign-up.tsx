@@ -137,23 +137,30 @@ const SignUp = () => {
     setLoading(true);
 
     // No need for try-catch block since signUp function handles errors
-    const signUpResponse = await signUp(form.email, form.password);
+    const signUpResponse = await signUp(
+      form.username,
+      form.email,
+      form.password,
+    );
 
     if (signUpResponse.error) {
-      setErrors(signUpResponse.error);
+      setErrors({
+        ...errors,
+        general: signUpResponse.error,
+      });
 
-      if (signUpResponse.error.general) {
-        Alert.alert('Sign Up Error', signUpResponse.error.general);
+      if (signUpResponse.error) {
+        Alert.alert('Sign Up Error', signUpResponse.error);
       }
     } else {
       resetForm();
 
       // Set the user to global state
-      if (signUpResponse.userCredential?.user) {
-        const user = signUpResponse.userCredential.user;
+      if (signUpResponse.data?.user) {
+        const user = signUpResponse.data.user;
         setUser({
           ...BASE_USER,
-          id: user.uid,
+          id: user.id,
         });
       } else {
         Alert.alert('Sign In Error', 'An error occurred while signing in');
