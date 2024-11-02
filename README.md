@@ -5,7 +5,9 @@
 
 <div align="center">
 
-   [Team Resources](./team-resources.md)
+   [Team Resources](./team-resources.md)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+   [User Documentation](./documentation/userDoc.md)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+   [Developer  Documentation](./documentation/devDoc.md)
 
 </div>
 
