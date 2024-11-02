@@ -41,38 +41,37 @@ The FitQuest project follows a modular directory structure to enhance maintainab
 fitquest/
 ├── .github/
 │   └── workflows/            # GitHub Actions workflow configurations
-├── app/
-│   ├── auth/                 # Navigation configurations and routes
-│   └── tabs/                 # Context providers for state management
-
+├── app/                      # Screens
+│   ├── auth/                 # Auth screens
+│   └── tabs/                 # Tabbed screens
 ├── assets/                   # Spritesheets, fonts, and other static assets
 ├── components/               # Reusable React Native components
-├── constants/                # Reusable React Native components
-├── store/                    # Reusable React Native components
-├── services/                 # Reusable React Native components
+├── constants/                # Constants for mocks and base objects
+├── store/                    # Hooks for global state management
+├── services/                 # Functions that interact with the backend
 ├── utils/                    # Utility functions and helper modules
-├── types/                    # Utility functions and helper modules
-├── documentation/            # Reusable React Native components
+├── types/                    # Types for various modules
+├── documentation/            # User and developer documentation
 ├── tests/
 │   ├── components/__tests__/ # Test files for components
 |   ├── services/__tests__/   # Test files for services functions
 │   ├── utils/__tests__/      # Test files for utility functions
-│   └── integration/          # Integration and E2E test files
+│   └── integration/          # Integration test files
 ├── eslint.config.mjs         # ESLint configuration
 ├── package.json              # Project dependencies and scripts
 ├── README.md                 # Project overview
 └── ...                       # Additional configuration and documentation files
 ```
-- **components/:** Contains reusable UI components like buttons, avatars, and input fields.
 
-- **screens/:** Houses screen-specific components such as Login, Profile, Quest, and Combat screens.
+- **app/:** Contains the various screens presented in the app. File-based routing using Expo.
+
+- **components/:** Contains reusable UI components like buttons, avatars, and input fields.
 
 - **services/:** Manages API integrations, authentication logic, and business rules.
 
 - **utils/:** Includes utility functions used across the application, such as fitness level calculations.
 
-- **assets/:** Stores static assets like images, icons, and fonts.
-navigation/: Defines navigation stacks and routes using React Navigation.
+- **assets/:** Stores static assets like spritesheets, icons, and fonts.
 
 - **store/:** Provides react hooks for global state management using Zustand libary.
 
