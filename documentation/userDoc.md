@@ -17,24 +17,37 @@ Prerequisites:
 
 **Mobile Device:** Android (version 8.0 or later).
 
-**Internet Connection:** Required for downloading the app and syncing data.
+**Internet Connection:** Required for syncing data.
 
-**FitQuest Account:** An email address or social media account to create an account.
+**FitQuest Account:** An email address to create an account.
 
 Installation Steps:
-1. Download the App:
 
-    - On an **Android** device, visit the Google Play Store and search for "FitQuest".
+Before you start, you will need to have the following tools installed on your PC/Laptop:
+[Git](https://git-scm.com), [Node.js](https://nodejs.org/en/) (LTS).
+In addition, it is good to have an editor to work with the code such as [VSCode](https://code.visualstudio.com/).
 
-2. Install the App:
 
-    - Tap the "Install" button on the App Store or Play Store page.
+1. Clone the repository:
 
-    - Wait for the app to download and install on your device.
+   ```bash
+   git clone https://github.com/cse403-fitquest/fitquest
+   cd fitquest
+   ```
 
-3. Open FitQuest:
+2. Install dependencies
 
-    - Locate the FitQuest icon on your device's home screen and tap to open.
+   ```bash
+   npm install
+   ```
+
+3. Run the app
+
+   ```bash
+   npx expo start -c
+   ```
+
+The terminal should now display a barcode that you can scan in the next step.
 
 > **Note:** Ensure your device meets the minimum OS requirements and has sufficient storage space for installation.
 
@@ -42,19 +55,23 @@ Installation Steps:
 
 **3. How to Run the Software**
 
-1. Launch FitQuest:
+1. Download Expo Go:
 
-    - Tap the FitQuest icon on your device to open the app.
+    - Go to Google Play Store and download Expo Go.
 
-2. Sign In or Register:
+2. Launch FitQuest:
+
+    - Go into Expo Go application, select "Scan QR Code", and scan the barcode displayed in the terminal from the installation step.
+
+3. Sign In or Register:
 
     - If you have an existing account, enter your credentials to sign in.
 
-    - New users can register using their email address or social media accounts by following the on-screen prompts.
+    - New users can register using their email address by following the on-screen prompts.
 
-3. Complete Onboarding:
+4. Complete Onboarding:
 
-    - Upon first launch, you'll be guided through an onboarding process to set up your fitness level and customize your avatar.
+    - Upon first launch, you'll be guided through an onboarding process to set up your fitness level and customize your avatar attributes.
 
 #
 
@@ -66,23 +83,23 @@ Main Features:
 
 - **Quests:** Select and complete workouts to progress through quests, earn experience points (XP), and battle monsters.
 
-- **Avatar Customization:** Personalize your avatar with various hairstyles, outfits, and accessories.
+- **Avatar Customization:** Personalize your avatar with various weapons, armor, and accessories.
 
-- **Turn-Based Combat:** Engage in strategic battles against monsters and bosses to claim rewards.
+- **Turn-Based Combat:** Engage in battles against monsters and bosses to claim rewards.
 
-- **Social Connections:** Add friends, view their fitness progress, and participate in group challenges.
+- **Social Connections:** Add friends and view what quests they are on.
 
-- **Reward System:** Earn badges and items to enhance your gaming experience.
+- **Reward System:** Earn items to make your avatar stronger.
 
 Using FitQuest:
 
 1. Select a Quest:
 
-    - Navigate to the "Quests" section and choose a workout quest that matches your fitness goals.
+    - Navigate to the "Quests" section and choose a quest that you find exciting.
 
 2. Complete Workouts:
 
-    - Perform the physical activities outlined in the quest. Log your workouts within the app to earn XP and gold.
+    - Perform the workouts in the Workout tab. When completing workouts, you will gain XP, making you progress in your current active quest.
 
 3. Battle Monsters:
 
@@ -90,7 +107,7 @@ Using FitQuest:
 
 4. Customize Your Avatar:
 
-    - Visit the "Profile" section to change your avatar's appearance and upgrade attributes as you level up.
+    - Visit the "Profile" section to change your avatar's items and upgrade attributes as you level up.
 
 **Work in Progress:**
 

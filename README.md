@@ -30,7 +30,6 @@
 
    Customizable avatars that level up and gain equipment/abilities based on user activities.
 
-
 - **Dynamic Turn-Based Combat**
 
    As users progress through quests, they will have the opportunity to fight against monsters and bosses to claim their hard-earned rewards.
