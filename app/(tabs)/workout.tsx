@@ -1,8 +1,7 @@
 import { Text, TouchableOpacity, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-// const buttonStr = 'Start Workout';
+import { secondsToMinutes } from '@/utils/workout';
 
 const Workout = () => {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -13,8 +12,13 @@ const Workout = () => {
 
   // to swap between starting and stopping workouts
   const toggleWorkout = () => {
-    setIsWorkoutActive(!isWorkoutActive);
-    console.log(isWorkoutActive ? 'workout ended' : 'workout started');
+    if (isWorkoutActive) {
+      stopWorkout();
+    } else {
+      startWorkout();
+    }
+    //setIsWorkoutActive(!isWorkoutActive);
+    console.log(isWorkoutActive ? 'workout ended, final time: '+secondsToMinutes(secondsElapsed) : 'workout started');
   };
 
   // when workout is started
@@ -54,17 +58,19 @@ const Workout = () => {
   }, [timer]);
 
   return (
-    <SafeAreaView className="flex-1 items-center justify-center h-full bg-offWhite">
-      <Text className="text-3xl text-black">Workout</Text>
-      <SafeAreaView className="flex-1 items-center justify-center h-full">
+    <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite">
+      <Text className="text-4xl text-black font-bold text-left" style = {{marginTop: 10, marginBottom: 10}}> Workout</Text>
+      <SafeAreaView className="flex-1 items-left justify-r h-full">
         {/* Start/Stop Workout Button */}
         <TouchableOpacity
           onPress={toggleWorkout}
           style={{
-            backgroundColor: isWorkoutActive ? 'red' : 'green',
-            padding: 10,
-            marginTop: 20,
-            borderRadius: 5,
+            backgroundColor: isWorkoutActive ? 'red' : 'purple',
+            width: 145,
+            padding: 15,
+            marginLeft: 5,
+            marginTop: 0,
+            borderRadius: 40,
           }}
         >
           <Text style={{ color: 'white', fontSize: 18 }}>
@@ -73,15 +79,17 @@ const Workout = () => {
         </TouchableOpacity>
 
         {/* Placeholder because linter does not accept unused values (secondsElapsed was previously unused) */}
-        <Text>Time Elapsed: {secondsElapsed}</Text>
+        <Text style={{marginLeft: 12}}>Time Elapsed: {secondsToMinutes(secondsElapsed)}</Text>
 
         {/* Create Template Button */}
         <TouchableOpacity
           style={{
-            backgroundColor: 'blue',
-            padding: 10,
-            marginTop: 20,
-            borderRadius: 5,
+            backgroundColor: 'purple',
+            width: 165,
+            padding: 15,
+            marginLeft: 5,
+            marginTop: 15,
+            borderRadius: 40,
           }}
           onPress={() => console.log('create template pressed')}
         >
