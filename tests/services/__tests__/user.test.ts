@@ -29,7 +29,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   clear: jest.fn(() => Promise.resolve()),
 }));
 
-describe('User Services', () => {
+describe('User Service Functions', () => {
   const mockSetDoc = setDoc as jest.Mock;
   const mockGetDoc = getDoc as jest.Mock;
 

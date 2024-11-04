@@ -45,7 +45,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   clear: jest.fn(() => Promise.resolve()),
 }));
 
-describe('Auth Services', () => {
+describe('Auth Service Functions', () => {
   const mockSignInWithEmailAndPassword =
     signInWithEmailAndPassword as jest.Mock;
   const mockCreateUserWithEmailAndPassword =
