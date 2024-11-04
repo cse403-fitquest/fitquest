@@ -12,8 +12,6 @@ import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
 import { Href, router } from 'expo-router';
 import { signIn } from '@/services/auth';
-import { useUserStore } from '@/store/user';
-import { BASE_USER } from '@/constants/user';
 
 const DEFAULT_SIGN_IN_ERRORS = {
   general: '',
@@ -38,8 +36,6 @@ const SignIn = () => {
   );
 
   const [loading, setLoading] = React.useState(false);
-
-  const { setUser } = useUserStore();
 
   const resetForm = () => {
     setForm({
@@ -110,7 +106,7 @@ const SignIn = () => {
         general: signInResponse.error,
       });
 
-      if (signInResponse.error) {
+      if (signInResponse.success) {
         Alert.alert('Sign In Error', signInResponse.error);
       }
     } else {
@@ -118,13 +114,7 @@ const SignIn = () => {
       resetForm();
 
       // Set the user to global state
-      if (signInResponse.data?.user) {
-        const user = signInResponse.data.user;
-        setUser({
-          ...BASE_USER,
-          id: user.id,
-        });
-      } else {
+      if (!signInResponse.success) {
         Alert.alert('Sign In Error', 'An error occurred while signing in');
       }
     }

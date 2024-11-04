@@ -1,24 +1,17 @@
-import { BASE_USER } from '@/constants/user';
-import { FIREBASE_AUTH, FIREBASE_DB } from '@/firebaseConfig';
+import { FIREBASE_AUTH } from '@/firebaseConfig';
 import {
   DeleteAccountResponse,
   SignInResponse,
   SignOutResponse,
   SignUpResponse,
-  User,
 } from '@/types/auth';
 import { FirebaseError } from 'firebase/app';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
-import {
-  collection,
-  doc,
-  getDoc,
-  QueryDocumentSnapshot,
-  setDoc,
-} from 'firebase/firestore';
+
+import { createUser } from './user';
 
 export enum FirebaseAuthErrorCodes {
   INVALID_CREDENTIAL = 'auth/invalid-credential',
@@ -31,11 +24,6 @@ export enum FirebaseAuthErrorCodes {
   TOO_MANY_REQUESTS = 'auth/too-many-requests',
   OPERATION_NOT_ALLOWED = 'auth/operation-not-allowed',
 }
-
-const userConverter = {
-  toFirestore: (data: User) => data,
-  fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as User,
-};
 
 /**
  * Sign in with email and password
@@ -59,23 +47,8 @@ export const signIn: (
       throw new Error('User not found.');
     }
 
-    // Get user document from Firestore
-    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
-      userConverter,
-    );
-
-    const userDoc = doc(userCollection, userCredential.user.uid);
-
-    const userSnap = await getDoc(userDoc);
-
-    if (!userSnap.exists()) {
-      throw new Error('User not found.');
-    }
-
     return {
-      data: {
-        user: userSnap.data(),
-      },
+      data: null,
       success: true,
       error: null,
     };
@@ -133,35 +106,34 @@ export const signUp: (
     );
 
     // Create user document in Firestore with the user's ID
-    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
-      userConverter,
+    const createUserResponse = await createUser(
+      userCredential.user.uid,
+      username,
+      email,
     );
 
-    const newUser = {
-      ...BASE_USER,
-      id: userCredential.user.uid,
-      profileInfo: {
-        ...BASE_USER.profileInfo,
-        username,
-        email,
-      },
-      createdAt: new Date(),
-    };
-
-    await setDoc(doc(userCollection, userCredential.user.uid), newUser);
+    if (!createUserResponse.success || !createUserResponse.data) {
+      return {
+        data: null,
+        success: false,
+        error: createUserResponse.error,
+      };
+    }
 
     // Return userCredential
     return {
-      data: {
-        user: newUser,
-      },
+      data: null,
       success: true,
       error: null,
     };
   } catch (error) {
     // Error caused by firebase auth will be an instance of FirebaseError
     if (error instanceof FirebaseError) {
-      console.error('Error signing in with Firebase: ', error);
+      console.error(
+        'Error signing up with Firebase: ',
+        error.code,
+        error.message,
+      );
 
       switch (error.code) {
         case FirebaseAuthErrorCodes.EMAIL_EXISTS:
@@ -178,7 +150,7 @@ export const signUp: (
           };
       }
     } else {
-      console.log('Error signing in: ', error);
+      console.log('Error signing up: ', error);
       return {
         data: null,
         success: false,

@@ -14,17 +14,9 @@ export type SignUpErrorState = {
   rePassword: string;
 };
 
-export type SignInResponse = APIResponse & {
-  data: {
-    user: User;
-  } | null;
-};
+export type SignInResponse = APIResponse & {};
 
-export type SignUpResponse = APIResponse & {
-  data: {
-    user: User;
-  } | null;
-};
+export type SignUpResponse = APIResponse & {};
 
 export type SignOutResponse = APIResponse & {};
 

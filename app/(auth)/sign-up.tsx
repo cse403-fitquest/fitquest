@@ -14,8 +14,6 @@ import { Href, router } from 'expo-router';
 import { signUp } from '@/services/auth';
 import { isEmailValid } from '@/utils/auth';
 import { SignUpErrorState } from '@/types/auth';
-import { useUserStore } from '@/store/user';
-import { BASE_USER } from '@/constants/user';
 
 const DEFAULT_SIGN_UP_ERRORS = {
   general: '',
@@ -38,8 +36,6 @@ const SignUp = () => {
   );
 
   const [loading, setLoading] = React.useState(false);
-
-  const { setUser } = useUserStore();
 
   const resetForm = () => {
     setForm({
@@ -149,20 +145,14 @@ const SignUp = () => {
         general: signUpResponse.error,
       });
 
-      if (signUpResponse.error) {
+      if (!signUpResponse.success) {
         Alert.alert('Sign Up Error', signUpResponse.error);
       }
     } else {
       resetForm();
 
       // Set the user to global state
-      if (signUpResponse.data?.user) {
-        const user = signUpResponse.data.user;
-        setUser({
-          ...BASE_USER,
-          id: user.id,
-        });
-      } else {
+      if (!signUpResponse.success) {
         Alert.alert('Sign In Error', 'An error occurred while signing in');
       }
     }

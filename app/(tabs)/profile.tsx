@@ -101,7 +101,11 @@ const MOCK_USER: User = {
     isLastWorkoutPublic: true,
     isCurrentQuestPublic: true,
   },
-  createdAt: Date.now(),
+  createdAt: new Date(),
+  attributePoints: 0,
+  friends: [],
+  sentFriendRequests: [],
+  incomingFriendRequests: [],
 };
 
 interface ItemCardProps {
