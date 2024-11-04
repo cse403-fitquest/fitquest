@@ -15,10 +15,10 @@ export const acceptFriendRequest: (
 ) => Promise<APIResponse> = async (senderID, receiverID) => {
   try {
     // Get fromUser reference
-    const fromUserRef = doc(FIREBASE_DB, `friends`, senderID);
+    const fromUserRef = doc(FIREBASE_DB, 'friends', senderID);
 
     // Get toUser reference
-    const toUserRef = doc(FIREBASE_DB, `friends`, receiverID);
+    const toUserRef = doc(FIREBASE_DB, 'friends', receiverID);
 
     // Remove fromUser from toUser's pending requests and add to friends
     await updateDoc(toUserRef, {

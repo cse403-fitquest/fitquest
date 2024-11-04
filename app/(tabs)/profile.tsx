@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import FQModal from '@/components/FQModal';
-import { User } from '@/types/auth';
+import { User } from '@/types/user';
 import clsx from 'clsx';
 import { Item, ItemType } from '@/types/item';
 import { signOut } from '@/utils/auth';

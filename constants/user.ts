@@ -1,4 +1,4 @@
-import { User } from '@/types/auth';
+import { User } from '@/types/user';
 
 export const BASE_USER: User = {
   id: '',

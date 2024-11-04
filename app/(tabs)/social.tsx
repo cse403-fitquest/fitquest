@@ -8,9 +8,8 @@ import {
 } from 'react-native';
 import React, { useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { UserFriend } from '@/types/social';
-import { BASE_USER } from '@/constants/user';
-import { User } from '@/types/auth';
+import { Friend, UserFriend } from '@/types/social';
+import { BASE_FRIEND } from '@/constants/social';
 import { Ionicons } from '@expo/vector-icons';
 import FQModal from '@/components/FQModal';
 import FQTextInput from '@/components/FQTextInput';
@@ -20,27 +19,27 @@ const MOCK_USER_FRIENDS: UserFriend = {
   id: '1',
   friends: [
     {
-      ...BASE_USER,
+      ...BASE_FRIEND,
       id: 'faagsg',
-      profileInfo: { ...BASE_USER.profileInfo, username: 'NiceDude5' },
+      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'NiceDude5' },
       currentQuest: 'Hunt Big Chungus',
     },
     {
-      ...BASE_USER,
+      ...BASE_FRIEND,
       id: 'fggosi',
-      profileInfo: { ...BASE_USER.profileInfo, username: 'NiceDude1' },
+      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'NiceDude1' },
       currentQuest: 'Hunt Big Chungus',
     },
     {
-      ...BASE_USER,
+      ...BASE_FRIEND,
       id: 'fgsg',
-      profileInfo: { ...BASE_USER.profileInfo, username: 'KindaNiceDude2' },
+      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'KindaNiceDude2' },
       currentQuest: 'Hunt The Swamp Hydra',
     },
     {
-      ...BASE_USER,
+      ...BASE_FRIEND,
       id: 'fssg',
-      profileInfo: { ...BASE_USER.profileInfo, username: 'NiceeeeeDude3' },
+      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'NiceeeeeDude3' },
       currentQuest: 'Hunt Big Chungus',
       privacySettings: {
         isCurrentQuestPublic: true,
@@ -48,9 +47,9 @@ const MOCK_USER_FRIENDS: UserFriend = {
       },
     },
     {
-      ...BASE_USER,
+      ...BASE_FRIEND,
       id: 'fsfsgg',
-      profileInfo: { ...BASE_USER.profileInfo, username: 'CoolDude3' },
+      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'CoolDude3' },
       currentQuest: 'Hunt Big Chungus',
       privacySettings: {
         isCurrentQuestPublic: false,
@@ -58,9 +57,9 @@ const MOCK_USER_FRIENDS: UserFriend = {
       },
     },
     {
-      ...BASE_USER,
+      ...BASE_FRIEND,
       id: 'fsfsfdfdgg',
-      profileInfo: { ...BASE_USER.profileInfo, username: 'VeryCoolDude3' },
+      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'VeryCoolDude3' },
       currentQuest: 'Hunt Big Chungus',
       privacySettings: {
         isCurrentQuestPublic: false,
@@ -71,22 +70,22 @@ const MOCK_USER_FRIENDS: UserFriend = {
   sentRequests: ['jdoe@mail.com', 'bdover@mail.com', 'apee@mail.com'],
   pendingRequests: [
     {
-      ...BASE_USER,
+      ...BASE_FRIEND,
       id: 'sgag',
       profileInfo: {
-        ...BASE_USER.profileInfo,
+        ...BASE_FRIEND.profileInfo,
         username: 'KindaCoolDude',
       },
     },
     {
-      ...BASE_USER,
+      ...BASE_FRIEND,
       id: 'fwfafof',
-      profileInfo: { ...BASE_USER.profileInfo, username: 'VeryCoolDude2' },
+      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'VeryCoolDude2' },
     },
     {
-      ...BASE_USER,
+      ...BASE_FRIEND,
       id: 'dfff',
-      profileInfo: { ...BASE_USER.profileInfo, username: 'VeryCoolDude3' },
+      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'VeryCoolDude3' },
     },
   ],
 };
@@ -102,8 +101,8 @@ const Social = () => {
     option: ModalDataOptions;
     email: string;
     emailError?: string;
-    user: User | null;
-    friend: User | null;
+    user: Friend | null;
+    friend: Friend | null;
   }>({
     option: ModalDataOptions.ADD_FRIEND,
     email: '',
@@ -155,7 +154,7 @@ const Social = () => {
   }, [modalDataOption]);
 
   const [sections, setSections] = useState<
-    { key: string; title: string; data: User[] | string[] }[]
+    { key: string; title: string; data: Friend[] | string[] }[]
   >([
     {
       key: 'sentRequests',
@@ -177,7 +176,7 @@ const Social = () => {
   const renderSection = (item: {
     key: string;
     title: string;
-    data: User[] | string[];
+    data: Friend[] | string[];
   }) => {
     if (item.key === 'sentRequests') {
       return (
@@ -228,7 +227,7 @@ const Social = () => {
             {item.title}
           </Text>
           <FlatList
-            data={item.data as User[]}
+            data={item.data as Friend[]}
             keyExtractor={(friend) => friend.id}
             renderItem={({ item }) => (
               <IncomingRequestItem
@@ -241,12 +240,12 @@ const Social = () => {
                       if (section.key === 'friends') {
                         return {
                           ...section,
-                          data: [item, ...(section.data as User[])],
+                          data: [item, ...(section.data as Friend[])],
                         };
                       } else if (section.key === 'incomingRequests') {
                         return {
                           ...section,
-                          data: (section.data as User[]).filter(
+                          data: (section.data as Friend[]).filter(
                             (user) => user.id !== item.id,
                           ),
                         };
@@ -263,7 +262,7 @@ const Social = () => {
                       if (section.key === 'incomingRequests') {
                         return {
                           ...section,
-                          data: (section.data as User[]).filter(
+                          data: (section.data as Friend[]).filter(
                             (user) => user.id !== item.id,
                           ),
                         };
@@ -303,7 +302,7 @@ const Social = () => {
             </TouchableOpacity>
           </View>
           <FlatList
-            data={item.data as User[]}
+            data={item.data as Friend[]}
             keyExtractor={(friend) => friend.id}
             renderItem={({ item }) => (
               <FriendItem
@@ -392,7 +391,7 @@ const Social = () => {
           if (section.key === 'friends') {
             return {
               ...section,
-              data: (section.data as User[]).filter(
+              data: (section.data as Friend[]).filter(
                 (user) => user.id !== modalDataOption.friend?.id,
               ),
             };
@@ -433,7 +432,7 @@ const Social = () => {
 export default Social;
 
 const IncomingRequestItem: React.FC<{
-  user: User;
+  user: Friend;
   onAccept: () => void;
   onDeny: () => void;
 }> = ({ user, onAccept, onDeny }) => {
@@ -452,7 +451,7 @@ const IncomingRequestItem: React.FC<{
   );
 };
 
-const FriendItem: React.FC<{ user: User; onDelete: () => void }> = ({
+const FriendItem: React.FC<{ user: Friend; onDelete: () => void }> = ({
   user,
   onDelete,
 }) => {
