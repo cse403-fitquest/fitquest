@@ -219,7 +219,7 @@ const Social = () => {
     } else if (item.key === 'friends') {
       return (
         <View className="mb-5">
-          <View className="flex-row justify-between items-center">
+          <View className="w-full flex-row justify-between items-center">
             <Text className="text-xl text-gray-dark font-bold mb-2">
               {item.title}
             </Text>
@@ -346,7 +346,7 @@ const Social = () => {
         ListHeaderComponent={
           <Text className="text-2xl text-black mb-5 w-full pt-6">Social</Text>
         }
-        ListFooterComponent={<View className="pb-6" />}
+        ListFooterComponent={<View className="h-[10px]" />}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
@@ -361,7 +361,7 @@ const IncomingRequestItem: React.FC<{
   onDeny: () => void;
 }> = ({ user, onAccept, onDeny }) => {
   return (
-    <View className="flex-row justify-between items-center">
+    <View className="w-full flex-row justify-between items-center">
       <Text className="text-lg font-medium">{user.profileInfo.username}</Text>
       <View className="flex-row justify-center items-center">
         <TouchableOpacity onPress={onAccept}>
@@ -383,12 +383,21 @@ const FriendItem: React.FC<{ user: Friend; onDelete: () => void }> = ({
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dx < 0) {
-          translateX.setValue(gestureState.dx);
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        if (Math.abs(gesture?.dx) > Math.abs(gesture?.dy)) {
+          return true;
         }
+        return false;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (Math.abs(gestureState?.dx) > Math.abs(gestureState?.dy)) {
+          if (gestureState.dx < 0) {
+            translateX.setValue(gestureState.dx);
+          }
+          return true;
+        }
+        return false;
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dx < -100) {
