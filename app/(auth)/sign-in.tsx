@@ -11,9 +11,7 @@ import AppTitle from '@/components/AppTitle';
 import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
 import { Href, router } from 'expo-router';
-import { signIn } from '@/utils/auth';
-import { useUserStore } from '@/store/user';
-import { BASE_USER } from '@/constants/user';
+import { signIn } from '@/services/auth';
 
 const DEFAULT_SIGN_IN_ERRORS = {
   general: '',
@@ -38,8 +36,6 @@ const SignIn = () => {
   );
 
   const [loading, setLoading] = React.useState(false);
-
-  const { setUser } = useUserStore();
 
   const resetForm = () => {
     setForm({
@@ -105,23 +101,20 @@ const SignIn = () => {
     const signInResponse = await signIn(form.email, form.password);
 
     if (signInResponse.error) {
-      setErrors(signInResponse.error);
+      setErrors({
+        ...errors,
+        general: signInResponse.error,
+      });
 
-      if (signInResponse.error.general) {
-        Alert.alert('Sign In Error', signInResponse.error.general);
+      if (signInResponse.success) {
+        Alert.alert('Sign In Error', signInResponse.error);
       }
     } else {
       // If there is no error, reset the form and save the user to global state
       resetForm();
 
       // Set the user to global state
-      if (signInResponse.userCredential?.user) {
-        const user = signInResponse.userCredential.user;
-        setUser({
-          ...BASE_USER,
-          id: user.uid,
-        });
-      } else {
+      if (!signInResponse.success) {
         Alert.alert('Sign In Error', 'An error occurred while signing in');
       }
     }

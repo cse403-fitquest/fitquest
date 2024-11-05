@@ -11,10 +11,9 @@ import AppTitle from '@/components/AppTitle';
 import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
 import { Href, router } from 'expo-router';
-import { isEmailValid, signUp } from '@/utils/auth';
+import { signUp } from '@/services/auth';
+import { isEmailValid } from '@/utils/auth';
 import { SignUpErrorState } from '@/types/auth';
-import { useUserStore } from '@/store/user';
-import { BASE_USER } from '@/constants/user';
 
 const DEFAULT_SIGN_UP_ERRORS = {
   general: '',
@@ -37,8 +36,6 @@ const SignUp = () => {
   );
 
   const [loading, setLoading] = React.useState(false);
-
-  const { setUser } = useUserStore();
 
   const resetForm = () => {
     setForm({
@@ -136,25 +133,26 @@ const SignUp = () => {
     setLoading(true);
 
     // No need for try-catch block since signUp function handles errors
-    const signUpResponse = await signUp(form.email, form.password);
+    const signUpResponse = await signUp(
+      form.username,
+      form.email,
+      form.password,
+    );
 
     if (signUpResponse.error) {
-      setErrors(signUpResponse.error);
+      setErrors({
+        ...errors,
+        general: signUpResponse.error,
+      });
 
-      if (signUpResponse.error.general) {
-        Alert.alert('Sign Up Error', signUpResponse.error.general);
+      if (!signUpResponse.success) {
+        Alert.alert('Sign Up Error', signUpResponse.error);
       }
     } else {
       resetForm();
 
       // Set the user to global state
-      if (signUpResponse.userCredential?.user) {
-        const user = signUpResponse.userCredential.user;
-        setUser({
-          ...BASE_USER,
-          id: user.uid,
-        });
-      } else {
+      if (!signUpResponse.success) {
         Alert.alert('Sign In Error', 'An error occurred while signing in');
       }
     }
