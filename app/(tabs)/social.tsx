@@ -8,87 +8,12 @@ import {
 } from 'react-native';
 import React, { useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Friend, UserFriend } from '@/types/social';
-import { BASE_FRIEND } from '@/constants/social';
+import { Friend } from '@/types/social';
 import { Ionicons } from '@expo/vector-icons';
 import FQModal from '@/components/FQModal';
 import FQTextInput from '@/components/FQTextInput';
 import { isEmailValid } from '@/utils/auth';
-
-const MOCK_USER_FRIENDS: UserFriend = {
-  id: '1',
-  friends: [
-    {
-      ...BASE_FRIEND,
-      id: 'faagsg',
-      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'NiceDude5' },
-      currentQuest: 'Hunt Big Chungus',
-    },
-    {
-      ...BASE_FRIEND,
-      id: 'fggosi',
-      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'NiceDude1' },
-      currentQuest: 'Hunt Big Chungus',
-    },
-    {
-      ...BASE_FRIEND,
-      id: 'fgsg',
-      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'KindaNiceDude2' },
-      currentQuest: 'Hunt The Swamp Hydra',
-    },
-    {
-      ...BASE_FRIEND,
-      id: 'fssg',
-      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'NiceeeeeDude3' },
-      currentQuest: 'Hunt Big Chungus',
-      privacySettings: {
-        isCurrentQuestPublic: true,
-        isLastWorkoutPublic: false,
-      },
-    },
-    {
-      ...BASE_FRIEND,
-      id: 'fsfsgg',
-      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'CoolDude3' },
-      currentQuest: 'Hunt Big Chungus',
-      privacySettings: {
-        isCurrentQuestPublic: false,
-        isLastWorkoutPublic: true,
-      },
-    },
-    {
-      ...BASE_FRIEND,
-      id: 'fsfsfdfdgg',
-      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'VeryCoolDude3' },
-      currentQuest: 'Hunt Big Chungus',
-      privacySettings: {
-        isCurrentQuestPublic: false,
-        isLastWorkoutPublic: false,
-      },
-    },
-  ],
-  sentRequests: ['jdoe@mail.com', 'bdover@mail.com', 'apee@mail.com'],
-  pendingRequests: [
-    {
-      ...BASE_FRIEND,
-      id: 'sgag',
-      profileInfo: {
-        ...BASE_FRIEND.profileInfo,
-        username: 'KindaCoolDude',
-      },
-    },
-    {
-      ...BASE_FRIEND,
-      id: 'fwfafof',
-      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'VeryCoolDude2' },
-    },
-    {
-      ...BASE_FRIEND,
-      id: 'dfff',
-      profileInfo: { ...BASE_FRIEND.profileInfo, username: 'VeryCoolDude3' },
-    },
-  ],
-};
+import { useSocialStore } from '@/store/social';
 
 enum ModalDataOptions {
   ADD_FRIEND = 'ADD_FRIEND',
@@ -109,6 +34,8 @@ const Social = () => {
     user: null,
     friend: null,
   });
+  const { userFriend, setFriends, setPendingRequests, setSentRequests } =
+    useSocialStore();
 
   const modalData: {
     title: string;
@@ -153,25 +80,45 @@ const Social = () => {
     }
   }, [modalDataOption]);
 
-  const [sections, setSections] = useState<
-    { key: string; title: string; data: Friend[] | string[] }[]
-  >([
-    {
-      key: 'sentRequests',
-      title: 'SENT REQUESTS',
-      data: MOCK_USER_FRIENDS.sentRequests,
-    },
-    {
-      key: 'incomingRequests',
-      title: 'INCOMING REQUESTS',
-      data: MOCK_USER_FRIENDS.pendingRequests,
-    },
-    {
-      key: 'friends',
-      title: 'FRIENDS',
-      data: MOCK_USER_FRIENDS.friends,
-    },
-  ]);
+  const sections = useMemo(() => {
+    if (!userFriend) {
+      return [
+        {
+          key: 'sentRequests',
+          title: 'SENT REQUESTS',
+          data: [],
+        },
+        {
+          key: 'pendingRequests',
+          title: 'PENDING REQUESTS',
+          data: [],
+        },
+        {
+          key: 'friends',
+          title: 'FRIENDS',
+          data: [],
+        },
+      ];
+    }
+
+    return [
+      {
+        key: 'sentRequests',
+        title: 'SENT REQUESTS',
+        data: userFriend.sentRequests,
+      },
+      {
+        key: 'pendingRequests',
+        title: 'PENDING REQUESTS',
+        data: userFriend.pendingRequests,
+      },
+      {
+        key: 'friends',
+        title: 'FRIENDS',
+        data: userFriend.friends,
+      },
+    ];
+  }, [userFriend]);
 
   const renderSection = (item: {
     key: string;
@@ -188,24 +135,20 @@ const Social = () => {
             data={item.data as string[]}
             keyExtractor={(friend) => friend}
             renderItem={({ item }) => (
-              <View className="flex-row justify-between items-center">
+              <View className="w-full flex-row justify-between items-center">
                 <Text className="text-lg font-medium">{item}</Text>
                 <TouchableOpacity
                   onPress={() => {
+                    // TODO: Cancel request
+
                     // Cancel request
                     // Remove email from sentRequests
-                    setSections(
-                      sections.map((section) => {
-                        if (section.key === 'sentRequests') {
-                          return {
-                            ...section,
-                            data: (section.data as string[]).filter(
-                              (email) => email !== item,
-                            ),
-                          };
-                        }
-                        return section;
-                      }),
+                    setSentRequests(
+                      (
+                        sections.find(
+                          (section) => section.key === 'sentRequests',
+                        )?.data as string[]
+                      ).filter((email) => email !== item),
                     );
                   }}
                 >
@@ -220,7 +163,7 @@ const Social = () => {
           />
         </View>
       );
-    } else if (item.key === 'incomingRequests') {
+    } else if (item.key === 'pendingRequests') {
       return (
         <View className="mb-5">
           <Text className="text-xl text-gray-dark font-bold mb-2">
@@ -233,42 +176,35 @@ const Social = () => {
               <IncomingRequestItem
                 user={item}
                 onAccept={() => {
+                  // TODO: Accept request
+
                   // Accept request
-                  // Remove user from incomingRequests and add to friends
-                  setSections(
-                    sections.map((section) => {
-                      if (section.key === 'friends') {
-                        return {
-                          ...section,
-                          data: [item, ...(section.data as Friend[])],
-                        };
-                      } else if (section.key === 'incomingRequests') {
-                        return {
-                          ...section,
-                          data: (section.data as Friend[]).filter(
-                            (user) => user.id !== item.id,
-                          ),
-                        };
-                      }
-                      return section;
-                    }),
+                  // Remove user from pendingRequests and add to friends
+                  setPendingRequests(
+                    (
+                      sections.find(
+                        (section) => section.key === 'pendingRequests',
+                      )?.data as Friend[]
+                    ).filter((user) => user.id !== item.id),
                   );
+
+                  setFriends([
+                    item,
+                    ...(sections.find((section) => section.key === 'friends')
+                      ?.data as Friend[]),
+                  ]);
                 }}
                 onDeny={() => {
+                  // TODO: Deny request
+
                   // Deny request
-                  // Remove user from incomingRequests
-                  setSections(
-                    sections.map((section) => {
-                      if (section.key === 'incomingRequests') {
-                        return {
-                          ...section,
-                          data: (section.data as Friend[]).filter(
-                            (user) => user.id !== item.id,
-                          ),
-                        };
-                      }
-                      return section;
-                    }),
+                  // Remove user from pendingRequests
+                  setPendingRequests(
+                    (
+                      sections.find(
+                        (section) => section.key === 'pendingRequests',
+                      )?.data as Friend[]
+                    ).filter((user) => user.id !== item.id),
                   );
                 }}
               />
@@ -372,39 +308,27 @@ const Social = () => {
         return;
       }
 
-      setSections(
-        sections.map((section) => {
-          if (section.key === 'sentRequests') {
-            return {
-              ...section,
-              data: [...(section.data as string[]), modalDataOption.email],
-            };
-          }
-          return section;
-        }),
-      );
+      // TODO: Send friend request
+
+      // Add email to sent requests
+      setSentRequests([...sentRequests, modalDataOption.email]);
     } else if (modalDataOption.option === ModalDataOptions.REMOVE_FRIEND) {
+      // TODO: Remove friend
+
       // Remove friend
       // Remove user from friends
-      setSections(
-        sections.map((section) => {
-          if (section.key === 'friends') {
-            return {
-              ...section,
-              data: (section.data as Friend[]).filter(
-                (user) => user.id !== modalDataOption.friend?.id,
-              ),
-            };
-          }
-          return section;
-        }),
+      setFriends(
+        (
+          sections.find((section) => section.key === 'friends')
+            ?.data as Friend[]
+        ).filter((user) => user.id !== modalDataOption.friend?.id),
       );
     }
     setModalVisible(false);
   };
 
   return (
-    <SafeAreaView className="relative w-full flex-col justify-start items-start bg-offWhite px-6">
+    <SafeAreaView className="relative w-full h-full flex-col justify-start items-start bg-offWhite px-6">
       <FQModal
         visible={modalVisible}
         setVisible={setModalVisible}
