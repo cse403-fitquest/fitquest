@@ -1,6 +1,88 @@
-import { doc, updateDoc, arrayRemove, arrayUnion } from 'firebase/firestore';
+import {
+  doc,
+  updateDoc,
+  arrayRemove,
+  arrayUnion,
+  getDoc,
+  QueryDocumentSnapshot,
+} from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
+import { GetUserFriendsResponse, UserFriend } from '@/types/social';
+
+const userFriendConverter = {
+  toFirestore: (data: UserFriend) => data,
+  fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as UserFriend,
+};
+
+/**
+ * Get the user's friends.
+ * @param {string} userID The user's unique ID.
+ * @returns An object containing the user's friends.
+ */
+export const getUserFriends: (
+  userID: string,
+) => Promise<GetUserFriendsResponse> = async (userID) => {
+  try {
+    // Get user friend reference
+    const userFriendRef = doc(FIREBASE_DB, 'friends', userID).withConverter(
+      userFriendConverter,
+    );
+
+    // Get user data
+    const userFriendSnap = await getDoc(userFriendRef);
+    const userFriendData = userFriendSnap.data();
+
+    if (!userFriendData) {
+      throw new Error('User friend data not found.');
+    }
+
+    return {
+      success: true,
+      error: null,
+      data: userFriendData,
+    };
+  } catch (error) {
+    console.error('Error getting user friends: ', error);
+
+    return {
+      success: false,
+      error: 'Error getting user friends.',
+      data: null,
+    };
+  }
+};
+
+export const createUserFriends: (
+  userID: string,
+) => Promise<APIResponse> = async (userID) => {
+  try {
+    // Get user friend reference
+    const userFriendRef = doc(FIREBASE_DB, 'friends', userID).withConverter(
+      userFriendConverter,
+    );
+
+    // Create user friend data
+    await updateDoc(userFriendRef, {
+      id: userID,
+      friends: [],
+      sentRequests: [],
+      pendingRequests: [],
+    });
+
+    return {
+      success: true,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error creating user friends: ', error);
+
+    return {
+      success: false,
+      error: 'Error creating user friends.',
+    };
+  }
+};
 
 // Function to handle accepting friend requests
 /**

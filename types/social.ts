@@ -1,3 +1,4 @@
+import { APIResponse } from './general';
 import { User } from './user';
 
 export type Friend = Pick<User, 'id' | 'privacySettings'> & {
@@ -13,4 +14,8 @@ export type UserFriend = {
   friends: Friend[];
   sentRequests: string[];
   pendingRequests: Friend[];
+};
+
+export type GetUserFriendsResponse = APIResponse & {
+  data: UserFriend | null;
 };
