@@ -86,6 +86,7 @@ const purchaseItem: (
     console.log('Purchase successful! Item added to inventory.');
 
     return {
+      data: null,
       success: true,
       error: null,
     };
@@ -93,6 +94,7 @@ const purchaseItem: (
     console.error('Error purchasing item:', error);
 
     return {
+      data: null,
       success: false,
       error: 'Error purchasing item.',
     };

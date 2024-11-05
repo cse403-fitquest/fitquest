@@ -1,16 +1,16 @@
 import { Href, Redirect, Tabs } from 'expo-router';
-import React from 'react';
-
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { StatusBar } from 'expo-status-bar';
-import { isLoggedIn } from '@/utils/auth';
+import { useUserStore } from '@/store/user';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
-  if (!isLoggedIn()) return <Redirect href={'/sign-in' as Href} />;
+  const { user } = useUserStore();
+
+  if (!user) return <Redirect href={'/sign-in' as Href} />;
 
   return (
     <>

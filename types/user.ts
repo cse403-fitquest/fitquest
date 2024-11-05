@@ -1,3 +1,13 @@
+import { APIResponse } from './general';
+
+export type CreateUserResponse = APIResponse & {};
+
+export type GetUserResponse = APIResponse & {
+  data: {
+    user: User;
+  } | null;
+};
+
 export type User = {
   id: string;
   profileInfo: {
@@ -11,10 +21,11 @@ export type User = {
   attributes: { power: number; speed: number; health: number };
   exp: number;
   gold: number;
+  attributePoints: number;
   currentQuest: string;
   privacySettings: {
     isLastWorkoutPublic: boolean;
     isCurrentQuestPublic: boolean;
   };
-  createdAt: number;
+  createdAt: Date;
 };

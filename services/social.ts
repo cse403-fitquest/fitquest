@@ -71,6 +71,7 @@ export const createUserFriends: (
     });
 
     return {
+      data: null,
       success: true,
       error: null,
     };
@@ -78,6 +79,7 @@ export const createUserFriends: (
     console.error('Error creating user friends: ', error);
 
     return {
+      data: null,
       success: false,
       error: 'Error creating user friends.',
     };
@@ -117,12 +119,14 @@ export const acceptFriendRequest: (
     console.log('Friend request accepted!');
 
     return {
+      data: null,
       success: true,
       error: null,
     };
   } catch (error) {
     console.error('Error accepting friend request: ', error);
     return {
+      data: null,
       success: false,
       error: 'Error accepting friend request.',
     };
@@ -160,6 +164,7 @@ export const sendFriendRequest: (
     console.log('Friend request sent!');
 
     return {
+      data: null,
       success: true,
       error: null,
     };
@@ -167,6 +172,7 @@ export const sendFriendRequest: (
     console.error('Error sending friend request: ', error);
 
     return {
+      data: null,
       success: false,
       error: 'Error sending friend request.',
     };
@@ -204,6 +210,7 @@ export const rejectFriendRequest: (
     console.log('Friend request rejected!');
 
     return {
+      data: null,
       success: true,
       error: null,
     };
@@ -211,6 +218,7 @@ export const rejectFriendRequest: (
     console.error('Error rejecting friend request: ', error);
 
     return {
+      data: null,
       success: false,
       error: 'Error rejecting friend request.',
     };
@@ -248,6 +256,7 @@ export const deleteFriend: (
     console.log('Friend removed!');
 
     return {
+      data: null,
       success: true,
       error: null,
     };
@@ -255,6 +264,7 @@ export const deleteFriend: (
     console.error('Error removing friend: ', error);
 
     return {
+      data: null,
       success: false,
       error: 'Error removing friend.',
     };

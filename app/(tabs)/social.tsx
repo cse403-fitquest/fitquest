@@ -391,7 +391,6 @@ const FriendItem: React.FC<{ user: Friend; onDelete: () => void }> = ({
         }
       },
       onPanResponderRelease: (_, gestureState) => {
-        console.log(gestureState.dx);
         if (gestureState.dx < -100) {
           Animated.spring(translateX, {
             toValue: -100,
