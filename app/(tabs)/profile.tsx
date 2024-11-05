@@ -13,7 +13,7 @@ import FQModal from '@/components/FQModal';
 import { User } from '@/types/auth';
 import clsx from 'clsx';
 import { Item, ItemType } from '@/types/item';
-import { signOut } from '@/utils/auth';
+import { signOut } from '@/services/auth';
 
 const MOCK_EQUIPPED_ITEMS: Item[] = [
   {
@@ -101,7 +101,11 @@ const MOCK_USER: User = {
     isLastWorkoutPublic: true,
     isCurrentQuestPublic: true,
   },
-  createdAt: Date.now(),
+  createdAt: new Date(),
+  attributePoints: 0,
+  friends: [],
+  sentFriendRequests: [],
+  incomingFriendRequests: [],
 };
 
 interface ItemCardProps {
@@ -348,16 +352,17 @@ const Profile = () => {
 
             <View>
               <TouchableOpacity onPress={handleSignOut}>
-                <Text className="text-red-500 text-center font-semibold text-sm mb-2">
+                <Text className="text-red-500 text-center font-semibold text-sm">
                   SIGN OUT
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity>
+              {/* Won't delete account for now */}
+              {/* <TouchableOpacity>
                 <Text className="text-red-500 text-center font-semibold text-sm">
                   DELETE ACCOUNT
                 </Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
         </View>

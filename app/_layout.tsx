@@ -1,4 +1,5 @@
 import { FIREBASE_AUTH } from '@/firebaseConfig';
+import { getUser } from '@/services/user';
 import { useUserStore } from '@/store/user';
 import { useFonts } from 'expo-font';
 import { Href, router, Slot, Stack } from 'expo-router';
@@ -20,14 +21,27 @@ export default function RootLayout() {
 
   useEffect(() => {
     // Setup observer to reroute user based on auth state change
-    onAuthStateChanged(FIREBASE_AUTH, (user) => {
+    onAuthStateChanged(FIREBASE_AUTH, async (user) => {
       if (user) {
-        // User is signed in, see docs for a list of available properties
-        console.log('User is signed in');
-        // console.log(user);
+        // Get user data from Firestore
+        const getUserResponse = await getUser(user.uid);
+
+        if (!getUserResponse.success || !getUserResponse.data) {
+          console.error('Error fetching user data');
+          return;
+        }
+
+        // Set user data
+        setUser(getUserResponse.data.user);
+
+        // User is signed in
+        console.log(
+          'User is signed in as username:',
+          getUserResponse.data.user.profileInfo.username,
+        );
 
         // Navigate to the appropriate screen
-        router.replace('/sign-out' as Href);
+        router.replace('/profile' as Href);
       } else {
         // User is signed out
         console.log('User is signed out');
