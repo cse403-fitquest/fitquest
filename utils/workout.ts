@@ -7,15 +7,18 @@ deleteDoc(): A firebase firestore function that deletes an existing document in 
 // Import the necessary functions from Firebase SDK
 //import { initializeApp } from 'firebase/app';
 //import { getFirestore, doc, getDoc } from 'firebase/firestore';
-type Exercise = {
-  name: string;
-  sets: number;
-  reps: number;
-  weight: number;
-};
-type workout = {
-  exercises: Exercise[];
-}
+
+// Comment out to fix unused variable error
+// type Exercise = {
+//   name: string;
+//   sets: number;
+//   reps: number;
+//   weight: number;
+// };
+// type workout = {
+//   exercises: Exercise[];
+// };
+
 // Your web app's Firebase configuration
 /*const firebaseConfig = {
   apiKey: 'your-api-key',
@@ -28,7 +31,6 @@ type workout = {
 
 export const secondsToMinutes = (seconds: number) => {
   return (seconds/60)+"m"+(seconds%60)+"s";
-  
 }
 
 // Initialize Firebase app and Firestore
@@ -58,21 +60,12 @@ const getDocument = async (collection: string, documentId: string) => {
 // getDocument('users', 'user-id-here').then(data => console.log(data));
 //console.log(getDocument('muscles', 'Biceps'));*/
 
-/* converts seconds to xminutes xseconds so for display purposes*/ 
+/* converts seconds to xminutes xseconds so for display purposes*/
 export const secondsToMinutes = (seconds: number) => {
-  return Math.floor(seconds/60)+"m"+(seconds%60)+"s";
-}
+  return Math.floor(seconds / 60) + 'm' + (seconds % 60) + 's';
+};
 
-export const addToTemplate = () => {
-
-}
-export const removeFromTemplate = () => {
-
-}
-export const submitTemplate = () => {
-
-}
-export const resetTemplate = () => {
-
-}
-
+export const addToTemplate = () => {};
+export const removeFromTemplate = () => {};
+export const submitTemplate = () => {};
+export const resetTemplate = () => {};

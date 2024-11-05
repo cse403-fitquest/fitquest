@@ -1,4 +1,12 @@
-import { FlatList, Modal, Text, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  FlatList,
+  Modal,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { secondsToMinutes } from '@/utils/workout';
@@ -25,12 +33,16 @@ const Workout = () => {
       startWorkout();
     }
     //setIsWorkoutActive(!isWorkoutActive);
-    console.log(isWorkoutActive ? 'workout ended, final time: '+secondsToMinutes(secondsElapsed) : 'workout started');
+    console.log(
+      isWorkoutActive
+        ? 'workout ended, final time: ' + secondsToMinutes(secondsElapsed)
+        : 'workout started',
+    );
   };
 
   // when workout is started
   // TODO: DELETE LINE BELOW WHEN USING THE FUNCTION
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const startWorkout = () => {
     if (!isWorkoutActive) {
       setIsWorkoutActive(true);
@@ -44,7 +56,7 @@ const Workout = () => {
 
   // when workout is stopped
   // TODO: DELETE LINE BELOW WHEN USING THE FUNCTION
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const stopWorkout = () => {
     if (isWorkoutActive) {
       setIsWorkoutActive(false);
@@ -66,7 +78,13 @@ const Workout = () => {
 
   return (
     <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite">
-      <Text className="text-4xl text-black font-bold text-left" style = {{marginTop: 10, marginBottom: 10}}> Workout</Text>
+      <Text
+        className="text-4xl text-black font-bold text-left"
+        style={{ marginTop: 10, marginBottom: 10 }}
+      >
+        {' '}
+        Workout
+      </Text>
       <SafeAreaView className="flex-1 items-left justify-r h-full">
         {/* Start/Stop Workout Button */}
         <TouchableOpacity
@@ -86,7 +104,9 @@ const Workout = () => {
         </TouchableOpacity>
 
         {/* Placeholder because linter does not accept unused values (secondsElapsed was previously unused) */}
-        <Text style={{marginLeft: 12}}>Time Elapsed: {secondsToMinutes(secondsElapsed)}</Text>
+        <Text style={{ marginLeft: 12 }}>
+          Time Elapsed: {secondsToMinutes(secondsElapsed)}
+        </Text>
 
         {/* Create Template Button */}
         <TouchableOpacity
@@ -108,32 +128,37 @@ const Workout = () => {
           <Text className="text-2xl text-black">Saved Templates</Text>
           <View style={templatestyles.box}>
             <Text style={templatestyles.title}>Saved Workout 1</Text>
-            <TouchableOpacity style={templatestyles.viewButton} onPress={toggleDropdown}>
-                <Text style={templatestyles.buttonText}>View</Text>
+            <TouchableOpacity
+              style={templatestyles.viewButton}
+              onPress={toggleDropdown}
+            >
+              <Text style={templatestyles.buttonText}>View</Text>
             </TouchableOpacity>
 
             {isDropdownVisible && (
-                <Modal
-                    transparent
-                    animationType="fade"
-                    visible={isDropdownVisible}
-                    onRequestClose={() => setDropdownVisible(false)}
+              <Modal
+                transparent
+                animationType="fade"
+                visible={isDropdownVisible}
+                onRequestClose={() => setDropdownVisible(false)}
+              >
+                <TouchableWithoutFeedback
+                  onPress={() => setDropdownVisible(false)}
                 >
-                    <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
-                        <View style={templatestyles.modalOverlay} />
-                    </TouchableWithoutFeedback>
-                    <View style={templatestyles.dropdownContainer}>
-                        <FlatList
-                            data={items}
-                            keyExtractor={(item) => item}
-                            renderItem={({ item }) => (
-                                <Text style={templatestyles.dropdownItem}>{item}</Text>
-                            )}
-                        />
-                    </View>
-                </Modal>
+                  <View style={templatestyles.modalOverlay} />
+                </TouchableWithoutFeedback>
+                <View style={templatestyles.dropdownContainer}>
+                  <FlatList
+                    data={items}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item }) => (
+                      <Text style={templatestyles.dropdownItem}>{item}</Text>
+                    )}
+                  />
+                </View>
+              </Modal>
             )}
-        </View>
+          </View>
         </View>
 
         {/* Suggested Templates Section */}
@@ -145,56 +170,54 @@ const Workout = () => {
   );
 };
 
-
-
 //styles for the templates
 const templatestyles = StyleSheet.create({
   box: {
-      width: 300,
-      padding: 20,
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 5,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      position: 'relative',
+    width: 300,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'relative',
   },
   title: {
-      fontSize: 20,
-      fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   viewButton: {
-      backgroundColor: 'purple',
-      borderRadius: 25,
-      padding: 10,
+    backgroundColor: 'purple',
+    borderRadius: 25,
+    padding: 10,
   },
   buttonText: {
-      color: 'white',
+    color: 'white',
   },
   modalOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   dropdownContainer: {
-      position: 'absolute',
-      top: 100,
-      right: 20,
-      width: 100,
-      backgroundColor: '#f9f9f9',
-      borderRadius: 5,
-      padding: 10,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 5,
-      elevation: 5,
+    position: 'absolute',
+    top: 100,
+    right: 20,
+    width: 100,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 5,
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   dropdownItem: {
-      paddingVertical: 8,
-      paddingHorizontal: 4,
-      borderBottomWidth: 1,
-      borderBottomColor: '#ddd',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
 });
 
