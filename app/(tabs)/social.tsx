@@ -44,6 +44,7 @@ const Social = () => {
     user: null,
     friend: null,
   });
+  const [loading, setLoading] = useState(false);
   const { user } = useUserStore();
   const { userFriend, setFriends, setPendingRequests, setSentRequests } =
     useSocialStore();
@@ -153,14 +154,21 @@ const Social = () => {
   }, [userFriend]);
 
   const handleAcceptFriendRequest = async (friend: Friend) => {
-    if (!user?.id) {
+    // Accept request
+    // Remove user from pendingRequests and add to friends
+
+    if (!user?.id || loading) {
       return;
     }
+
+    setLoading(true);
 
     const acceptFriendRequestResponse = await acceptFriendRequest(
       friend.id,
       user?.id,
     );
+
+    setLoading(false);
 
     if (!acceptFriendRequestResponse.success) {
       // Handle error
@@ -191,14 +199,18 @@ const Social = () => {
   const handleDenyFriendRequest = async (friend: Friend) => {
     // Deny request
     // Remove user from pendingRequests
-    if (!user?.id) {
+    if (!user?.id || loading) {
       return;
     }
+
+    setLoading(true);
 
     const denyFriendRequestResponse = await denyFriendRequest(
       friend.id,
       user?.id,
     );
+
+    setLoading(false);
 
     if (!denyFriendRequestResponse.success) {
       // Handle error
@@ -222,14 +234,18 @@ const Social = () => {
     // Cancel request
     // Remove email from sentRequests
 
-    if (!user?.id) {
+    if (!user?.id || loading) {
       return;
     }
+
+    setLoading(true);
 
     const cancelSentRequestResponse = await cancelFriendRequest(
       user?.id,
       email,
     );
+
+    setLoading(false);
 
     if (!cancelSentRequestResponse.success) {
       // Handle error
@@ -355,6 +371,8 @@ const Social = () => {
   };
 
   const handleModalConfirm = async () => {
+    if (loading) return;
+
     if (modalDataOption.option === ModalDataOptions.ADD_FRIEND) {
       // Send friend request
       // Add email to sentRequests
@@ -407,10 +425,14 @@ const Social = () => {
         return;
       }
 
+      setLoading(true);
+
       const sendFriendRequestResponse = await sendFriendRequest(
         user?.id,
         emailInput,
       );
+
+      setLoading(false);
 
       if (!sendFriendRequestResponse.success) {
         // Handle error
@@ -432,10 +454,14 @@ const Social = () => {
         return;
       }
 
+      setLoading(true);
+
       const removeFriendResponse = await removeFriend(
         user?.id,
         modalDataOption.friend?.id,
       );
+
+      setLoading(false);
 
       if (!removeFriendResponse.success) {
         // Handle error
