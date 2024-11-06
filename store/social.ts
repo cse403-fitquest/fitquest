@@ -2,7 +2,7 @@ import { Friend, UserFriend } from '@/types/social';
 import { create } from 'zustand';
 
 interface ISocialStore {
-  userFriend: UserFriend | null;
+  userFriend: UserFriend;
 
   setUserFriend: (userFriends: UserFriend) => void;
 
@@ -11,6 +11,8 @@ interface ISocialStore {
   setSentRequests: (sentRequests: string[]) => void;
 
   setPendingRequests: (pendingRequests: Friend[]) => void;
+
+  resetSocialStore: () => void;
 }
 
 export const useSocialStore = create<ISocialStore>((set) => ({
@@ -46,4 +48,14 @@ export const useSocialStore = create<ISocialStore>((set) => ({
         pendingRequests,
       },
     })),
+
+  resetSocialStore: () =>
+    set({
+      userFriend: {
+        id: '',
+        friends: [],
+        sentRequests: [],
+        pendingRequests: [],
+      },
+    }),
 }));

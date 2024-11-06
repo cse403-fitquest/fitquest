@@ -472,29 +472,109 @@ export const rejectFriendRequest: (
 // Function to handle accepting friend requests
 /**
  * Purchase an item for the user.
- * @param {string} senderID - Friend of receiver.
- * @param {string} receiverID - The user deleting the friend request.
+ * @param {string} user1ID - Friend of receiver.
+ * @param {string} user2ID - The user deleting the friend request.
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
-export const deleteFriend: (
-  senderID: string,
-  receiverID: string,
-) => Promise<APIResponse> = async (senderID, receiverID) => {
+export const removeFriend: (
+  user1ID: string,
+  user2ID: string,
+) => Promise<APIResponse> = async (user1ID, user2ID) => {
   try {
-    // Get fromUser reference
-    const senderUserFriendsRef = doc(FIREBASE_DB, `friends`, senderID);
+    const userFriendCollection = collection(
+      FIREBASE_DB,
+      'friends',
+    ).withConverter(userFriendConverter);
 
-    // Get receiver reference
-    const toUserRef = doc(FIREBASE_DB, `friends`, receiverID);
+    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
+      userConverter,
+    );
 
-    // Remove receiver from fromUser's friends
-    await updateDoc(senderUserFriendsRef, {
-      friends: arrayRemove(receiverID),
+    // Get user1 UserFriend reference
+    const user1UserFriendsRef = doc(userFriendCollection, user1ID);
+
+    // Get user2 UserFriend reference
+    const user2UserFriendsRef = doc(userFriendCollection, user2ID);
+
+    // Check if both users exist
+    const user1UserFriendsSnap = await getDoc(user1UserFriendsRef);
+
+    if (!user1UserFriendsSnap.exists()) {
+      return {
+        data: null,
+        success: false,
+        error: 'User not found.',
+      };
+    }
+
+    const user2UserFriendsSnap = await getDoc(user2UserFriendsRef);
+
+    if (!user2UserFriendsSnap.exists()) {
+      return {
+        data: null,
+        success: false,
+        error: 'Your account is not found. Contact an administrator for help.',
+      };
+    }
+
+    // Get user1 and user2 user data
+    const user1UserSnap = await getDoc(doc(userCollection, user1ID));
+
+    if (!user1UserSnap.exists()) {
+      return {
+        data: null,
+        success: false,
+        error: 'User not found.',
+      };
+    }
+
+    const user1UserData = user1UserSnap.data();
+
+    if (!user1UserData) {
+      return {
+        data: null,
+        success: false,
+        error: 'User not found.',
+      };
+    }
+
+    const user2UserSnap = await getDoc(doc(userCollection, user2ID));
+
+    if (!user2UserSnap) {
+      return {
+        data: null,
+        success: false,
+        error: 'Your account is not found. Contact an administrator for help.',
+      };
+    }
+
+    const user2UserData = user2UserSnap.data();
+
+    if (!user2UserData) {
+      return {
+        data: null,
+        success: false,
+        error: 'Your account is not found. Contact an administrator for help.',
+      };
+    }
+
+    const user1UserFriendsData = user1UserFriendsSnap.data();
+    const user2UserFriendsData = user2UserFriendsSnap.data();
+
+    // Remove user2 from user1's friend's list
+    const user1NewFriends = user1UserFriendsData.friends.filter(
+      (friend) => friend.id !== user2ID,
+    );
+    await updateDoc(user1UserFriendsRef, {
+      friends: user1NewFriends,
     });
 
-    // Remove fromUser from receiver's friends
-    await updateDoc(toUserRef, {
-      friends: arrayRemove(senderID),
+    // Remove user1 from user2's friend's list
+    const user2NewFriends = user2UserFriendsData.friends.filter(
+      (friend) => friend.id !== user1ID,
+    );
+    await updateDoc(user2UserFriendsRef, {
+      friends: user2NewFriends,
     });
 
     console.log('Friend removed!');

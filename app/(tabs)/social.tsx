@@ -18,6 +18,7 @@ import { useSocialStore } from '@/store/social';
 import {
   acceptFriendRequest,
   getUserFriends,
+  removeFriend,
   sendFriendRequest,
 } from '@/services/social';
 import { useUserStore } from '@/store/user';
@@ -378,10 +379,28 @@ const Social = () => {
       // Add email to sent requests
       setSentRequests([...sentRequests, modalDataOption.email]);
     } else if (modalDataOption.option === ModalDataOptions.REMOVE_FRIEND) {
-      // TODO: Remove friend
-
       // Remove friend
       // Remove user from friends
+
+      if (!user?.id || !modalDataOption.friend?.id) {
+        return;
+      }
+
+      const removeFriendResponse = await removeFriend(
+        user?.id,
+        modalDataOption.friend?.id,
+      );
+
+      if (!removeFriendResponse.success) {
+        // Handle error
+
+        Alert.alert(
+          'Error',
+          removeFriendResponse.error ?? 'Error removing friend',
+        );
+        return;
+      }
+
       setFriends(
         (
           sections.find((section) => section.key === 'friends')
