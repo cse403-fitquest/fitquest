@@ -100,6 +100,128 @@ export const createUserFriends: (
   }
 };
 
+// Function to handle cancelling sent friend requests
+/**
+ * Purchase an item for the user.
+ * @param {string} senderID - The user that sent the friend request.
+ * @param {string} receiverEmail - The user receiving the friend request.
+ * @returns {Promise<APIResponse>} Returns an APIResponse object.
+ */
+export const cancelFriendRequest: (
+  senderID: string,
+  receiverEmail: string,
+) => Promise<APIResponse> = async (senderID, receiverEmail) => {
+  try {
+    const userFriendCollection = collection(
+      FIREBASE_DB,
+      'friends',
+    ).withConverter(userFriendConverter);
+
+    // Get sender reference
+    const senderUserFriendsRef = doc(userFriendCollection, senderID);
+
+    // Get receiver data
+    const getUserByEmailResponse = await getUserByEmail(receiverEmail);
+
+    if (!getUserByEmailResponse.success || !getUserByEmailResponse.data) {
+      return {
+        data: null,
+        success: false,
+        error: 'User not found.',
+      };
+    }
+    console.log('User using email found!', getUserByEmailResponse.data.id);
+
+    const receiverUserData = getUserByEmailResponse.data;
+
+    if (receiverUserData.id === senderID) {
+      return {
+        data: null,
+        success: false,
+        error: 'You cannot send a friend request to yourself.',
+      };
+    }
+
+    // Get receiver reference
+    const receiverUserFriendsRef = doc(
+      userFriendCollection,
+      receiverUserData.id,
+    );
+
+    // Check if both users exist
+    const senderUserFriendsSnap = await getDoc(senderUserFriendsRef);
+
+    if (!senderUserFriendsSnap.exists()) {
+      return {
+        data: null,
+        success: false,
+        error: 'Your account is not found. Contact an administrator for help.',
+      };
+    }
+
+    const receiverUserFriendSnap = await getDoc(receiverUserFriendsRef);
+
+    if (!receiverUserFriendSnap.exists()) {
+      return {
+        data: null,
+        success: false,
+        error: 'User not found.',
+      };
+    }
+
+    // Check if the users are already friends
+    const senderUserFriendsData = senderUserFriendsSnap.data();
+    const receiverUserFriendsData = receiverUserFriendSnap.data();
+
+    if (
+      senderUserFriendsData &&
+      receiverUserFriendsData &&
+      senderUserFriendsData.friends.some(
+        (friend) => friend.id === receiverEmail,
+      ) &&
+      receiverUserFriendsData.friends.some((friend) => friend.id === senderID)
+    ) {
+      return {
+        data: null,
+        success: false,
+        error: 'Users are already friends.',
+      };
+    }
+
+    console.log('Users are not friends yet');
+
+    // Remove sender from receiver's pending requests and add to friends
+    const receiverNewPendingRequests =
+      receiverUserFriendsData.pendingRequests.filter(
+        (friend) => friend.id !== senderID,
+      );
+
+    await updateDoc(receiverUserFriendsRef, {
+      pendingRequests: receiverNewPendingRequests,
+    });
+
+    // Remove receiver from sender's sent requests and add to friends
+    await updateDoc(senderUserFriendsRef, {
+      sentRequests: arrayRemove(receiverUserData.profileInfo.email),
+    });
+
+    console.log('Sent friend request cancelled!');
+
+    return {
+      data: null,
+      success: true,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error cancelling sent friend request: ', error);
+    return {
+      data: null,
+      success: false,
+      error: 'Error cancelling sent friend request.',
+    };
+  }
+};
+
 // Function to handle accepting friend requests
 /**
  * Purchase an item for the user.
@@ -230,12 +352,13 @@ export const acceptFriendRequest: (
 
     // Remove sender from receiver's pending requests and add to friends
 
-    const newPendingRequests = receiverUserFriendsData.pendingRequests.filter(
-      (friend) => friend.id !== senderID,
-    );
+    const receiverNewPendingRequests =
+      receiverUserFriendsData.pendingRequests.filter(
+        (friend) => friend.id !== senderID,
+      );
 
     await updateDoc(receiverUserFriendsRef, {
-      pendingRequests: newPendingRequests,
+      pendingRequests: receiverNewPendingRequests,
       friends: arrayUnion(senderAsFriend),
     });
 
@@ -266,13 +389,13 @@ export const acceptFriendRequest: (
 /**
  * Purchase an item for the user.
  * @param {string} senderID - The user that sent the friend request.
- * @param {string} recieverEmail - The user receiving the friend request.
+ * @param {string} receiverEmail - The user receiving the friend request.
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
 export const sendFriendRequest: (
   senderID: string,
-  recieverEmail: string,
-) => Promise<APIResponse> = async (senderID, recieverEmail) => {
+  receiverEmail: string,
+) => Promise<APIResponse> = async (senderID, receiverEmail) => {
   try {
     const userFriendCollection = collection(
       FIREBASE_DB,
@@ -283,11 +406,11 @@ export const sendFriendRequest: (
       userConverter,
     );
 
-    // Get fromUser reference
+    // Get sender reference
     const senderUserFriendsRef = doc(userFriendCollection, senderID);
 
     // Get receiver data
-    const getUserByEmailResponse = await getUserByEmail(recieverEmail);
+    const getUserByEmailResponse = await getUserByEmail(receiverEmail);
 
     if (!getUserByEmailResponse.success || !getUserByEmailResponse.data) {
       return {
@@ -309,7 +432,10 @@ export const sendFriendRequest: (
     }
 
     // Get receiver reference
-    const toUserRef = doc(userFriendCollection, receiverUserData.id);
+    const receiverUserFriendsRef = doc(
+      userFriendCollection,
+      receiverUserData.id,
+    );
 
     // Check if both users exist
     const senderUserFriendsSnap = await getDoc(senderUserFriendsRef);
@@ -322,9 +448,9 @@ export const sendFriendRequest: (
       };
     }
 
-    const toUserSnap = await getDoc(toUserRef);
+    const receiverUserFriendSnap = await getDoc(receiverUserFriendsRef);
 
-    if (!toUserSnap.exists()) {
+    if (!receiverUserFriendSnap.exists()) {
       return {
         data: null,
         success: false,
@@ -334,12 +460,12 @@ export const sendFriendRequest: (
 
     // Check if the users are already friends
     const senderUserFriends = senderUserFriendsSnap.data();
-    const receiverUserFriendsData = toUserSnap.data();
+    const receiverUserFriendsData = receiverUserFriendSnap.data();
 
     if (
       senderUserFriends &&
       receiverUserFriendsData &&
-      senderUserFriends.friends.some((friend) => friend.id === recieverEmail) &&
+      senderUserFriends.friends.some((friend) => friend.id === receiverEmail) &&
       receiverUserFriendsData.friends.some((friend) => friend.id === senderID)
     ) {
       return {
@@ -351,7 +477,7 @@ export const sendFriendRequest: (
 
     console.log('Users are not friends yet');
 
-    // Get fromUser user data
+    // Get sender user data
     const senderUserRef = await getDoc(doc(userCollection, senderID));
     const senderUserData = senderUserRef.data();
 
@@ -365,7 +491,7 @@ export const sendFriendRequest: (
 
     // Check if current user have already sent or received a friend request to/from the receiver
     if (
-      senderUserFriends.sentRequests.includes(recieverEmail) ||
+      senderUserFriends.sentRequests.includes(receiverEmail) ||
       senderUserFriends.pendingRequests.some(
         (friend) => friend.id === receiverUserData.id,
       ) ||
@@ -383,9 +509,9 @@ export const sendFriendRequest: (
       };
     }
 
-    // Add receiver to fromUser's sent friend requests
+    // Add receiver to sender's sent friend requests
     await updateDoc(senderUserFriendsRef, {
-      sentRequests: arrayUnion(recieverEmail),
+      sentRequests: arrayUnion(receiverEmail),
     });
 
     console.log('User email added to sent requests');
@@ -398,7 +524,7 @@ export const sendFriendRequest: (
       };
     }
 
-    const fromUserAsFriend: Friend = {
+    const senderAsFriend: Friend = {
       id: senderUserData.id,
       privacySettings: senderUserData.privacySettings,
       profileInfo: {
@@ -408,9 +534,9 @@ export const sendFriendRequest: (
       currentQuest: null,
     };
 
-    // Add fromUser from receiver's pending friend requests
-    await updateDoc(toUserRef, {
-      pendingRequests: arrayUnion(fromUserAsFriend),
+    // Add sender from receiver's pending friend requests
+    await updateDoc(receiverUserFriendsRef, {
+      pendingRequests: arrayUnion(senderAsFriend),
     });
 
     console.log("Current user added to receiver'spending requests");
@@ -540,12 +666,13 @@ export const denyFriendRequest: (
     }
 
     // Remove sender from receiver's pending requests
-    const newPendingRequests = receiverUserFriendsData.pendingRequests.filter(
-      (friend) => friend.id !== senderID,
-    );
+    const receiverNewPendingRequests =
+      receiverUserFriendsData.pendingRequests.filter(
+        (friend) => friend.id !== senderID,
+      );
 
     await updateDoc(receiverUserFriendsRef, {
-      pendingRequests: newPendingRequests,
+      pendingRequests: receiverNewPendingRequests,
     });
 
     // Remove receiver from sender's sent requests

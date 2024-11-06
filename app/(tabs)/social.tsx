@@ -17,6 +17,7 @@ import { isEmailValid } from '@/utils/auth';
 import { useSocialStore } from '@/store/social';
 import {
   acceptFriendRequest,
+  cancelFriendRequest,
   denyFriendRequest,
   getUserFriends,
   removeFriend,
@@ -217,6 +218,37 @@ const Social = () => {
     );
   };
 
+  const handleCancelFriendRequest = async (email: string) => {
+    // Cancel request
+    // Remove email from sentRequests
+
+    if (!user?.id) {
+      return;
+    }
+
+    const cancelSentRequestResponse = await cancelFriendRequest(
+      user?.id,
+      email,
+    );
+
+    if (!cancelSentRequestResponse.success) {
+      // Handle error
+
+      Alert.alert(
+        'Error',
+        cancelSentRequestResponse.error ?? 'Error cancelling friend request',
+      );
+      return;
+    }
+
+    setSentRequests(
+      (
+        sections.find((section) => section.key === 'sentRequests')
+          ?.data as string[]
+      ).filter((receiverEmail) => receiverEmail !== email),
+    );
+  };
+
   const renderSection = (item: {
     key: string;
     title: string;
@@ -235,19 +267,7 @@ const Social = () => {
               <View className="w-full flex-row justify-between items-center">
                 <Text className="text-lg font-medium">{item}</Text>
                 <TouchableOpacity
-                  onPress={async () => {
-                    // TODO: Cancel request
-
-                    // Cancel request
-                    // Remove email from sentRequests
-                    setSentRequests(
-                      (
-                        sections.find(
-                          (section) => section.key === 'sentRequests',
-                        )?.data as string[]
-                      ).filter((email) => email !== item),
-                    );
-                  }}
+                  onPress={() => handleCancelFriendRequest(item)}
                 >
                   <Text className="text-sm font-bold text-red-500">CANCEL</Text>
                 </TouchableOpacity>
