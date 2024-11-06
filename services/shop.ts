@@ -7,16 +7,11 @@ import {
   QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
-import { User } from '@/types/auth';
 import { Item } from '@/types/item';
 import { APIResponse } from '@/types/general';
+import { userConverter } from './user';
 
-const userConverter = {
-  toFirestore: (data: User) => data,
-  fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as User,
-};
-
-const itemConverter = {
+export const itemConverter = {
   toFirestore: (data: Item) => data,
   fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as Item,
 };

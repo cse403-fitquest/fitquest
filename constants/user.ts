@@ -1,4 +1,4 @@
-import { User } from '@/types/auth';
+import { User } from '@/types/user';
 
 export const BASE_USER: User = {
   id: '',
@@ -19,8 +19,5 @@ export const BASE_USER: User = {
     isCurrentQuestPublic: true,
   },
   attributePoints: 0,
-  friends: [],
-  sentFriendRequests: [],
-  incomingFriendRequests: [],
   createdAt: new Date(),
 };

@@ -1,6 +1,6 @@
 import { BASE_USER } from '@/constants/user';
 import { FIREBASE_DB } from '@/firebaseConfig';
-import { User } from '@/types/auth';
+import { User } from '@/types/user';
 import { CreateUserResponse, GetUserResponse } from '@/types/user';
 import { FirebaseError } from 'firebase/app';
 import {
@@ -11,7 +11,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 
-const userConverter = {
+export const userConverter = {
   toFirestore: (data: User) => data,
   fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as User,
 };
