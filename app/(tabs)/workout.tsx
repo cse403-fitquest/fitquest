@@ -14,6 +14,7 @@ import { secondsToMinutes } from '@/utils/workout';
 const Workout = () => {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [isSelected, setIsSelected] = useState(false);
   const [timer, setTimer] = useState<ReturnType<typeof setInterval> | null>(
     null,
   );
@@ -38,6 +39,9 @@ const Workout = () => {
         ? 'workout ended, final time: ' + secondsToMinutes(secondsElapsed)
         : 'workout started',
     );
+  };
+  const toggleSelection = () => {
+    setIsSelected(!isSelected);
   };
 
   // when workout is started
