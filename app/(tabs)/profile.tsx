@@ -14,6 +14,8 @@ import { User } from '@/types/user';
 import clsx from 'clsx';
 import { Item, ItemType } from '@/types/item';
 import { signOut } from '@/services/auth';
+import { useUserStore } from '@/store/user';
+import { useSocialStore } from '@/store/social';
 
 const MOCK_EQUIPPED_ITEMS: Item[] = [
   {
@@ -146,6 +148,9 @@ const Profile = () => {
     MOCK_USER.privacySettings.isLastWorkoutPublic,
   );
 
+  const { user } = useUserStore();
+  const { resetSocialStore } = useSocialStore();
+
   const handleEquipItem = (item: Item) => {
     // TODO: Implement actual equipping logic
     console.log('Equipping item:', item);
@@ -158,6 +163,8 @@ const Profile = () => {
     if (signOutResponse.error) {
       Alert.alert('Error signing out', signOutResponse.error);
     }
+
+    resetSocialStore();
     return;
   };
 
@@ -169,7 +176,7 @@ const Profile = () => {
           <View>
             <Text className="text-gray-500">Welcome back,</Text>
             <Text className="text-2xl font-bold">
-              {MOCK_USER.profileInfo.username}
+              {user?.profileInfo.username || '-'}
             </Text>
           </View>
           <TouchableOpacity
