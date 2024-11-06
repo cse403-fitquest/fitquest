@@ -5,6 +5,8 @@ import {
   arrayUnion,
   getDoc,
   QueryDocumentSnapshot,
+  collection,
+  setDoc,
 } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
@@ -58,17 +60,21 @@ export const createUserFriends: (
 ) => Promise<APIResponse> = async (userID) => {
   try {
     // Get user friend reference
-    const userFriendRef = doc(FIREBASE_DB, 'friends', userID).withConverter(
-      userFriendConverter,
-    );
+    const userFriendCollection = collection(
+      FIREBASE_DB,
+      'friends',
+    ).withConverter(userFriendConverter);
 
     // Create user friend data
-    await updateDoc(userFriendRef, {
+
+    const newUserFriends: UserFriend = {
       id: userID,
       friends: [],
       sentRequests: [],
       pendingRequests: [],
-    });
+    };
+
+    await setDoc(doc(userFriendCollection, userID), newUserFriends);
 
     return {
       data: null,
@@ -76,12 +82,12 @@ export const createUserFriends: (
       error: null,
     };
   } catch (error) {
-    console.error('Error creating user friends: ', error);
+    console.error('Failed to create user friends: ', error);
 
     return {
       data: null,
       success: false,
-      error: 'Error creating user friends.',
+      error: 'Failed to create user friends.',
     };
   }
 };
