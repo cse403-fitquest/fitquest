@@ -15,7 +15,11 @@ import FQModal from '@/components/FQModal';
 import FQTextInput from '@/components/FQTextInput';
 import { isEmailValid } from '@/utils/auth';
 import { useSocialStore } from '@/store/social';
-import { getUserFriends, sendFriendRequest } from '@/services/social';
+import {
+  acceptFriendRequest,
+  getUserFriends,
+  sendFriendRequest,
+} from '@/services/social';
 import { useUserStore } from '@/store/user';
 
 enum ModalDataOptions {
@@ -145,6 +149,42 @@ const Social = () => {
     ];
   }, [userFriend]);
 
+  const handleAcceptFriendRequest = async (friend: Friend) => {
+    if (!user?.id) {
+      return;
+    }
+
+    const acceptFriendRequestResponse = await acceptFriendRequest(
+      friend.id,
+      user?.id,
+    );
+
+    if (!acceptFriendRequestResponse.success) {
+      // Handle error
+
+      Alert.alert(
+        'Error',
+        acceptFriendRequestResponse.error ?? 'Error accepting friend request',
+      );
+      return;
+    }
+
+    // Accept request
+    // Remove user from pendingRequests and add to friends
+    setPendingRequests(
+      (
+        sections.find((section) => section.key === 'pendingRequests')
+          ?.data as Friend[]
+      ).filter((user) => user.id !== friend.id),
+    );
+
+    setFriends([
+      friend,
+      ...(sections.find((section) => section.key === 'friends')
+        ?.data as Friend[]),
+    ]);
+  };
+
   const renderSection = (item: {
     key: string;
     title: string;
@@ -163,7 +203,7 @@ const Social = () => {
               <View className="w-full flex-row justify-between items-center">
                 <Text className="text-lg font-medium">{item}</Text>
                 <TouchableOpacity
-                  onPress={() => {
+                  onPress={async () => {
                     // TODO: Cancel request
 
                     // Cancel request
@@ -200,25 +240,7 @@ const Social = () => {
             renderItem={({ item }) => (
               <IncomingRequestItem
                 user={item}
-                onAccept={() => {
-                  // TODO: Accept request
-
-                  // Accept request
-                  // Remove user from pendingRequests and add to friends
-                  setPendingRequests(
-                    (
-                      sections.find(
-                        (section) => section.key === 'pendingRequests',
-                      )?.data as Friend[]
-                    ).filter((user) => user.id !== item.id),
-                  );
-
-                  setFriends([
-                    item,
-                    ...(sections.find((section) => section.key === 'friends')
-                      ?.data as Friend[]),
-                  ]);
-                }}
+                onAccept={() => handleAcceptFriendRequest(item)}
                 onDeny={() => {
                   // TODO: Deny request
 

@@ -104,7 +104,7 @@ export const createUserFriends: (
 /**
  * Purchase an item for the user.
  * @param {string} senderID - The user that sent the friend request.
- * @param {string} receiverID - The user accepting the friend request.
+ * @param {string} receiverID - Email address of the receiver.
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
 export const acceptFriendRequest: (
@@ -112,22 +112,137 @@ export const acceptFriendRequest: (
   receiverID: string,
 ) => Promise<APIResponse> = async (senderID, receiverID) => {
   try {
-    // Get fromUser reference
-    const senderUserFriendsRef = doc(FIREBASE_DB, 'friends', senderID);
+    const userFriendCollection = collection(
+      FIREBASE_DB,
+      'friends',
+    ).withConverter(userFriendConverter);
 
-    // Get receiver reference
-    const toUserRef = doc(FIREBASE_DB, 'friends', receiverID);
+    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
+      userConverter,
+    );
 
-    // Remove fromUser from receiver's pending requests and add to friends
-    await updateDoc(toUserRef, {
-      pendingFriendRequest: arrayRemove(senderID),
-      friends: arrayUnion(senderID),
+    // Get sender UserFriend reference
+    const senderUserFriendsRef = doc(userFriendCollection, senderID);
+
+    // Get receiver UserFriend reference
+    const receiverUserFriendsRef = doc(userFriendCollection, receiverID);
+
+    // Check if both users exist
+    const senderUserFriendsSnap = await getDoc(senderUserFriendsRef);
+
+    if (!senderUserFriendsSnap.exists()) {
+      return {
+        data: null,
+        success: false,
+        error: 'User not found.',
+      };
+    }
+
+    const receiverUserFriendsSnap = await getDoc(receiverUserFriendsRef);
+
+    if (!receiverUserFriendsSnap.exists()) {
+      return {
+        data: null,
+        success: false,
+        error: 'Your account is not found. Contact an administrator for help.',
+      };
+    }
+
+    // Get sender and receiver user data
+    const senderUserSnap = await getDoc(doc(userCollection, senderID));
+
+    if (!senderUserSnap.exists()) {
+      return {
+        data: null,
+        success: false,
+        error: 'User not found.',
+      };
+    }
+
+    const senderUserData = senderUserSnap.data();
+
+    if (!senderUserData) {
+      return {
+        data: null,
+        success: false,
+        error: 'User not found.',
+      };
+    }
+
+    const receiverUserSnap = await getDoc(doc(userCollection, receiverID));
+
+    if (!receiverUserSnap) {
+      return {
+        data: null,
+        success: false,
+        error: 'Your account is not found. Contact an administrator for help.',
+      };
+    }
+
+    const receiverUserData = receiverUserSnap.data();
+
+    if (!receiverUserData) {
+      return {
+        data: null,
+        success: false,
+        error: 'Your account is not found. Contact an administrator for help.',
+      };
+    }
+
+    const senderAsFriend: Friend = {
+      id: senderID,
+      privacySettings: senderUserData.privacySettings,
+      profileInfo: {
+        username: senderUserData.profileInfo.username,
+        email: senderUserData.profileInfo.email,
+      },
+      currentQuest: null,
+    };
+
+    const receiverAsFriend: Friend = {
+      id: receiverID,
+      privacySettings: receiverUserData.privacySettings,
+      profileInfo: {
+        username: receiverUserData.profileInfo.username,
+        email: receiverUserData.profileInfo.email,
+      },
+      currentQuest: null,
+    };
+
+    // Check if the users are already friends
+    const senderUserFriendsData = senderUserFriendsSnap.data();
+    const receiverUserFriendsData = receiverUserFriendsSnap.data();
+
+    if (
+      senderUserFriendsData &&
+      receiverUserFriendsData &&
+      senderUserFriendsData.friends.some(
+        (friend) => friend.id === receiverID,
+      ) &&
+      receiverUserFriendsData.friends.some((friend) => friend.id === senderID)
+    ) {
+      return {
+        data: null,
+        success: false,
+        error: 'Users are already friends.',
+      };
+    }
+
+    // Remove sender from receiver's pending requests and add to friends
+
+    const newPendingRequests = receiverUserFriendsData.pendingRequests.filter(
+      (friend) => friend.id !== senderID,
+    );
+
+    await updateDoc(receiverUserFriendsRef, {
+      pendingRequests: newPendingRequests,
+      friends: arrayUnion(senderAsFriend),
     });
 
-    // Remove receiver from fromUser's sent requests and add to friends
+    // Remove receiver from sender's sent requests and add to friends
     await updateDoc(senderUserFriendsRef, {
-      sentFriendRequest: arrayRemove(receiverID),
-      friends: arrayUnion(receiverID),
+      sentRequests: arrayRemove(receiverUserData.profileInfo.email),
+      friends: arrayUnion(receiverAsFriend),
     });
 
     console.log('Friend request accepted!');
@@ -423,15 +538,3 @@ const getUserByEmail: (
     data: querySnapshot.docs[0].data(),
   };
 };
-
-// const checkUserExistsByEmail: (email: string) => Promise<void> = async (
-//   email,
-// ) => {
-//   const usersRef = collection(FIREBASE_DB, 'users').withConverter(
-//     userConverter,
-//   );
-//   const q = query(usersRef, where('profileInfo.email', '==', email));
-//   const querySnapshot = await getDocs(q);
-
-//   return !querySnapshot.empty; // Returns true if user exists, false if not
-// };

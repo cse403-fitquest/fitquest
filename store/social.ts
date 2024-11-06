@@ -1,4 +1,3 @@
-import { MOCK_USER_FRIENDS } from '@/constants/social';
 import { Friend, UserFriend } from '@/types/social';
 import { create } from 'zustand';
 
@@ -17,9 +16,9 @@ interface ISocialStore {
 export const useSocialStore = create<ISocialStore>((set) => ({
   userFriend: {
     id: '',
-    friends: MOCK_USER_FRIENDS.friends,
-    sentRequests: MOCK_USER_FRIENDS.sentRequests,
-    pendingRequests: MOCK_USER_FRIENDS.pendingRequests,
+    friends: [],
+    sentRequests: [],
+    pendingRequests: [],
   },
 
   setUserFriend: (userFriend) => set({ userFriend }),
