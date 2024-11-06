@@ -5,8 +5,9 @@ import {
   View,
   PanResponder,
   Animated,
+  Alert,
 } from 'react-native';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Friend } from '@/types/social';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +15,8 @@ import FQModal from '@/components/FQModal';
 import FQTextInput from '@/components/FQTextInput';
 import { isEmailValid } from '@/utils/auth';
 import { useSocialStore } from '@/store/social';
+import { getUserFriends, sendFriendRequest } from '@/services/social';
+import { useUserStore } from '@/store/user';
 
 enum ModalDataOptions {
   ADD_FRIEND = 'ADD_FRIEND',
@@ -34,8 +37,30 @@ const Social = () => {
     user: null,
     friend: null,
   });
+  const { user } = useUserStore();
   const { userFriend, setFriends, setPendingRequests, setSentRequests } =
     useSocialStore();
+
+  // Fetch user friends
+  useEffect(() => {
+    const fetchUserFriends = async () => {
+      console.log('Fetching user friends');
+
+      if (!user?.id) {
+        return;
+      }
+
+      // Fetch user friends
+      const userFriendsResponse = await getUserFriends(user?.id);
+      if (userFriendsResponse.success && userFriendsResponse.data) {
+        setFriends(userFriendsResponse.data.friends);
+        setPendingRequests(userFriendsResponse.data.pendingRequests);
+        setSentRequests(userFriendsResponse.data.sentRequests);
+      }
+    };
+
+    fetchUserFriends();
+  }, []);
 
   const modalData: {
     title: string;
@@ -267,7 +292,7 @@ const Social = () => {
     return null;
   };
 
-  const handleModalConfirm = () => {
+  const handleModalConfirm = async () => {
     if (modalDataOption.option === ModalDataOptions.ADD_FRIEND) {
       // Send friend request
       // Add email to sentRequests
@@ -309,6 +334,24 @@ const Social = () => {
       }
 
       // TODO: Send friend request
+      if (!user?.id) {
+        return;
+      }
+
+      const sendFriendRequestResponse = await sendFriendRequest(
+        user?.id,
+        emailInput,
+      );
+
+      if (!sendFriendRequestResponse.success) {
+        // Handle error
+
+        Alert.alert(
+          'Error',
+          sendFriendRequestResponse.error ?? 'Error sending friend request',
+        );
+        return;
+      }
 
       // Add email to sent requests
       setSentRequests([...sentRequests, modalDataOption.email]);

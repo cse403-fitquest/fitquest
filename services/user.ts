@@ -11,7 +11,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 
-const userConverter = {
+export const userConverter = {
   toFirestore: (data: User) => data,
   fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as User,
 };

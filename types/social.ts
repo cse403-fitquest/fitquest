@@ -19,3 +19,7 @@ export type UserFriend = {
 export type GetUserFriendsResponse = APIResponse & {
   data: UserFriend | null;
 };
+
+export type GetUserByEmailResponse = APIResponse & {
+  data: User | null;
+};
