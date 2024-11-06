@@ -300,6 +300,14 @@ export const sendFriendRequest: (
 
     const receiverUserData = getUserByEmailResponse.data;
 
+    if (receiverUserData.id === senderID) {
+      return {
+        data: null,
+        success: false,
+        error: 'You cannot send a friend request to yourself.',
+      };
+    }
+
     // Get receiver reference
     const toUserRef = doc(userFriendCollection, receiverUserData.id);
 
@@ -423,35 +431,129 @@ export const sendFriendRequest: (
   }
 };
 
-// Function to handle accepting friend requests
+// Function to handle denying friend requests
 /**
  * Purchase an item for the user.
  * @param {string} senderID - The user that sent the friend request.
  * @param {string} receiverID - The user rejecting the friend request.
  * @returns {Promise<APIResponse>} Returns an object containing the success status and error message
  */
-export const rejectFriendRequest: (
+export const denyFriendRequest: (
   senderID: string,
   receiverID: string,
 ) => Promise<APIResponse> = async (senderID, receiverID) => {
   try {
-    // Get fromUser reference
-    const senderUserFriendsRef = doc(FIREBASE_DB, `friends`, senderID);
+    const userFriendCollection = collection(
+      FIREBASE_DB,
+      'friends',
+    ).withConverter(userFriendConverter);
 
-    // Get receiver reference
-    const toUserRef = doc(FIREBASE_DB, `friends`, receiverID);
+    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
+      userConverter,
+    );
 
-    // Remove receiver from fromUser's sent requests
+    // Get sender UserFriend reference
+    const senderUserFriendsRef = doc(userFriendCollection, senderID);
+
+    // Get receiver UserFriend reference
+    const receiverUserFriendsRef = doc(userFriendCollection, receiverID);
+
+    // Check if both users exist
+    const senderUserFriendsSnap = await getDoc(senderUserFriendsRef);
+
+    if (!senderUserFriendsSnap.exists()) {
+      return {
+        data: null,
+        success: false,
+        error: 'User not found.',
+      };
+    }
+
+    const receiverUserFriendsSnap = await getDoc(receiverUserFriendsRef);
+
+    if (!receiverUserFriendsSnap.exists()) {
+      return {
+        data: null,
+        success: false,
+        error: 'Your account is not found. Contact an administrator for help.',
+      };
+    }
+
+    // Get sender and receiver user data
+    const senderUserSnap = await getDoc(doc(userCollection, senderID));
+
+    if (!senderUserSnap.exists()) {
+      return {
+        data: null,
+        success: false,
+        error: 'User not found.',
+      };
+    }
+
+    const senderUserData = senderUserSnap.data();
+
+    if (!senderUserData) {
+      return {
+        data: null,
+        success: false,
+        error: 'User not found.',
+      };
+    }
+
+    const receiverUserSnap = await getDoc(doc(userCollection, receiverID));
+
+    if (!receiverUserSnap) {
+      return {
+        data: null,
+        success: false,
+        error: 'Your account is not found. Contact an administrator for help.',
+      };
+    }
+
+    const receiverUserData = receiverUserSnap.data();
+
+    if (!receiverUserData) {
+      return {
+        data: null,
+        success: false,
+        error: 'Your account is not found. Contact an administrator for help.',
+      };
+    }
+
+    // Check if the users are already friends
+    const senderUserFriendsData = senderUserFriendsSnap.data();
+    const receiverUserFriendsData = receiverUserFriendsSnap.data();
+
+    if (
+      senderUserFriendsData &&
+      receiverUserFriendsData &&
+      senderUserFriendsData.friends.some(
+        (friend) => friend.id === receiverID,
+      ) &&
+      receiverUserFriendsData.friends.some((friend) => friend.id === senderID)
+    ) {
+      return {
+        data: null,
+        success: false,
+        error: 'Users are already friends.',
+      };
+    }
+
+    // Remove sender from receiver's pending requests
+    const newPendingRequests = receiverUserFriendsData.pendingRequests.filter(
+      (friend) => friend.id !== senderID,
+    );
+
+    await updateDoc(receiverUserFriendsRef, {
+      pendingRequests: newPendingRequests,
+    });
+
+    // Remove receiver from sender's sent requests
     await updateDoc(senderUserFriendsRef, {
-      sentFriendRequest: arrayRemove(receiverID),
+      sentRequests: arrayRemove(receiverUserData.profileInfo.email),
     });
 
-    // Remove fromUser from receiver's pending requests
-    await updateDoc(toUserRef, {
-      pendingFriendRequest: arrayRemove(senderID),
-    });
-
-    console.log('Friend request rejected!');
+    console.log('Friend request denied!');
 
     return {
       data: null,
@@ -469,7 +571,7 @@ export const rejectFriendRequest: (
   }
 };
 
-// Function to handle accepting friend requests
+// Function to handle removing friends
 /**
  * Purchase an item for the user.
  * @param {string} user1ID - Friend of receiver.

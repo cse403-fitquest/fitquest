@@ -17,6 +17,7 @@ import { isEmailValid } from '@/utils/auth';
 import { useSocialStore } from '@/store/social';
 import {
   acceptFriendRequest,
+  denyFriendRequest,
   getUserFriends,
   removeFriend,
   sendFriendRequest,
@@ -186,6 +187,36 @@ const Social = () => {
     ]);
   };
 
+  const handleDenyFriendRequest = async (friend: Friend) => {
+    // Deny request
+    // Remove user from pendingRequests
+    if (!user?.id) {
+      return;
+    }
+
+    const denyFriendRequestResponse = await denyFriendRequest(
+      friend.id,
+      user?.id,
+    );
+
+    if (!denyFriendRequestResponse.success) {
+      // Handle error
+
+      Alert.alert(
+        'Error',
+        denyFriendRequestResponse.error ?? 'Error denying friend request',
+      );
+      return;
+    }
+
+    setPendingRequests(
+      (
+        sections.find((section) => section.key === 'pendingRequests')
+          ?.data as Friend[]
+      ).filter((user) => user.id !== friend.id),
+    );
+  };
+
   const renderSection = (item: {
     key: string;
     title: string;
@@ -242,19 +273,7 @@ const Social = () => {
               <IncomingRequestItem
                 user={item}
                 onAccept={() => handleAcceptFriendRequest(item)}
-                onDeny={() => {
-                  // TODO: Deny request
-
-                  // Deny request
-                  // Remove user from pendingRequests
-                  setPendingRequests(
-                    (
-                      sections.find(
-                        (section) => section.key === 'pendingRequests',
-                      )?.data as Friend[]
-                    ).filter((user) => user.id !== item.id),
-                  );
-                }}
+                onDeny={() => handleDenyFriendRequest(item)}
               />
             )}
             ItemSeparatorComponent={() => <View className="h-1" />}
@@ -353,6 +372,13 @@ const Social = () => {
           ...modalDataOption,
           emailError,
         });
+        return;
+      }
+
+      if (user?.profileInfo.email === emailInput) {
+        // Handle error
+
+        Alert.alert('Error', 'Cannot add yourself as a friend');
         return;
       }
 
