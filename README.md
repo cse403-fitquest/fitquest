@@ -128,8 +128,8 @@ This app was built with the following technologies:
 - [x] Implement Sign Up
 - [x] Implement Sign In
 - [ ] Implement Onboarding Wizard
-   - [ ] Survey
-   - [ ] Fitness level calculation
+   - [x] Survey
+   - [x] Fitness level calculation
    - [ ] Allocate attribute points
 - [ ] Implement Profile
    - [ ] Avatar
@@ -149,9 +149,9 @@ This app was built with the following technologies:
 - [ ] Implement Shop
    - [ ] Consumables and inventory items
    - [ ] Confirmation on item purchase
-- [ ] Implement Social
-   - [ ] Display friends and requests
-   - [ ] Add friend
+- [x] Implement Social
+   - [x] Display friends and requests
+   - [x] Add friend
 
 ## 🖼️ Images
 
