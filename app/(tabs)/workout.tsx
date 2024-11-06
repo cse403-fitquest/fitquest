@@ -14,17 +14,56 @@ import { secondsToMinutes } from '@/utils/workout';
 const Workout = () => {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [secondsElapsed, setSecondsElapsed] = useState(0);
-  const [isSelected, setIsSelected] = useState(false);
   const [timer, setTimer] = useState<ReturnType<typeof setInterval> | null>(
     null,
   );
-  const [isDropdownVisible, setDropdownVisible] = useState(false);
 
-  const toggleDropdown = () => {
-    setDropdownVisible(!isDropdownVisible);
-  };
+  //constructor for a Template 
+  const Template = (title: string, exercises: string[]) => {
+    const [isSelected, setIsSelected] = useState(false);
+    const [isDropdownVisible, setDropdownVisible] = useState(false);
 
-  const items = ['Bananas', 'Apples', 'Fruits'];
+    const toggleSelection = () => {
+      setIsSelected(!isSelected);
+    };
+    const toggleDropdown = () => {
+      setDropdownVisible(!isDropdownVisible);
+    };
+    return ( 
+      <View>
+        <View style={templatestyles.box}>
+          <TouchableOpacity style={templatestyles.circle} onPress={toggleSelection}>
+              {isSelected && <View style={templatestyles.innerCircle} />}
+          </TouchableOpacity>
+          
+          <Text style={templatestyles.title}>{title}</Text>
+          <TouchableOpacity
+            style={templatestyles.viewButton}
+            onPress={toggleDropdown}
+          >
+            <Text style={templatestyles.buttonText}>View</Text>
+          </TouchableOpacity>
+        </View>
+
+        {isDropdownVisible && (
+          <View style={templatestyles.dropdownContainer}>
+            <FlatList
+                data={exercises}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                    <Text style={templatestyles.dropdownItem}>{item}</Text>
+                )}
+            />
+          </View>
+        )}
+      </View>
+
+    )
+
+  }
+  
+ 
+  const items = ['Pushups', 'Bench Press', 'Cylinder Press'];
 
   // to swap between starting and stopping workouts
   const toggleWorkout = () => {
@@ -40,13 +79,9 @@ const Workout = () => {
         : 'workout started',
     );
   };
-  const toggleSelection = () => {
-    setIsSelected(!isSelected);
-  };
+ 
 
   // when workout is started
-  // TODO: DELETE LINE BELOW WHEN USING THE FUNCTION
-
   const startWorkout = () => {
     if (!isWorkoutActive) {
       setIsWorkoutActive(true);
@@ -130,44 +165,13 @@ const Workout = () => {
         {/* Saved Templates Section */}
         <View className="w-full mt-5 px-4">
           <Text className="text-2xl text-black">Saved Templates</Text>
-          <View style={templatestyles.box}>
-            <Text style={templatestyles.title}>Saved Workout 1</Text>
-            <TouchableOpacity
-              style={templatestyles.viewButton}
-              onPress={toggleDropdown}
-            >
-              <Text style={templatestyles.buttonText}>View</Text>
-            </TouchableOpacity>
-
-            {isDropdownVisible && (
-              <Modal
-                transparent
-                animationType="fade"
-                visible={isDropdownVisible}
-                onRequestClose={() => setDropdownVisible(false)}
-              >
-                <TouchableWithoutFeedback
-                  onPress={() => setDropdownVisible(false)}
-                >
-                  <View style={templatestyles.modalOverlay} />
-                </TouchableWithoutFeedback>
-                <View style={templatestyles.dropdownContainer}>
-                  <FlatList
-                    data={items}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                      <Text style={templatestyles.dropdownItem}>{item}</Text>
-                    )}
-                  />
-                </View>
-              </Modal>
-            )}
-          </View>
+            {Template("g", ["a", "b", "c"])}
         </View>
 
         {/* Suggested Templates Section */}
         <View className="w-full mt-5 px-4">
           <Text className="text-2xl text-black">Suggested Templates</Text>
+          {Template("doms push", ["bench", "pushdown", "lat raise"])}
         </View>
       </SafeAreaView>
     </SafeAreaView>
@@ -187,6 +191,22 @@ const templatestyles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
+  circle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+},
+innerCircle: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#4CAF50',
+},
   title: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -204,25 +224,25 @@ const templatestyles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   dropdownContainer: {
-    position: 'absolute',
-    top: 100,
-    right: 20,
-    width: 100,
+    marginTop: 5,
+    width: 300,
     backgroundColor: '#f9f9f9',
     borderRadius: 5,
-    padding: 10,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
-  },
-  dropdownItem: {
+},
+dropdownItem: {
     paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingHorizontal: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-  },
+},
 });
 
 export default Workout;
