@@ -1,4 +1,5 @@
 import {
+  Alert,
   FlatList,
   ScrollView,
   Text,
@@ -15,163 +16,20 @@ import {
 } from '@/utils/item';
 import clsx from 'clsx';
 import FQModal from '@/components/FQModal';
-
-const currentDate = new Date();
-
-const MOCK_ITEMS: Item[] = [
-  {
-    id: 'fesfsgggdes',
-    type: ItemType.WEAPON,
-    name: 'Sword',
-    description: 'Sharp enough to solve most problems, but not all of them.',
-    power: 10,
-    speed: 7,
-    health: 0,
-    cost: 50,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'fsgfargergghs',
-    type: ItemType.WEAPON,
-    name: 'Axe',
-    description: "For when subtlety just isn't in your vocabulary.",
-    power: 15,
-    speed: 5,
-    health: 0,
-    cost: 75,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'y4ejrtasg',
-    type: ItemType.WEAPON,
-    name: 'Short Bow',
-    description: "Ideal for hitting things you don't want to get too close to.",
-    power: 10,
-    speed: 7,
-    health: 3,
-    cost: 75,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'gdsgsdg',
-    type: ItemType.WEAPON,
-    name: 'Long Bow',
-    description: "Turns 'social distancing' into an art form.",
-    power: 20,
-    speed: 1,
-    health: 0,
-    cost: 75,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'hdhthtrjj',
-    type: ItemType.ARMOR,
-    name: 'Leather Armor',
-    description: 'Soft on comfort, light on life-saving durability.',
-    power: 0,
-    speed: 2,
-    health: 10,
-    cost: 50,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'rjrjt',
-    type: ItemType.ARMOR,
-    name: 'Chainmail Armor',
-    description: 'Adds just enough jingle to scare off silent approaches.',
-    power: 0,
-    speed: 10,
-    health: 10,
-    cost: 75,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'gw5ye3he5h',
-    type: ItemType.ARMOR,
-    name: 'Steel Armor',
-    description: 'Feels like a hug… from a very heavy robot.',
-    power: 0,
-    speed: 5,
-    health: 15,
-    cost: 100,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'rherheb',
-    type: ItemType.ACCESSORY,
-    name: 'Rock Pendant',
-    description: 'Solid, dependable, and guaranteed to be hard as a rock.',
-    power: 5,
-    speed: 0,
-    health: 5,
-    cost: 100,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'afea4twegwerg',
-    type: ItemType.ACCESSORY,
-    name: 'Fire Pendant',
-    description: 'Adds a little heat to your style… and maybe your enemies.',
-    power: 5,
-    speed: 5,
-    health: 0,
-    cost: 100,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'gssgsgsgs',
-    type: ItemType.POTION_SMALL,
-    name: 'Small Health Potion',
-    description: 'Heals 10% of max health. A sip-sized fix for small troubles.',
-    power: 0,
-    speed: 0,
-    health: 0,
-    cost: 50,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'gssgsgsgsdsfs',
-    type: ItemType.POTION_MEDIUM,
-    name: 'Medium Health Potion',
-    description:
-      'Heals 15% of max health. For those medium-level problems in life (and death).',
-    power: 0,
-    speed: 0,
-    health: 0,
-    cost: 75,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'gssgfsfsasgsgs',
-    type: ItemType.POTION_LARGE,
-    name: 'Large Health Potion',
-    description: "Heals 20% of max health. A full dose of 'not today, death!'",
-    power: 0,
-    speed: 0,
-    health: 0,
-    cost: 100,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-];
+import { MOCK_SHOP_ITEMS } from '@/constants/shop';
+import { useUserStore } from '@/store/user';
 
 const Shop = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
+  const { user, setUser } = useUserStore();
+
+  const userEquippedItems = user?.equippedItems || [];
+  const userItems = user?.items || [];
+
   const modalChildren = useMemo(() => {
-    if (!selectedItem) return null;
+    if (!user || !selectedItem) return null;
 
     if (
       [ItemType.WEAPON, ItemType.ARMOR, ItemType.ACCESSORY].includes(
@@ -191,9 +49,9 @@ const Shop = () => {
               <Text className="font-medium">Health:</Text>
             </View>
             <View className="justify-center items-center">
-              <Text className="font-bold">5</Text>
-              <Text className="font-bold">5</Text>
-              <Text className="font-bold">5</Text>
+              <Text className="font-bold">{user.attributes.power}</Text>
+              <Text className="font-bold">{user.attributes.speed}</Text>
+              <Text className="font-bold">{user.attributes.health}</Text>
             </View>
             <View>
               <Text>{'>>>'}</Text>
@@ -203,24 +61,24 @@ const Shop = () => {
             <View className="justify-center items-center">
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.power > 5, // TODO: Compare to player current item attributes
-                  'text-red-500': selectedItem.power < 5,
+                  'text-green': selectedItem.power > user.attributes.power, // TODO: Compare to player current item attributes
+                  'text-red-500': selectedItem.power < user.attributes.power,
                 })}
               >
                 {selectedItem.power}
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.speed > 5,
-                  'text-red-500': selectedItem.speed < 5,
+                  'text-green': selectedItem.speed > user.attributes.speed,
+                  'text-red-500': selectedItem.speed < user.attributes.speed,
                 })}
               >
                 {selectedItem.speed}
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.health > 5,
-                  'text-red-500': selectedItem.health < 5,
+                  'text-green': selectedItem.health > user.attributes.health,
+                  'text-red-500': selectedItem.health < user.attributes.health,
                 })}
               >
                 {selectedItem.health}
@@ -229,7 +87,7 @@ const Shop = () => {
           </View>
           <View className="justify-center items-center">
             <Text className="text-base text-gold font-bold">
-              - {selectedItem.cost} Gold
+              {selectedItem.cost} Gold to purchase
             </Text>
           </View>
         </View>
@@ -244,7 +102,7 @@ const Shop = () => {
         <Text className="mb-5">{selectedItem.description}</Text>
         <View className="justify-center items-center">
           <Text className="text-base text-gold font-bold">
-            - {selectedItem.cost} Gold
+            {selectedItem.cost} Gold to purchase
           </Text>
         </View>
       </View>
@@ -263,8 +121,26 @@ const Shop = () => {
             // Close modal
             console.log('Consumable:', selectedItem);
           } else {
-            // Equip item
+            // Buy and equip item
             console.log('Equipment:', selectedItem);
+
+            if (!user || !selectedItem) return;
+
+            if (user.gold < selectedItem.cost) {
+              Alert.alert(
+                'Not enough gold',
+                `You need ${selectedItem.cost - user.gold} more gold to buy this.`,
+              );
+              return;
+            }
+
+            // Update user data
+            setUser({
+              ...user,
+              gold: user?.gold - selectedItem?.cost,
+              equippedItems: [...userEquippedItems, selectedItem],
+              items: [...userItems, selectedItem],
+            });
           }
 
           setSelectedItem(null);
@@ -287,7 +163,9 @@ const Shop = () => {
       <ScrollView className="w-full h-full px-6 py-8">
         <View className="flex-row justify-between items-center">
           <Text className="text-2xl text-gray-black mb-5">Shop</Text>
-          <Text className="text-lg text-gold mb-5 font-semibold">500 Gold</Text>
+          <Text className="text-lg text-gold mb-5 font-semibold">
+            {user?.gold ?? 0} Gold
+          </Text>
         </View>
 
         <View className="w-full  mb-5">
@@ -295,7 +173,10 @@ const Shop = () => {
             WEAPONS
           </Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(MOCK_ITEMS, ItemType.WEAPON)}
+            data={filterItemsByTypeAndSortByCost(
+              MOCK_SHOP_ITEMS,
+              ItemType.WEAPON,
+            )}
             renderItem={({ item }) => (
               <ItemCard
                 item={item}
@@ -303,6 +184,7 @@ const Shop = () => {
                   setSelectedItem(item);
                   setModalVisible(true);
                 }}
+                owned={userItems.some((i) => i.id === item.id)}
               />
             )}
             ItemSeparatorComponent={() => <View className="w-3" />}
@@ -315,7 +197,10 @@ const Shop = () => {
         <View className="w-full  mb-5">
           <Text className="text-xl text-gray-black font-bold mb-2">ARMORS</Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(MOCK_ITEMS, ItemType.ARMOR)}
+            data={filterItemsByTypeAndSortByCost(
+              MOCK_SHOP_ITEMS,
+              ItemType.ARMOR,
+            )}
             renderItem={({ item }) => (
               <ItemCard
                 item={item}
@@ -323,6 +208,7 @@ const Shop = () => {
                   setSelectedItem(item);
                   setModalVisible(true);
                 }}
+                owned={userItems.some((i) => i.id === item.id)}
               />
             )}
             ItemSeparatorComponent={() => <View className="w-3" />}
@@ -337,7 +223,7 @@ const Shop = () => {
           </Text>
           <FlatList
             data={filterItemsByTypeAndSortByCost(
-              MOCK_ITEMS,
+              MOCK_SHOP_ITEMS,
               ItemType.ACCESSORY,
             )}
             renderItem={({ item }) => (
@@ -347,6 +233,7 @@ const Shop = () => {
                   setSelectedItem(item);
                   setModalVisible(true);
                 }}
+                owned={userItems.some((i) => i.id === item.id)}
               />
             )}
             ItemSeparatorComponent={() => <View className="w-3" />}
@@ -362,7 +249,7 @@ const Shop = () => {
           <View className="flex-row gap-3">
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                MOCK_ITEMS,
+                MOCK_SHOP_ITEMS,
                 ItemType.POTION_SMALL,
               )}
               renderItem={({ item }) => (
@@ -380,7 +267,7 @@ const Shop = () => {
             />
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                MOCK_ITEMS,
+                MOCK_SHOP_ITEMS,
                 ItemType.POTION_MEDIUM,
               )}
               renderItem={({ item }) => (
@@ -398,7 +285,7 @@ const Shop = () => {
             />
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                MOCK_ITEMS,
+                MOCK_SHOP_ITEMS,
                 ItemType.POTION_LARGE,
               )}
               renderItem={({ item }) => (
@@ -423,16 +310,18 @@ const Shop = () => {
 
 export default Shop;
 
-const ItemCard: React.FC<{ item: Item; onPress: () => void }> = ({
-  item,
-  onPress,
-}) => {
+const ItemCard: React.FC<{
+  item: Item;
+  onPress: () => void;
+  owned?: boolean;
+}> = ({ item, onPress, owned = false }) => {
   return (
     <View className="flex-col justify-center items-center">
       <TouchableOpacity
+        disabled={owned}
         onPress={onPress}
         className={clsx(
-          'rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2',
+          'rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2 justify-center items-center',
           {
             'bg-red-800': item.type === ItemType.WEAPON,
             'bg-blue': item.type === ItemType.ARMOR,
@@ -444,7 +333,12 @@ const ItemCard: React.FC<{ item: Item; onPress: () => void }> = ({
             ].includes(item.type),
           },
         )}
-      ></TouchableOpacity>
+      >
+        {owned && <Text className="font-black z-10">OWNED</Text>}
+        {owned && (
+          <View className="absolute bg-white opacity-50 w-full h-full" />
+        )}
+      </TouchableOpacity>
       <Text className="text-lg text-gold mb-5 font-semibold">
         {item.cost} Gold
       </Text>

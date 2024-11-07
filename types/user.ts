@@ -1,4 +1,5 @@
 import { APIResponse } from './general';
+import { Item } from './item';
 
 export type CreateUserResponse = APIResponse & {};
 
@@ -23,6 +24,8 @@ export type User = {
   gold: number;
   attributePoints: number;
   currentQuest: string;
+  equippedItems: Item[];
+  items: Item[];
   privacySettings: {
     isLastWorkoutPublic: boolean;
     isCurrentQuestPublic: boolean;

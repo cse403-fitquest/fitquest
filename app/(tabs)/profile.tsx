@@ -16,6 +16,7 @@ import { Item, ItemType } from '@/types/item';
 import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useSocialStore } from '@/store/social';
+import { BASE_USER } from '@/constants/user';
 
 const MOCK_EQUIPPED_ITEMS: Item[] = [
   {
@@ -82,6 +83,7 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
 
 // Mock user data
 const MOCK_USER: User = {
+  ...BASE_USER,
   id: 'mock-user-1',
   profileInfo: {
     email: 'cooldude1@email.com',
