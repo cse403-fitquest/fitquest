@@ -18,8 +18,24 @@ const Workout = () => {
     null,
   );
 
+  type exercise = {name: string, weight: Number, reps: Number, sets: Number} 
+
+  const fillerex:exercise = {name: "Bench", weight: 135, reps: 20, sets: 4}
+  const fillerworkout= [fillerex, fillerex, fillerex, fillerex]
+  const fillerworkoutsuggest= [fillerex, fillerex, fillerex]
+
+  const exerciseToString = (exercise: exercise) => {
+    return exercise.name+"                     "+exercise.weight+"               "+exercise.reps+"               "+exercise.sets+"  ";
+  }
+  const exercisesToString = (exercises: exercise[]) => {
+    let str = []
+    for(const exercise of exercises){
+      str.push(exerciseToString(exercise))
+    }
+    return str;
+  }
   //constructor for a Template 
-  const Template = (title: string, exercises: string[]) => {
+  const Template = (title: string, exercises: exercise[]) => {
     const [isSelected, setIsSelected] = useState(false);
     const [isDropdownVisible, setDropdownVisible] = useState(false);
 
@@ -47,8 +63,9 @@ const Workout = () => {
 
         {isDropdownVisible && (
           <View style={templatestyles.dropdownContainer}>
+            <Text style={templatestyles.dropdownItem}> Name              |    Weight     |   Reps     |  Sets  </Text>
             <FlatList
-                data={exercises}
+                data={ exercisesToString(exercises) }
                 keyExtractor={(item) => item}
                 renderItem={({ item }) => (
                     <Text style={templatestyles.dropdownItem}>{item}</Text>
@@ -62,9 +79,6 @@ const Workout = () => {
 
   }
   
- 
-  const items = ['Pushups', 'Bench Press', 'Cylinder Press'];
-
   // to swap between starting and stopping workouts
   const toggleWorkout = () => {
     if (isWorkoutActive) {
@@ -165,13 +179,13 @@ const Workout = () => {
         {/* Saved Templates Section */}
         <View className="w-full mt-5 px-4">
           <Text className="text-2xl text-black">Saved Templates</Text>
-            {Template("g", ["a", "b", "c"])}
+            {Template("doms push", fillerworkout)}
         </View>
 
         {/* Suggested Templates Section */}
         <View className="w-full mt-5 px-4">
           <Text className="text-2xl text-black">Suggested Templates</Text>
-          {Template("doms push", ["bench", "pushdown", "lat raise"])}
+          {Template("doms push2", fillerworkoutsuggest)}
         </View>
       </SafeAreaView>
     </SafeAreaView>
