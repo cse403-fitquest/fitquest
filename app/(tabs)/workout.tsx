@@ -16,13 +16,13 @@ const Workout = () => {
     null,
   );
 
-  type exercise = { name: string; weight: number; reps: number; sets: number };
+  type Exercise = { name: string; weight: number; reps: number; sets: number };
 
-  const fillerex: exercise = { name: 'Bench', weight: 135, reps: 20, sets: 4 };
+  const fillerex: Exercise = { name: 'Bench', weight: 135, reps: 20, sets: 4 };
   const fillerworkout = [fillerex, fillerex, fillerex, fillerex];
   const fillerworkoutsuggest = [fillerex, fillerex, fillerex];
 
-  const exerciseToString = (exercise: exercise) => {
+  const exerciseToString = (exercise: Exercise) => {
     return (
       exercise.name +
       '                     ' +
@@ -34,15 +34,16 @@ const Workout = () => {
       '  '
     );
   };
-  const exercisesToString = (exercises: exercise[]) => {
+  const exercisesToString = (exercises: Exercise[]) => {
     const str = [];
     for (const exercise of exercises) {
       str.push(exerciseToString(exercise));
     }
     return str;
   };
+
   //constructor for a Template
-  const Template = (title: string, exercises: exercise[]) => {
+  const Template = (title: string, exercises: Exercise[]) => {
     const [isSelected, setIsSelected] = useState(false);
     const [isDropdownVisible, setDropdownVisible] = useState(false);
 
@@ -79,10 +80,11 @@ const Workout = () => {
             </Text>
             <FlatList
               data={exercisesToString(exercises)}
-              keyExtractor={(item) => item}
+              keyExtractor={(item, index) => item + '' + index}
               renderItem={({ item }) => (
                 <Text style={templatestyles.dropdownItem}>{item}</Text>
               )}
+              nestedScrollEnabled={true}
             />
           </View>
         )}
@@ -140,64 +142,69 @@ const Workout = () => {
   }, [timer]);
 
   return (
-    <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite">
-      <Text
-        className="text-4xl text-black font-bold text-left"
-        style={{ marginTop: 10, marginBottom: 10 }}
-      >
-        {' '}
-        Workout
-      </Text>
-      <SafeAreaView className="flex-1 items-left justify-r h-full">
-        {/* Start/Stop Workout Button */}
-        <TouchableOpacity
-          onPress={toggleWorkout}
-          style={{
-            backgroundColor: isWorkoutActive ? 'red' : 'purple',
-            width: 145,
-            padding: 15,
-            marginLeft: 5,
-            marginTop: 0,
-            borderRadius: 40,
-          }}
-        >
-          <Text style={{ color: 'white', fontSize: 18 }}>
-            {isWorkoutActive ? 'Stop Workout' : 'Start Workout'}
-          </Text>
-        </TouchableOpacity>
+    <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite px-6">
+      <FlatList
+        data={[]}
+        renderItem={() => null}
+        ListHeaderComponent={
+          <View className="py-8">
+            <Text className="text-2xl text-gray-black mb-5">Workout</Text>
+            <View className="flex-1 items-left justify-r h-full">
+              {/* Start/Stop Workout Button */}
+              <TouchableOpacity
+                onPress={toggleWorkout}
+                style={{
+                  backgroundColor: isWorkoutActive ? 'red' : 'purple',
+                  width: 145,
+                  padding: 15,
+                  marginTop: 0,
+                  borderRadius: 40,
+                }}
+              >
+                <Text style={{ color: 'white', fontSize: 18 }}>
+                  {isWorkoutActive ? 'Stop Workout' : 'Start Workout'}
+                </Text>
+              </TouchableOpacity>
 
-        {/* Placeholder because linter does not accept unused values (secondsElapsed was previously unused) */}
-        <Text style={{ marginLeft: 12 }}>
-          Time Elapsed: {secondsToMinutes(secondsElapsed)}
-        </Text>
+              <Text style={{ marginLeft: 12 }}>
+                Time Elapsed: {secondsToMinutes(secondsElapsed)}
+              </Text>
 
-        {/* Create Template Button */}
-        <TouchableOpacity
-          style={{
-            backgroundColor: 'purple',
-            width: 165,
-            padding: 15,
-            marginLeft: 5,
-            marginTop: 15,
-            borderRadius: 40,
-          }}
-          onPress={() => console.log('create template pressed')}
-        >
-          <Text style={{ color: 'white', fontSize: 18 }}>Create Template</Text>
-        </TouchableOpacity>
+              {/* Create Template Button */}
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'purple',
+                  width: 165,
+                  padding: 15,
+                  marginTop: 15,
+                  borderRadius: 40,
+                }}
+                onPress={() => console.log('create template pressed')}
+              >
+                <Text style={{ color: 'white', fontSize: 18 }}>
+                  Create Template
+                </Text>
+              </TouchableOpacity>
 
-        {/* Saved Templates Section */}
-        <View className="w-full mt-5 px-4">
-          <Text className="text-2xl text-black">Saved Templates</Text>
-          {Template('doms push', fillerworkout)}
-        </View>
+              {/* Saved Templates Section */}
+              <View className="w-full mt-5">
+                <Text className="text-xl text-grayDark font-bold mb-2">
+                  SAVED TEMPLATES
+                </Text>
+                {Template('doms push', fillerworkout)}
+              </View>
 
-        {/* Suggested Templates Section */}
-        <View className="w-full mt-5 px-4">
-          <Text className="text-2xl text-black">Suggested Templates</Text>
-          {Template('doms push2', fillerworkoutsuggest)}
-        </View>
-      </SafeAreaView>
+              {/* Suggested Templates Section */}
+              <View className="w-full mt-5">
+                <Text className="text-xl text-grayDark font-bold mb-2">
+                  SUGGESTED TEMPLATES
+                </Text>
+                {Template('doms push2', fillerworkoutsuggest)}
+              </View>
+            </View>
+          </View>
+        }
+      />
     </SafeAreaView>
   );
 };
