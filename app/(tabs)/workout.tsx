@@ -16,23 +16,32 @@ const Workout = () => {
     null,
   );
 
-  type exercise = {name: string, weight: Number, reps: Number, sets: Number} 
+  type exercise = { name: string; weight: number; reps: number; sets: number };
 
-  const fillerex:exercise = {name: "Bench", weight: 135, reps: 20, sets: 4}
-  const fillerworkout= [fillerex, fillerex, fillerex, fillerex]
-  const fillerworkoutsuggest= [fillerex, fillerex, fillerex]
+  const fillerex: exercise = { name: 'Bench', weight: 135, reps: 20, sets: 4 };
+  const fillerworkout = [fillerex, fillerex, fillerex, fillerex];
+  const fillerworkoutsuggest = [fillerex, fillerex, fillerex];
 
   const exerciseToString = (exercise: exercise) => {
-    return exercise.name+"                     "+exercise.weight+"               "+exercise.reps+"               "+exercise.sets+"  ";
-  }
+    return (
+      exercise.name +
+      '                     ' +
+      exercise.weight +
+      '               ' +
+      exercise.reps +
+      '               ' +
+      exercise.sets +
+      '  '
+    );
+  };
   const exercisesToString = (exercises: exercise[]) => {
-    let str = []
-    for(const exercise of exercises){
-      str.push(exerciseToString(exercise))
+    const str = [];
+    for (const exercise of exercises) {
+      str.push(exerciseToString(exercise));
     }
     return str;
-  }
-  //constructor for a Template 
+  };
+  //constructor for a Template
   const Template = (title: string, exercises: exercise[]) => {
     const [isSelected, setIsSelected] = useState(false);
     const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -43,13 +52,16 @@ const Workout = () => {
     const toggleDropdown = () => {
       setDropdownVisible(!isDropdownVisible);
     };
-    return ( 
+    return (
       <View>
         <View style={templatestyles.box}>
-          <TouchableOpacity style={templatestyles.circle} onPress={toggleSelection}>
-              {isSelected && <View style={templatestyles.innerCircle} />}
+          <TouchableOpacity
+            style={templatestyles.circle}
+            onPress={toggleSelection}
+          >
+            {isSelected && <View style={templatestyles.innerCircle} />}
           </TouchableOpacity>
-          
+
           <Text style={templatestyles.title}>{title}</Text>
           <TouchableOpacity
             style={templatestyles.viewButton}
@@ -61,22 +73,23 @@ const Workout = () => {
 
         {isDropdownVisible && (
           <View style={templatestyles.dropdownContainer}>
-            <Text style={templatestyles.dropdownItem}> Name              |    Weight     |   Reps     |  Sets  </Text>
+            <Text style={templatestyles.dropdownItem}>
+              {' '}
+              Name | Weight | Reps | Sets{' '}
+            </Text>
             <FlatList
-                data={ exercisesToString(exercises) }
-                keyExtractor={(item) => item}
-                renderItem={({ item }) => (
-                    <Text style={templatestyles.dropdownItem}>{item}</Text>
-                )}
+              data={exercisesToString(exercises)}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <Text style={templatestyles.dropdownItem}>{item}</Text>
+              )}
             />
           </View>
         )}
       </View>
+    );
+  };
 
-    )
-
-  }
-  
   // to swap between starting and stopping workouts
   const toggleWorkout = () => {
     if (isWorkoutActive) {
@@ -91,7 +104,6 @@ const Workout = () => {
         : 'workout started',
     );
   };
- 
 
   // when workout is started
   const startWorkout = () => {
@@ -177,13 +189,13 @@ const Workout = () => {
         {/* Saved Templates Section */}
         <View className="w-full mt-5 px-4">
           <Text className="text-2xl text-black">Saved Templates</Text>
-            {Template("doms push", fillerworkout)}
+          {Template('doms push', fillerworkout)}
         </View>
 
         {/* Suggested Templates Section */}
         <View className="w-full mt-5 px-4">
           <Text className="text-2xl text-black">Suggested Templates</Text>
-          {Template("doms push2", fillerworkoutsuggest)}
+          {Template('doms push2', fillerworkoutsuggest)}
         </View>
       </SafeAreaView>
     </SafeAreaView>
@@ -212,13 +224,13 @@ const templatestyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
-},
-innerCircle: {
+  },
+  innerCircle: {
     width: 12,
     height: 12,
     borderRadius: 6,
     backgroundColor: '#4CAF50',
-},
+  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -248,13 +260,13 @@ innerCircle: {
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
-},
-dropdownItem: {
+  },
+  dropdownItem: {
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-},
+  },
 });
 
 export default Workout;
