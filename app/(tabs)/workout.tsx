@@ -1,10 +1,8 @@
 import {
   FlatList,
-  Modal,
   Text,
   TouchableOpacity,
   StyleSheet,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
