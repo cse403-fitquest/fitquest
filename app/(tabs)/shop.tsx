@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Item, ItemType } from '@/types/item';
 import {
   filterItemsByTypeAndSortByCost,
+  getHealthPotionsCountFromItems,
   isItemConsumable,
   itemTypeToString,
 } from '@/utils/item';
@@ -29,7 +30,15 @@ const Shop = () => {
   const { user, setUser } = useUserStore();
 
   const userEquipments = user?.equipments || [];
-  // const userConsumables = user?.consumables || [];
+  const userConsumables = user?.consumables || [];
+
+  const [
+    userSmallHealthPotCount,
+    userMediumHealthPotCount,
+    userLargeHealthPotCount,
+  ] = useMemo(() => {
+    return getHealthPotionsCountFromItems(userConsumables);
+  }, [user, userConsumables]);
 
   useEffect(() => {
     const getShopItemsData = async () => {
@@ -61,22 +70,47 @@ const Shop = () => {
   }, []);
 
   const handlePurchaseItem = async () => {
+    if (!user || !selectedItem) return;
+
+    if (user.gold < selectedItem.cost) {
+      Alert.alert(
+        'Not enough gold',
+        `You need ${selectedItem.cost - user.gold} more gold to buy this.`,
+      );
+      return;
+    }
+
     if (selectedItem && isItemConsumable(selectedItem)) {
       // Close modal
       console.log('Consumable:', selectedItem);
+
+      // Update user data
+      const oldUser = user;
+
+      setUser({
+        ...user,
+        gold: user.gold - selectedItem.cost,
+        consumables: [...userConsumables, selectedItem],
+      });
+
+      setModalVisible(false);
+      setSelectedItem(null);
+
+      const purchaseItemResponse = await purchaseItem(user.id, selectedItem.id);
+
+      if (!purchaseItemResponse.success) {
+        Alert.alert(
+          'Error',
+          purchaseItemResponse.error ?? 'Error purchasing equipment',
+        );
+
+        // Rollback user data
+        setUser(oldUser);
+        return;
+      }
     } else {
       // Buy and equip item
       console.log('Equipment:', selectedItem);
-
-      if (!user || !selectedItem) return;
-
-      if (user.gold < selectedItem.cost) {
-        Alert.alert(
-          'Not enough gold',
-          `You need ${selectedItem.cost - user.gold} more gold to buy this.`,
-        );
-        return;
-      }
 
       // Update user data
       const oldUser = user;
@@ -95,7 +129,7 @@ const Shop = () => {
       if (!purchaseItemResponse.success) {
         Alert.alert(
           'Error',
-          purchaseItemResponse.error ?? 'Error purchasing item',
+          purchaseItemResponse.error ?? 'Error purchasing consumable',
         );
 
         // Rollback user data
@@ -138,7 +172,7 @@ const Shop = () => {
             <View className="justify-center items-center">
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.power > user.attributes.power, // TODO: Compare to player current item attributes
+                  'text-green': selectedItem.power > user.attributes.power,
                   'text-red-500': selectedItem.power < user.attributes.power,
                 })}
               >
@@ -171,12 +205,29 @@ const Shop = () => {
       );
     }
 
+    // Only non-equipment items left are consumables
+
+    let healthPotionsCount = 0;
+
+    if (selectedItem.type === ItemType.POTION_SMALL) {
+      healthPotionsCount = userSmallHealthPotCount;
+    } else if (selectedItem.type === ItemType.POTION_MEDIUM) {
+      healthPotionsCount = userMediumHealthPotCount;
+    } else if (selectedItem.type === ItemType.POTION_LARGE) {
+      healthPotionsCount = userLargeHealthPotCount;
+    }
+
     return (
       <View>
         <View className="justify-center items-center h-24 my-5">
           <Text>Item Sprite Here</Text>
         </View>
-        <Text className="mb-5">{selectedItem.description}</Text>
+        <Text className="mb-2">{selectedItem.description}</Text>
+        <Text className="mb-5">
+          You currently own{' '}
+          <Text className="font-bold">{healthPotionsCount}</Text> of this
+          consumable.
+        </Text>
         <View className="justify-center items-center">
           <Text className="text-base text-gold font-bold">
             {selectedItem.cost} Gold to purchase
@@ -184,7 +235,7 @@ const Shop = () => {
         </View>
       </View>
     );
-  }, [selectedItem]);
+  }, [selectedItem, user]);
 
   return (
     <SafeAreaView className="relative w-full h-full flex-1 justify-center items-center bg-off-white">
@@ -194,16 +245,8 @@ const Shop = () => {
         title={selectedItem ? 'Equip ' + selectedItem.name : ''}
         subtitle={selectedItem ? itemTypeToString(selectedItem.type) : ''}
         onConfirm={handlePurchaseItem}
-        cancelText={
-          selectedItem
-            ? isItemConsumable(selectedItem)
-              ? undefined
-              : 'CANCEL'
-            : undefined
-        }
-        confirmText={
-          selectedItem && isItemConsumable(selectedItem) ? 'BACK' : 'BUY ITEM'
-        }
+        cancelText={'CANCEL'}
+        confirmText={'BUY ITEM'}
       >
         {modalChildren}
       </FQModal>

@@ -153,11 +153,22 @@ export const purchaseItem: (
       itemInvType = 'consumables';
     }
 
-    // Add item document ID to user's inventory
-    await updateDoc(userRef, {
-      [itemInvType]: arrayUnion(itemID),
-      gold: newBalance,
-    });
+    if (itemInvType === 'equipments') {
+      // Add item document ID to user's inventory
+      await updateDoc(userRef, {
+        equipments: arrayUnion(itemData), // Ensure item is unique in equipments inventory
+        gold: newBalance,
+      });
+    } else {
+      // Add item to user's inventory
+      const newUserConsumables = [...userData.consumables, itemData];
+
+      // Add item document ID to user's inventory
+      await updateDoc(userRef, {
+        consumables: newUserConsumables,
+        gold: newBalance,
+      });
+    }
 
     console.log('Purchase successful! Item added to inventory.');
 
