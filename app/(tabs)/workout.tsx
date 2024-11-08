@@ -1,10 +1,8 @@
 import {
   FlatList,
-  Modal,
   Text,
   TouchableOpacity,
   StyleSheet,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
@@ -17,13 +15,82 @@ const Workout = () => {
   const [timer, setTimer] = useState<ReturnType<typeof setInterval> | null>(
     null,
   );
-  const [isDropdownVisible, setDropdownVisible] = useState(false);
 
-  const toggleDropdown = () => {
-    setDropdownVisible(!isDropdownVisible);
+  type Exercise = { name: string; weight: number; reps: number; sets: number };
+
+  const fillerex: Exercise = { name: 'Bench', weight: 135, reps: 20, sets: 4 };
+  const fillerworkout = [fillerex, fillerex, fillerex, fillerex];
+  const fillerworkoutsuggest = [fillerex, fillerex, fillerex];
+
+  const exerciseToString = (exercise: Exercise) => {
+    return (
+      exercise.name +
+      '                     ' +
+      exercise.weight +
+      '               ' +
+      exercise.reps +
+      '               ' +
+      exercise.sets +
+      '  '
+    );
+  };
+  const exercisesToString = (exercises: Exercise[]) => {
+    const str = [];
+    for (const exercise of exercises) {
+      str.push(exerciseToString(exercise));
+    }
+    return str;
   };
 
-  const items = ['Bananas', 'Apples', 'Fruits'];
+  //constructor for a Template
+  const Template = (title: string, exercises: Exercise[]) => {
+    const [isSelected, setIsSelected] = useState(false);
+    const [isDropdownVisible, setDropdownVisible] = useState(false);
+
+    const toggleSelection = () => {
+      setIsSelected(!isSelected);
+    };
+    const toggleDropdown = () => {
+      setDropdownVisible(!isDropdownVisible);
+    };
+    return (
+      <View>
+        <View style={templatestyles.box}>
+          <TouchableOpacity
+            style={templatestyles.circle}
+            onPress={toggleSelection}
+          >
+            {isSelected && <View style={templatestyles.innerCircle} />}
+          </TouchableOpacity>
+
+          <Text style={templatestyles.title}>{title}</Text>
+          <TouchableOpacity
+            style={templatestyles.viewButton}
+            onPress={toggleDropdown}
+          >
+            <Text style={templatestyles.buttonText}>View</Text>
+          </TouchableOpacity>
+        </View>
+
+        {isDropdownVisible && (
+          <View style={templatestyles.dropdownContainer}>
+            <Text style={templatestyles.dropdownItem}>
+              {' '}
+              Name | Weight | Reps | Sets{' '}
+            </Text>
+            <FlatList
+              data={exercisesToString(exercises)}
+              keyExtractor={(item, index) => item + '' + index}
+              renderItem={({ item }) => (
+                <Text style={templatestyles.dropdownItem}>{item}</Text>
+              )}
+              nestedScrollEnabled={true}
+            />
+          </View>
+        )}
+      </View>
+    );
+  };
 
   // to swap between starting and stopping workouts
   const toggleWorkout = () => {
@@ -41,8 +108,6 @@ const Workout = () => {
   };
 
   // when workout is started
-  // TODO: DELETE LINE BELOW WHEN USING THE FUNCTION
-
   const startWorkout = () => {
     if (!isWorkoutActive) {
       setIsWorkoutActive(true);
@@ -77,95 +142,69 @@ const Workout = () => {
   }, [timer]);
 
   return (
-    <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite">
-      <Text
-        className="text-4xl text-black font-bold text-left"
-        style={{ marginTop: 10, marginBottom: 10 }}
-      >
-        {' '}
-        Workout
-      </Text>
-      <SafeAreaView className="flex-1 items-left justify-r h-full">
-        {/* Start/Stop Workout Button */}
-        <TouchableOpacity
-          onPress={toggleWorkout}
-          style={{
-            backgroundColor: isWorkoutActive ? 'red' : 'purple',
-            width: 145,
-            padding: 15,
-            marginLeft: 5,
-            marginTop: 0,
-            borderRadius: 40,
-          }}
-        >
-          <Text style={{ color: 'white', fontSize: 18 }}>
-            {isWorkoutActive ? 'Stop Workout' : 'Start Workout'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Placeholder because linter does not accept unused values (secondsElapsed was previously unused) */}
-        <Text style={{ marginLeft: 12 }}>
-          Time Elapsed: {secondsToMinutes(secondsElapsed)}
-        </Text>
-
-        {/* Create Template Button */}
-        <TouchableOpacity
-          style={{
-            backgroundColor: 'purple',
-            width: 165,
-            padding: 15,
-            marginLeft: 5,
-            marginTop: 15,
-            borderRadius: 40,
-          }}
-          onPress={() => console.log('create template pressed')}
-        >
-          <Text style={{ color: 'white', fontSize: 18 }}>Create Template</Text>
-        </TouchableOpacity>
-
-        {/* Saved Templates Section */}
-        <View className="w-full mt-5 px-4">
-          <Text className="text-2xl text-black">Saved Templates</Text>
-          <View style={templatestyles.box}>
-            <Text style={templatestyles.title}>Saved Workout 1</Text>
-            <TouchableOpacity
-              style={templatestyles.viewButton}
-              onPress={toggleDropdown}
-            >
-              <Text style={templatestyles.buttonText}>View</Text>
-            </TouchableOpacity>
-
-            {isDropdownVisible && (
-              <Modal
-                transparent
-                animationType="fade"
-                visible={isDropdownVisible}
-                onRequestClose={() => setDropdownVisible(false)}
+    <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite px-6">
+      <FlatList
+        data={[]}
+        renderItem={() => null}
+        ListHeaderComponent={
+          <View className="py-8">
+            <Text className="text-2xl text-gray-black mb-5">Workout</Text>
+            <View className="flex-1 items-left justify-r h-full">
+              {/* Start/Stop Workout Button */}
+              <TouchableOpacity
+                onPress={toggleWorkout}
+                style={{
+                  backgroundColor: isWorkoutActive ? 'red' : 'purple',
+                  width: 145,
+                  padding: 15,
+                  marginTop: 0,
+                  borderRadius: 40,
+                }}
               >
-                <TouchableWithoutFeedback
-                  onPress={() => setDropdownVisible(false)}
-                >
-                  <View style={templatestyles.modalOverlay} />
-                </TouchableWithoutFeedback>
-                <View style={templatestyles.dropdownContainer}>
-                  <FlatList
-                    data={items}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                      <Text style={templatestyles.dropdownItem}>{item}</Text>
-                    )}
-                  />
-                </View>
-              </Modal>
-            )}
-          </View>
-        </View>
+                <Text style={{ color: 'white', fontSize: 18 }}>
+                  {isWorkoutActive ? 'Stop Workout' : 'Start Workout'}
+                </Text>
+              </TouchableOpacity>
 
-        {/* Suggested Templates Section */}
-        <View className="w-full mt-5 px-4">
-          <Text className="text-2xl text-black">Suggested Templates</Text>
-        </View>
-      </SafeAreaView>
+              <Text style={{ marginLeft: 12 }}>
+                Time Elapsed: {secondsToMinutes(secondsElapsed)}
+              </Text>
+
+              {/* Create Template Button */}
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'purple',
+                  width: 165,
+                  padding: 15,
+                  marginTop: 15,
+                  borderRadius: 40,
+                }}
+                onPress={() => console.log('create template pressed')}
+              >
+                <Text style={{ color: 'white', fontSize: 18 }}>
+                  Create Template
+                </Text>
+              </TouchableOpacity>
+
+              {/* Saved Templates Section */}
+              <View className="w-full mt-5">
+                <Text className="text-xl text-grayDark font-bold mb-2">
+                  SAVED TEMPLATES
+                </Text>
+                {Template('doms push', fillerworkout)}
+              </View>
+
+              {/* Suggested Templates Section */}
+              <View className="w-full mt-5">
+                <Text className="text-xl text-grayDark font-bold mb-2">
+                  SUGGESTED TEMPLATES
+                </Text>
+                {Template('doms push2', fillerworkoutsuggest)}
+              </View>
+            </View>
+          </View>
+        }
+      />
     </SafeAreaView>
   );
 };
@@ -182,6 +221,22 @@ const templatestyles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     position: 'relative',
+  },
+  circle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  innerCircle: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#4CAF50',
   },
   title: {
     fontSize: 20,
@@ -200,13 +255,13 @@ const templatestyles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   dropdownContainer: {
-    position: 'absolute',
-    top: 100,
-    right: 20,
-    width: 100,
+    marginTop: 5,
+    width: 300,
     backgroundColor: '#f9f9f9',
     borderRadius: 5,
-    padding: 10,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -215,7 +270,7 @@ const templatestyles = StyleSheet.create({
   },
   dropdownItem: {
     paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingHorizontal: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
