@@ -15,7 +15,8 @@ export const BASE_USER: User = {
   gold: 100,
   currentQuest: '',
   equippedItems: [],
-  items: [],
+  equipments: [],
+  consumables: [],
   privacySettings: {
     isLastWorkoutPublic: true,
     isCurrentQuestPublic: true,

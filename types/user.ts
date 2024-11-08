@@ -24,8 +24,9 @@ export type User = {
   gold: number;
   attributePoints: number;
   currentQuest: string;
-  equippedItems: Item[];
-  items: Item[];
+  equippedItems: Item[]; // Array of equipped equipment
+  equipments: Item[]; // Array of all user's equipment
+  consumables: Item[]; // Array of all user's consumables
   privacySettings: {
     isLastWorkoutPublic: boolean;
     isCurrentQuestPublic: boolean;
