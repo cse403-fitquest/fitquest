@@ -137,7 +137,6 @@ export const purchaseItem: (
 
     // Deduct the cost from the user's balance
     const newBalance = userData.gold - itemData.cost;
-    await updateDoc(userRef, { gold: newBalance });
 
     // Item type
     const itemType = itemData.type;
@@ -157,6 +156,7 @@ export const purchaseItem: (
     // Add item document ID to user's inventory
     await updateDoc(userRef, {
       [itemInvType]: arrayUnion(itemID),
+      gold: newBalance,
     });
 
     console.log('Purchase successful! Item added to inventory.');

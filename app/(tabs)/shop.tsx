@@ -17,7 +17,7 @@ import {
 import clsx from 'clsx';
 import FQModal from '@/components/FQModal';
 import { useUserStore } from '@/store/user';
-import { getShopItems, setShopItemsInDB } from '@/services/shop';
+import purchaseItem, { getShopItems, setShopItemsInDB } from '@/services/shop';
 import { MOCK_SHOP_ITEMS } from '@/constants/shop';
 
 const Shop = () => {
@@ -28,8 +28,8 @@ const Shop = () => {
 
   const { user, setUser } = useUserStore();
 
-  const userEquippedItems = user?.equippedItems || [];
-  const userItems = user?.items || [];
+  const userEquipments = user?.equipments || [];
+  // const userConsumables = user?.consumables || [];
 
   useEffect(() => {
     const getShopItemsData = async () => {
@@ -59,6 +59,51 @@ const Shop = () => {
     // void _setShopItemsData();
     void getShopItemsData();
   }, []);
+
+  const handlePurchaseItem = async () => {
+    if (selectedItem && isItemConsumable(selectedItem)) {
+      // Close modal
+      console.log('Consumable:', selectedItem);
+    } else {
+      // Buy and equip item
+      console.log('Equipment:', selectedItem);
+
+      if (!user || !selectedItem) return;
+
+      if (user.gold < selectedItem.cost) {
+        Alert.alert(
+          'Not enough gold',
+          `You need ${selectedItem.cost - user.gold} more gold to buy this.`,
+        );
+        return;
+      }
+
+      // Update user data
+      const oldUser = user;
+
+      setUser({
+        ...user,
+        gold: user.gold - selectedItem.cost,
+        equipments: [...userEquipments, selectedItem],
+      });
+
+      setModalVisible(false);
+      setSelectedItem(null);
+
+      const purchaseItemResponse = await purchaseItem(user.id, selectedItem.id);
+
+      if (!purchaseItemResponse.success) {
+        Alert.alert(
+          'Error',
+          purchaseItemResponse.error ?? 'Error purchasing item',
+        );
+
+        // Rollback user data
+        setUser(oldUser);
+        return;
+      }
+    }
+  };
 
   const modalChildren = useMemo(() => {
     if (!user || !selectedItem) return null;
@@ -148,36 +193,7 @@ const Shop = () => {
         setVisible={setModalVisible}
         title={selectedItem ? 'Equip ' + selectedItem.name : ''}
         subtitle={selectedItem ? itemTypeToString(selectedItem.type) : ''}
-        onConfirm={() => {
-          if (selectedItem && isItemConsumable(selectedItem)) {
-            // Close modal
-            console.log('Consumable:', selectedItem);
-          } else {
-            // Buy and equip item
-            console.log('Equipment:', selectedItem);
-
-            if (!user || !selectedItem) return;
-
-            if (user.gold < selectedItem.cost) {
-              Alert.alert(
-                'Not enough gold',
-                `You need ${selectedItem.cost - user.gold} more gold to buy this.`,
-              );
-              return;
-            }
-
-            // Update user data
-            setUser({
-              ...user,
-              gold: user?.gold - selectedItem?.cost,
-              equippedItems: [...userEquippedItems, selectedItem],
-              items: [...userItems, selectedItem],
-            });
-          }
-
-          setSelectedItem(null);
-          setModalVisible(false);
-        }}
+        onConfirm={handlePurchaseItem}
         cancelText={
           selectedItem
             ? isItemConsumable(selectedItem)
@@ -213,7 +229,7 @@ const Shop = () => {
                   setSelectedItem(item);
                   setModalVisible(true);
                 }}
-                owned={userItems.some((i) => i.id === item.id)}
+                owned={userEquipments.some((i) => i.id === item.id)}
               />
             )}
             ItemSeparatorComponent={() => <View className="w-3" />}
@@ -234,7 +250,7 @@ const Shop = () => {
                   setSelectedItem(item);
                   setModalVisible(true);
                 }}
-                owned={userItems.some((i) => i.id === item.id)}
+                owned={userEquipments.some((i) => i.id === item.id)}
               />
             )}
             ItemSeparatorComponent={() => <View className="w-3" />}
@@ -256,7 +272,7 @@ const Shop = () => {
                   setSelectedItem(item);
                   setModalVisible(true);
                 }}
-                owned={userItems.some((i) => i.id === item.id)}
+                owned={userEquipments.some((i) => i.id === item.id)}
               />
             )}
             ItemSeparatorComponent={() => <View className="w-3" />}
