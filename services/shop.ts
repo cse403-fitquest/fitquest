@@ -6,6 +6,8 @@ import {
   arrayUnion,
   QueryDocumentSnapshot,
   getDocs,
+  deleteDoc,
+  writeBatch,
 } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { Item } from '@/types/item';
@@ -44,6 +46,53 @@ export const getShopItems: () => Promise<GetShopItemsResponse> = async () => {
       data: [],
       success: false,
       error: 'Error getting shop items.',
+    };
+  }
+};
+
+/**
+ * Set shop items. This will clear existing items and set new items.
+ * @param items - The items to set.
+ * @param {Item[]} items - The items to set.
+ * @returns {Promise<APIResponse>} Returns an APIResponse object.
+ */
+export const setShopItemsInDB: (items: Item[]) => Promise<APIResponse> = async (
+  items,
+) => {
+  try {
+    const itemCollection = collection(FIREBASE_DB, 'items').withConverter(
+      itemConverter,
+    );
+
+    // Clear existing items
+    const itemSnapshot = await getDocs(itemCollection);
+    itemSnapshot.docs.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
+    });
+
+    // Add new items
+    const batch = writeBatch(FIREBASE_DB);
+    items.forEach(async (item) => {
+      const itemRef = doc(itemCollection, item.id);
+      batch.set(itemRef, item);
+    });
+
+    await batch.commit();
+
+    console.log('Shop items set successfully!');
+
+    return {
+      data: null,
+      success: true,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error setting shop items:', error);
+
+    return {
+      data: null,
+      success: false,
+      error: 'Error setting shop items.',
     };
   }
 };

@@ -17,7 +17,8 @@ import {
 import clsx from 'clsx';
 import FQModal from '@/components/FQModal';
 import { useUserStore } from '@/store/user';
-import { getShopItems } from '@/services/shop';
+import { getShopItems, setShopItemsInDB } from '@/services/shop';
+import { MOCK_SHOP_ITEMS } from '@/constants/shop';
 
 const Shop = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -42,7 +43,21 @@ const Shop = () => {
       }
     };
 
-    getShopItemsData();
+    // Set shop items in DB (for testing)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _setShopItemsData = async () => {
+      const setShopItemsResponse = await setShopItemsInDB(MOCK_SHOP_ITEMS);
+
+      if (!setShopItemsResponse.success) {
+        if (setShopItemsResponse.error)
+          Alert.alert('Error', setShopItemsResponse.error);
+      } else {
+        getShopItemsData();
+      }
+    };
+
+    // void _setShopItemsData();
+    void getShopItemsData();
   }, []);
 
   const modalChildren = useMemo(() => {
