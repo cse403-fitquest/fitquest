@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Item, ItemType } from '@/types/item';
 import {
@@ -16,17 +16,34 @@ import {
 } from '@/utils/item';
 import clsx from 'clsx';
 import FQModal from '@/components/FQModal';
-import { MOCK_SHOP_ITEMS } from '@/constants/shop';
 import { useUserStore } from '@/store/user';
+import { getShopItems } from '@/services/shop';
 
 const Shop = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
+  const [shopItems, setShopItems] = useState<Item[]>([]);
+
   const { user, setUser } = useUserStore();
 
   const userEquippedItems = user?.equippedItems || [];
   const userItems = user?.items || [];
+
+  useEffect(() => {
+    const getShopItemsData = async () => {
+      const getShopItemsResponse = await getShopItems();
+
+      if (getShopItemsResponse.success) {
+        setShopItems(getShopItemsResponse.data);
+      } else {
+        if (getShopItemsResponse.error)
+          Alert.alert('Error', getShopItemsResponse.error);
+      }
+    };
+
+    getShopItemsData();
+  }, []);
 
   const modalChildren = useMemo(() => {
     if (!user || !selectedItem) return null;
@@ -173,10 +190,7 @@ const Shop = () => {
             WEAPONS
           </Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(
-              MOCK_SHOP_ITEMS,
-              ItemType.WEAPON,
-            )}
+            data={filterItemsByTypeAndSortByCost(shopItems, ItemType.WEAPON)}
             renderItem={({ item }) => (
               <ItemCard
                 item={item}
@@ -197,10 +211,7 @@ const Shop = () => {
         <View className="w-full  mb-5">
           <Text className="text-xl text-gray-black font-bold mb-2">ARMORS</Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(
-              MOCK_SHOP_ITEMS,
-              ItemType.ARMOR,
-            )}
+            data={filterItemsByTypeAndSortByCost(shopItems, ItemType.ARMOR)}
             renderItem={({ item }) => (
               <ItemCard
                 item={item}
@@ -222,10 +233,7 @@ const Shop = () => {
             ACCESSORIES
           </Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(
-              MOCK_SHOP_ITEMS,
-              ItemType.ACCESSORY,
-            )}
+            data={filterItemsByTypeAndSortByCost(shopItems, ItemType.ACCESSORY)}
             renderItem={({ item }) => (
               <ItemCard
                 item={item}
@@ -249,7 +257,7 @@ const Shop = () => {
           <View className="flex-row gap-3">
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                MOCK_SHOP_ITEMS,
+                shopItems,
                 ItemType.POTION_SMALL,
               )}
               renderItem={({ item }) => (
@@ -267,7 +275,7 @@ const Shop = () => {
             />
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                MOCK_SHOP_ITEMS,
+                shopItems,
                 ItemType.POTION_MEDIUM,
               )}
               renderItem={({ item }) => (
@@ -285,7 +293,7 @@ const Shop = () => {
             />
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                MOCK_SHOP_ITEMS,
+                shopItems,
                 ItemType.POTION_LARGE,
               )}
               renderItem={({ item }) => (

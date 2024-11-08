@@ -5,15 +5,47 @@ import {
   collection,
   arrayUnion,
   QueryDocumentSnapshot,
+  getDocs,
 } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { Item } from '@/types/item';
 import { APIResponse } from '@/types/general';
 import { userConverter } from './user';
+import { GetShopItemsResponse } from '@/types/shop';
 
+// Firestore item converter
 export const itemConverter = {
   toFirestore: (data: Item) => data,
   fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as Item,
+};
+
+/**
+ * Get all shop items.
+ * @returns {Promise<GetShopItemsResponse>} Returns an GetShopItemsResponse object.
+ */
+export const getShopItems: () => Promise<GetShopItemsResponse> = async () => {
+  try {
+    const itemCollection = collection(FIREBASE_DB, 'items').withConverter(
+      itemConverter,
+    );
+
+    const itemSnapshot = await getDocs(itemCollection);
+    const items: Item[] = itemSnapshot.docs.map((doc) => doc.data());
+
+    return {
+      data: items,
+      success: true,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error getting shop items:', error);
+
+    return {
+      data: [],
+      success: false,
+      error: 'Error getting shop items.',
+    };
+  }
 };
 
 // Function to handle the purchase of an item
@@ -23,7 +55,7 @@ export const itemConverter = {
  * @param {string} itemID - The item ID to purchase.
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
-const purchaseItem: (
+export const purchaseItem: (
   userID: string,
   itemID: string,
 ) => Promise<APIResponse> = async (userID, itemID) => {
