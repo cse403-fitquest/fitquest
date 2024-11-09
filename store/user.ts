@@ -1,4 +1,4 @@
-import { User } from '@/types/auth';
+import { User } from '@/types/user';
 import { create } from 'zustand';
 
 interface IUserStore {
