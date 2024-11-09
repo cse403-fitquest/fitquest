@@ -8,7 +8,7 @@ interface ISprite {
   height?: number;
 }
 
-const Sprite: FC<ISprite> = ({ id, width, height }) => {
+export const Sprite: FC<ISprite> = ({ id, width, height }) => {
   let spriteSource = require('@/assets/sprites/t1_dagger.png');
 
   switch (id) {
@@ -60,5 +60,3 @@ const Sprite: FC<ISprite> = ({ id, width, height }) => {
     />
   );
 };
-
-export default Sprite;

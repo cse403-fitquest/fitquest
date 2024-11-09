@@ -10,8 +10,8 @@ import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useSocialStore } from '@/store/social';
 import { BASE_USER } from '@/constants/user';
-import Sprite from '@/components/Sprite';
-import { SpriteID } from '@/constants/sprite';
+import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+import { AnimatedSprite } from '@/components/AnimatedSprite';
 
 // import { fillMissingUserFields } from '@/services/user';
 
@@ -191,8 +191,15 @@ const Profile = () => {
           </TouchableOpacity>
         </View>
 
-        <View className="h-48 items-center justify-center">
-          <Sprite id={SpriteID.T1_DAGGER} width={120} height={120} />
+        <View className="items-center justify-center h-[160px] overflow-hidden mb-10">
+          <View className="absolute bottom-0">
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_01}
+              state={SpriteState.IDLE}
+              width={200}
+              height={200}
+            />
+          </View>
         </View>
 
         {/* Experience Bar */}

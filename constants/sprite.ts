@@ -17,3 +17,27 @@ export enum SpriteID {
   //   MEDIUM_HEALTH_POTION = 'medium_health_potion',
   //   LARGE_HEALTH_POTION = 'large_health_potion',
 }
+
+export enum SpriteState {
+  IDLE = 'idle',
+  WALK = 'walk',
+  ATTACK_1 = 'attack_1',
+  ATTACK_2 = 'attack_2',
+  ATTACK_3 = 'attack_3',
+  DAMAGED = 'damaged',
+  DEATH = 'death',
+}
+
+export enum AnimatedSpriteID {
+  // Heros
+  HERO_01 = 'hero_01',
+
+  // Monsters
+  SLIME_GREEN = 'slime_green',
+  SLIME_BLUE = 'slime_blue',
+  SLIME_RED = 'slime_red',
+
+  // Bosses
+  MINOTAUR_RED = 'minotaur_red',
+  MINOTAUR_BLACK = 'minotaur_black',
+}
