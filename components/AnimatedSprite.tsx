@@ -26,14 +26,77 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
 
   const spriteSource = useMemo(() => {
     switch (id) {
+      // Heroes
       case AnimatedSpriteID.HERO_01:
         return require('@/assets/sprites/animated/heroes/hero_01.png');
+      case AnimatedSpriteID.HERO_02:
+        return require('@/assets/sprites/animated/heroes/hero_02.png');
+      case AnimatedSpriteID.HERO_03:
+        return require('@/assets/sprites/animated/heroes/hero_03.png');
+      case AnimatedSpriteID.HERO_04:
+        return require('@/assets/sprites/animated/heroes/hero_04.png');
+      case AnimatedSpriteID.HERO_05:
+        return require('@/assets/sprites/animated/heroes/hero_05.png');
+      case AnimatedSpriteID.HERO_06:
+        return require('@/assets/sprites/animated/heroes/hero_06.png');
+      case AnimatedSpriteID.HERO_07:
+        return require('@/assets/sprites/animated/heroes/hero_07.png');
+      case AnimatedSpriteID.HERO_08:
+        return require('@/assets/sprites/animated/heroes/hero_08.png');
+      case AnimatedSpriteID.HERO_09:
+        return require('@/assets/sprites/animated/heroes/hero_09.png');
+      case AnimatedSpriteID.HERO_10:
+        return require('@/assets/sprites/animated/heroes/hero_10.png');
+      case AnimatedSpriteID.HERO_11:
+        return require('@/assets/sprites/animated/heroes/hero_11.png');
+      case AnimatedSpriteID.HERO_12:
+        return require('@/assets/sprites/animated/heroes/hero_12.png');
+      case AnimatedSpriteID.HERO_13:
+        return require('@/assets/sprites/animated/heroes/hero_13.png');
+      case AnimatedSpriteID.HERO_14:
+        return require('@/assets/sprites/animated/heroes/hero_14.png');
+      case AnimatedSpriteID.HERO_15:
+        return require('@/assets/sprites/animated/heroes/hero_15.png');
+      case AnimatedSpriteID.HERO_16:
+        return require('@/assets/sprites/animated/heroes/hero_16.png');
+      case AnimatedSpriteID.HERO_17:
+        return require('@/assets/sprites/animated/heroes/hero_17.png');
+      case AnimatedSpriteID.HERO_18:
+        return require('@/assets/sprites/animated/heroes/hero_18.png');
+      case AnimatedSpriteID.HERO_19:
+        return require('@/assets/sprites/animated/heroes/hero_19.png');
+      case AnimatedSpriteID.HERO_20:
+        return require('@/assets/sprites/animated/heroes/hero_20.png');
+      case AnimatedSpriteID.HERO_21:
+        return require('@/assets/sprites/animated/heroes/hero_21.png');
+      case AnimatedSpriteID.HERO_22:
+        return require('@/assets/sprites/animated/heroes/hero_22.png');
+      case AnimatedSpriteID.HERO_23:
+        return require('@/assets/sprites/animated/heroes/hero_23.png');
+      case AnimatedSpriteID.HERO_24:
+        return require('@/assets/sprites/animated/heroes/hero_24.png');
+      case AnimatedSpriteID.HERO_25:
+        return require('@/assets/sprites/animated/heroes/hero_25.png');
+      case AnimatedSpriteID.HERO_26:
+        return require('@/assets/sprites/animated/heroes/hero_26.png');
+      case AnimatedSpriteID.HERO_27:
+        return require('@/assets/sprites/animated/heroes/hero_27.png');
+      case AnimatedSpriteID.HERO_28:
+        return require('@/assets/sprites/animated/heroes/hero_28.png');
+      case AnimatedSpriteID.HERO_29:
+        return require('@/assets/sprites/animated/heroes/hero_29.png');
+      case AnimatedSpriteID.HERO_30:
+        return require('@/assets/sprites/animated/heroes/hero_30.png');
+
+      // Monsters
       case AnimatedSpriteID.SLIME_GREEN:
         return require('@/assets/sprites/animated/monsters/slime_green.png');
       case AnimatedSpriteID.SLIME_BLUE:
         return require('@/assets/sprites/animated/monsters/slime_blue.png');
       case AnimatedSpriteID.SLIME_RED:
         return require('@/assets/sprites/animated/monsters/slime_red.png');
+
+      // Bosses
       case AnimatedSpriteID.MINOTAUR_RED:
         return require('@/assets/sprites/animated/bosses/minotaur_red.png');
       case AnimatedSpriteID.MINOTAUR_BLACK:

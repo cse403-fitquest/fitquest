@@ -194,7 +194,7 @@ const Profile = () => {
         <View className="items-center justify-center h-[160px] overflow-hidden mb-10">
           <View className="absolute bottom-0">
             <AnimatedSprite
-              id={AnimatedSpriteID.HERO_01}
+              id={AnimatedSpriteID.HERO_20}
               state={SpriteState.IDLE}
               width={200}
               height={200}
