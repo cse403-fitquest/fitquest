@@ -128,8 +128,8 @@ This app was built with the following technologies:
 - [x] Implement Sign Up
 - [x] Implement Sign In
 - [ ] Implement Onboarding Wizard
-   - [ ] Survey
-   - [ ] Fitness level calculation
+   - [x] Survey
+   - [x] Fitness level calculation
    - [ ] Allocate attribute points
 - [ ] Implement Profile
    - [ ] Avatar
@@ -146,12 +146,12 @@ This app was built with the following technologies:
    - [ ] Speed turn system
    - [ ] Player and enemy sprite animations
    - [ ] Player turn actions
-- [ ] Implement Shop
-   - [ ] Consumables and inventory items
-   - [ ] Confirmation on item purchase
-- [ ] Implement Social
-   - [ ] Display friends and requests
-   - [ ] Add friend
+- [x] Implement Shop
+   - [x] Consumables and inventory items
+   - [x] Confirmation on item purchase
+- [x] Implement Social
+   - [x] Display friends and requests
+   - [x] Add friend
 
 ## 🖼️ Images
 

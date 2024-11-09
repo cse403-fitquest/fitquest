@@ -1,4 +1,4 @@
-import { User } from '@/types/auth';
+import { User } from '@/types/user';
 
 export const BASE_USER: User = {
   id: '',
@@ -12,15 +12,15 @@ export const BASE_USER: User = {
   spriteID: '',
   attributes: { power: 5, speed: 5, health: 5 },
   exp: 0,
-  gold: 0,
+  gold: 100,
   currentQuest: '',
+  equippedItems: [],
+  equipments: [],
+  consumables: [],
   privacySettings: {
     isLastWorkoutPublic: true,
     isCurrentQuestPublic: true,
   },
   attributePoints: 0,
-  friends: [],
-  sentFriendRequests: [],
-  incomingFriendRequests: [],
   createdAt: new Date(),
 };

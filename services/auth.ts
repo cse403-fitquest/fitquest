@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth';
 
 import { createUser } from './user';
+import { createUserFriends } from './social';
 
 export enum FirebaseAuthErrorCodes {
   INVALID_CREDENTIAL = 'auth/invalid-credential',
@@ -117,6 +118,19 @@ export const signUp: (
         data: null,
         success: false,
         error: createUserResponse.error,
+      };
+    }
+
+    // Create user friends document for the user
+    const createUserFriendsResponse = await createUserFriends(
+      userCredential.user.uid,
+    );
+
+    if (!createUserFriendsResponse.success) {
+      return {
+        data: null,
+        success: false,
+        error: createUserFriendsResponse.error,
       };
     }
 

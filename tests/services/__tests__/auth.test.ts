@@ -14,6 +14,7 @@ import {
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
 import { createUser } from '@/services/user';
+import { createUserFriends } from '@/services/social';
 
 // Mock FIREBASE_AUTH
 jest.mock('@/firebaseConfig', () => ({
@@ -37,6 +38,10 @@ jest.mock('@/services/user', () => ({
   createUser: jest.fn(),
 }));
 
+jest.mock('@/services/social', () => ({
+  createUserFriends: jest.fn(),
+}));
+
 // Mock AsyncStorage methods
 jest.mock('@react-native-async-storage/async-storage', () => ({
   setItem: jest.fn(() => Promise.resolve(true)),
@@ -51,6 +56,7 @@ describe('Auth Service Functions', () => {
   const mockCreateUserWithEmailAndPassword =
     createUserWithEmailAndPassword as jest.Mock;
   const mockCreateUser = createUser as jest.Mock;
+  const mockCreateUserFriends = createUserFriends as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -145,6 +151,11 @@ describe('Auth Service Functions', () => {
         },
         error: null,
       });
+      mockCreateUserFriends.mockResolvedValue({
+        success: true,
+        data: null,
+        error: null,
+      });
 
       const response = await signUp(username, email, password);
 
@@ -154,6 +165,7 @@ describe('Auth Service Functions', () => {
         password,
       );
       expect(createUser).toHaveBeenCalledWith('user123', username, email);
+      expect(createUserFriends).toHaveBeenCalledWith('user123');
       expect(response).toEqual({
         success: true,
         data: null,
@@ -177,6 +189,36 @@ describe('Auth Service Functions', () => {
         success: false,
         data: null,
         error: 'Failed to create user document.',
+      });
+    });
+
+    it('should handle failure in createUserFriends', async () => {
+      mockCreateUserWithEmailAndPassword.mockResolvedValue({
+        user: { uid: 'user123' },
+      });
+      mockCreateUser.mockResolvedValue({
+        success: true,
+        data: {
+          user: {
+            id: 'user123',
+            profileInfo: { username, email },
+            createdAt: new Date(),
+          },
+        },
+        error: null,
+      });
+      mockCreateUserFriends.mockResolvedValue({
+        success: false,
+        data: null,
+        error: 'Failed to create user friends.',
+      });
+
+      const response = await signUp(username, email, password);
+
+      expect(response).toEqual({
+        success: false,
+        data: null,
+        error: 'Failed to create user friends.',
       });
     });
 

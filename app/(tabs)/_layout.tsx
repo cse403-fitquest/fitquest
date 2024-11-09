@@ -1,6 +1,6 @@
 import { Href, Redirect, Tabs } from 'expo-router';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/colors';
+import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
