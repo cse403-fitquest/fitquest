@@ -1,11 +1,4 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
@@ -17,6 +10,9 @@ import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useSocialStore } from '@/store/social';
 import { BASE_USER } from '@/constants/user';
+import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+import { AnimatedSprite } from '@/components/AnimatedSprite';
+
 // import { fillMissingUserFields } from '@/services/user';
 
 const MOCK_EQUIPPED_ITEMS: Item[] = [
@@ -195,11 +191,15 @@ const Profile = () => {
           </TouchableOpacity>
         </View>
 
-        <View className="h-48 items-center justify-center">
-          <Image
-            source={require('../../assets/images/react-logo.png')} // TODO: Replace with actual sprite, just used a placeholder image from assets for now
-            className="w-32 h-32"
-          />
+        <View className="items-center justify-center h-[160px] overflow-hidden mb-10">
+          <View className="absolute bottom-0">
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_20}
+              state={SpriteState.IDLE}
+              width={200}
+              height={200}
+            />
+          </View>
         </View>
 
         {/* Experience Bar */}
