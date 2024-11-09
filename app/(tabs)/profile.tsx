@@ -1,11 +1,4 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
@@ -17,6 +10,9 @@ import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useSocialStore } from '@/store/social';
 import { BASE_USER } from '@/constants/user';
+import Sprite from '@/components/Sprite';
+import { SpriteID } from '@/constants/sprite';
+
 // import { fillMissingUserFields } from '@/services/user';
 
 const MOCK_EQUIPPED_ITEMS: Item[] = [
@@ -196,10 +192,7 @@ const Profile = () => {
         </View>
 
         <View className="h-48 items-center justify-center">
-          <Image
-            source={require('../../assets/images/react-logo.png')} // TODO: Replace with actual sprite, just used a placeholder image from assets for now
-            className="w-32 h-32"
-          />
+          <Sprite id={SpriteID.T1_DAGGER} width={120} height={120} />
         </View>
 
         {/* Experience Bar */}
