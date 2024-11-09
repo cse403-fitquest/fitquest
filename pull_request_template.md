@@ -16,5 +16,6 @@ Brief description of your changes
 - [ ] Quest
 - [ ] Shop
 - [ ] Social
+- [ ] Assets
 - [ ] Project Structure
 - [ ] Other. If so, specify:
