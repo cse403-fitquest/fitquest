@@ -1,5 +1,6 @@
 import { BASE_USER } from '@/constants/user';
 import { FIREBASE_DB } from '@/firebaseConfig';
+import { APIResponse } from '@/types/general';
 import { User } from '@/types/user';
 import { CreateUserResponse, GetUserResponse } from '@/types/user';
 import { FirebaseError } from 'firebase/app';
@@ -7,13 +8,85 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   QueryDocumentSnapshot,
   setDoc,
+  writeBatch,
 } from 'firebase/firestore';
 
 export const userConverter = {
   toFirestore: (data: User) => data,
   fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as User,
+};
+
+/**
+ * Fill missing user fields in Firestore based on changes to the User type
+ */
+export const fillMissingUserFields: () => Promise<APIResponse> = async () => {
+  try {
+    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
+      userConverter,
+    );
+
+    // Update each user document in Firestore
+    const usersSnapshot = await getDocs(userCollection);
+
+    const batch = writeBatch(FIREBASE_DB);
+    usersSnapshot.docs.forEach(async (userDoc) => {
+      const user = userDoc.data();
+
+      // Add missing fields to user document
+      const updatedUser = {
+        ...BASE_USER,
+        ...user,
+        profileInfo: {
+          ...BASE_USER.profileInfo,
+          ...user.profileInfo,
+        },
+        privacySettings: {
+          ...BASE_USER.privacySettings,
+          ...user.privacySettings,
+        },
+        createdAt: user.createdAt || new Date(),
+      };
+
+      const userDocRef = doc(userCollection, user.id);
+
+      batch.set(userDocRef, updatedUser);
+    });
+
+    await batch.commit();
+
+    console.log('User fields updated successfully.');
+
+    return {
+      data: null,
+      success: true,
+      error: null,
+    };
+  } catch (error: unknown) {
+    if (error instanceof FirebaseError) {
+      console.error(
+        'Error filling missing user fields: ',
+        error.code,
+        error.message,
+      );
+
+      return {
+        data: null,
+        success: false,
+        error: 'Error filling missing user fields. Please try again.',
+      };
+    } else {
+      console.error('Error filling missing user fields: ', error);
+
+      return {
+        data: null,
+        success: false,
+        error: 'Error filling missing user fields. Please try again.',
+      };
+    }
+  }
 };
 
 /**

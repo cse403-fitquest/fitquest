@@ -146,9 +146,9 @@ This app was built with the following technologies:
    - [ ] Speed turn system
    - [ ] Player and enemy sprite animations
    - [ ] Player turn actions
-- [ ] Implement Shop
-   - [ ] Consumables and inventory items
-   - [ ] Confirmation on item purchase
+- [x] Implement Shop
+   - [x] Consumables and inventory items
+   - [x] Confirmation on item purchase
 - [x] Implement Social
    - [x] Display friends and requests
    - [x] Add friend

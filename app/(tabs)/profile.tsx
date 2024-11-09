@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import FQModal from '@/components/FQModal';
 import { User } from '@/types/user';
 import clsx from 'clsx';
@@ -16,6 +16,8 @@ import { Item, ItemType } from '@/types/item';
 import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useSocialStore } from '@/store/social';
+import { BASE_USER } from '@/constants/user';
+// import { fillMissingUserFields } from '@/services/user';
 
 const MOCK_EQUIPPED_ITEMS: Item[] = [
   {
@@ -82,6 +84,7 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
 
 // Mock user data
 const MOCK_USER: User = {
+  ...BASE_USER,
   id: 'mock-user-1',
   profileInfo: {
     email: 'cooldude1@email.com',
@@ -147,6 +150,11 @@ const Profile = () => {
   const [isLastWorkoutPublic, setIsLastWorkoutPublic] = useState(
     MOCK_USER.privacySettings.isLastWorkoutPublic,
   );
+
+  // Helper function to fill missing user fields
+  useEffect(() => {
+    // void fillMissingUserFields();
+  }, []);
 
   const { user } = useUserStore();
   const { resetSocialStore } = useSocialStore();
