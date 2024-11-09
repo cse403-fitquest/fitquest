@@ -1,4 +1,5 @@
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+import { isBossSprite, isHeroSprite, isMonsterSprite } from '@/utils/sprite';
 import { FC, useEffect, useMemo, useRef } from 'react';
 import { Animated, View } from 'react-native';
 import { Easing } from 'react-native-reanimated';
@@ -19,8 +20,32 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
 }) => {
   const frameWidth = width ?? 96; // Width of each frame
   const frameHeight = height ?? 96; // Height of each frame
-  const totalFrames = 6; // Total number of frames (varies for each entity)
   const animationDuration = 1000; // Total animation duration in ms
+
+  const totalFramesHorizontal = useMemo(() => {
+    if (isHeroSprite(id)) {
+      return 6;
+    } else if (isMonsterSprite(id)) {
+      return 6;
+    } else if (isBossSprite(id)) {
+      return 6;
+    } else {
+      // Handle non uniform sprite sheets
+      return 6;
+    }
+  }, [id]);
+  const totalFramesVertical = useMemo(() => {
+    if (isHeroSprite(id)) {
+      return 12;
+    } else if (isMonsterSprite(id)) {
+      return 5;
+    } else if (isBossSprite(id)) {
+      return 6;
+    } else {
+      // Handle non uniform sprite sheets
+      return 6;
+    }
+  }, [id]);
 
   const animatedValue = useRef(new Animated.Value(0)).current;
 
@@ -95,12 +120,35 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
         return require('@/assets/sprites/animated/monsters/slime_blue.png');
       case AnimatedSpriteID.SLIME_RED:
         return require('@/assets/sprites/animated/monsters/slime_red.png');
+      case AnimatedSpriteID.FIRE_SKULL_RED:
+        return require('@/assets/sprites/animated/monsters/fire_skull_red.png');
+      case AnimatedSpriteID.FIRE_SKULL_BLUE:
+        return require('@/assets/sprites/animated/monsters/fire_skull_blue.png');
+      case AnimatedSpriteID.FIRE_SKULL_GREEN:
+        return require('@/assets/sprites/animated/monsters/fire_skull_green.png');
+      case AnimatedSpriteID.FIRE_SKULL_CRMISON:
+        return require('@/assets/sprites/animated/monsters/fire_skull_crimson.png');
+      case AnimatedSpriteID.CAT_BROWN:
+        return require('@/assets/sprites/animated/monsters/cat_brown.png');
+      case AnimatedSpriteID.CAT_GREEN:
+        return require('@/assets/sprites/animated/monsters/cat_green.png');
+      case AnimatedSpriteID.CAT_MOSS:
+        return require('@/assets/sprites/animated/monsters/cat_moss.png');
+      case AnimatedSpriteID.CAT_RED:
+        return require('@/assets/sprites/animated/monsters/cat_red.png');
 
       // Bosses
       case AnimatedSpriteID.MINOTAUR_RED:
         return require('@/assets/sprites/animated/bosses/minotaur_red.png');
       case AnimatedSpriteID.MINOTAUR_BLACK:
         return require('@/assets/sprites/animated/bosses/minotaur_black.png');
+      case AnimatedSpriteID.CHOMPBUG_GREEN:
+        return require('@/assets/sprites/animated/bosses/chompbug_green.png');
+      case AnimatedSpriteID.CHOMPBUG_RED:
+        return require('@/assets/sprites/animated/bosses/chompbug_red.png');
+      case AnimatedSpriteID.CHOMPBUG_BLACK:
+        return require('@/assets/sprites/animated/bosses/chompbug_black.png');
+
       default:
         return require('@/assets/sprites/animated/heroes/hero_01.png');
     }
@@ -109,13 +157,13 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
   useEffect(() => {
     Animated.loop(
       Animated.timing(animatedValue, {
-        toValue: -frameWidth * (totalFrames - 1), // Move to the last frame
+        toValue: -frameWidth * (totalFramesHorizontal - 1), // Move to the last frame
         duration: animationDuration,
-        easing: Easing.steps(totalFrames - 1), // Move up to the last frame
+        easing: Easing.steps(totalFramesHorizontal - 1), // Move up to the last frame
         useNativeDriver: true,
       }),
     ).start();
-  }, [animatedValue]);
+  }, [animatedValue, frameWidth, totalFramesHorizontal, animationDuration]);
 
   return (
     <View
@@ -131,8 +179,8 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
           {
             top: 0,
             left: 0,
-            width: frameWidth * totalFrames, // Total width of the sprite sheet
-            height: frameHeight * 12,
+            width: frameWidth * totalFramesHorizontal, // Total width of the sprite sheet
+            height: frameHeight * totalFramesVertical, // Total height of the sprite sheet
             transform: [{ translateX: animatedValue }],
           },
         ]}
