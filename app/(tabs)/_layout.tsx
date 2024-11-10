@@ -4,13 +4,50 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
+import { useEffect } from 'react';
+import { getShopItems, setShopItemsInDB } from '@/services/shop';
+import { useItemStore } from '@/store/item';
+import { Alert } from 'react-native';
+import { MOCK_SHOP_ITEMS } from '@/constants/shop';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   const { user } = useUserStore();
+  const { setItems } = useItemStore();
 
   if (!user) return <Redirect href={'/sign-in' as Href} />;
+
+  // Upon being logged in, fetch the app data
+  // Items, quests, etc.
+  useEffect(() => {
+    // Fetch items
+    const getShopItemsData = async () => {
+      const getShopItemsResponse = await getShopItems();
+
+      if (getShopItemsResponse.success) {
+        setItems(getShopItemsResponse.data);
+      } else {
+        if (getShopItemsResponse.error)
+          Alert.alert('Error', getShopItemsResponse.error);
+      }
+    };
+
+    // Set shop items in DB (for testing)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _setShopItemsData = async () => {
+      const setShopItemsResponse = await setShopItemsInDB(MOCK_SHOP_ITEMS);
+
+      if (!setShopItemsResponse.success) {
+        if (setShopItemsResponse.error)
+          Alert.alert('Error', setShopItemsResponse.error);
+      } else {
+        getShopItemsData();
+      }
+    };
+
+    getShopItemsData();
+  }, []);
 
   return (
     <>
