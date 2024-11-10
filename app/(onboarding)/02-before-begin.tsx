@@ -1,18 +1,8 @@
 import { Text, TouchableOpacity, View } from 'react-native';
-import React from 'react';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import FQButton from '@/components/FQButton';
 import { router } from 'expo-router';
-// const { frequency, setFrequency } = useOnboardingStore();
-// import { useOnboardingStore } from '../store/onboarding';
 
-/* Onboarding Wizard
- * This component will be used to guide the user through a series of questions to set up their profile.
- * The user will be asked to select from a series of multiple choice options.
- * Each response contributes to a final score which determines the user's starting stats.
- */
 const BeforeBegin = () => {
   return (
     <SafeAreaView className="relative w-full h-full px-12 py-8 justify-center items-center">

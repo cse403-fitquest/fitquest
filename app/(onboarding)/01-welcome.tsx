@@ -1,13 +1,10 @@
 import { Text, View } from 'react-native';
-import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppTitle from '@/components/AppTitle';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import FQButton from '@/components/FQButton';
 import { router } from 'expo-router';
-// const { frequency, setFrequency } = useOnboardingStore();
-// import { useOnboardingStore } from '../store/onboarding';
 
 /*
  * Onboarding Wizard

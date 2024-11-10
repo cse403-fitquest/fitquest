@@ -2,17 +2,9 @@ import { Text, View } from 'react-native';
 import { RadioGroup } from 'react-native-radio-buttons-group';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboardingStore } from '@/store/onboarding';
-
 import FQButton from '@/components/FQButton';
 import { router } from 'expo-router';
-// const { frequency, setFrequency } = useOnboardingStore();
-// import { useOnboardingStore } from '../store/onboarding';
 
-/* Onboarding Wizard
- * This component will be used to guide the user through a series of questions to set up their profile.
- * The user will be asked to select from a series of multiple choice options.
- * Each response contributes to a final score which determines the user's starting stats.
- */
 const OnboardingFrequency = () => {
   const { frequency, setFrequency } = useOnboardingStore();
 
@@ -38,6 +30,9 @@ const OnboardingFrequency = () => {
             labelStyle={{
               fontSize: 18,
               marginBottom: 5,
+            }}
+            containerStyle={{
+              alignItems: 'flex-start',
             }}
             selectedId={frequency.toString()}
             radioButtons={[

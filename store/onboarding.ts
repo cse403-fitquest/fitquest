@@ -1,47 +1,33 @@
-import { ONBOARDING_STEPS } from '@/constants/onboarding';
-import { OnboardingStep } from '@/types/onboarding';
 import { create } from 'zustand';
 
 interface IOnboardingStateStore {
-  step: number;
+  frequency: 1 | 2 | 3 | 4;
 
-  steps: OnboardingStep[];
+  length: 1 | 2 | 3 | 4;
 
-  setStep: (step: number) => void;
+  intensity: 1 | 2 | 3 | 4;
 
-  frequency: 0 | 1 | 2 | 3 | 4;
+  experience: 1 | 2 | 3 | 4;
 
-  length: 0 | 1 | 2 | 3 | 4;
+  setFrequency: (frequency: 1 | 2 | 3 | 4) => void;
 
-  intensity: 0 | 1 | 2 | 3 | 4;
+  setLength: (length: 1 | 2 | 3 | 4) => void;
 
-  experience: 0 | 1 | 2 | 3 | 4;
+  setIntensity: (intensity: 1 | 2 | 3 | 4) => void;
 
-  setFrequency: (frequency: 0 | 1 | 2 | 3 | 4) => void;
-
-  setLength: (length: 0 | 1 | 2 | 3 | 4) => void;
-
-  setIntensity: (intensity: 0 | 1 | 2 | 3 | 4) => void;
-
-  setExperience: (experience: 0 | 1 | 2 | 3 | 4) => void;
+  setExperience: (experience: 1 | 2 | 3 | 4) => void;
 
   resetStore: () => void;
 }
 
 export const useOnboardingStore = create<IOnboardingStateStore>((set) => ({
-  step: 0,
+  frequency: 1,
 
-  steps: ONBOARDING_STEPS,
+  length: 1,
 
-  setStep: (step) => set({ step }),
+  intensity: 1,
 
-  frequency: 0,
-
-  length: 0,
-
-  intensity: 0,
-
-  experience: 0,
+  experience: 1,
 
   setFrequency: (frequency) => set({ frequency }),
 
@@ -53,12 +39,12 @@ export const useOnboardingStore = create<IOnboardingStateStore>((set) => ({
 
   resetStore: () =>
     set({
-      frequency: 0,
+      frequency: 1,
 
-      length: 0,
+      length: 1,
 
-      intensity: 0,
+      intensity: 1,
 
-      experience: 0,
+      experience: 1,
     }),
 }));
