@@ -11,8 +11,7 @@ const initialPlayer = {
 
 const questThemes = {
   '1': {
-    // Big Chungus Quest
-    backgroundColor: '#FFE4E1', // Misty Rose
+    backgroundColor: '#FFE4E1',
     bossBackground: '#FF6B6B',
     normalMonsters: [
       { name: 'Baby Chungus', health: 80, attack: 8, defense: 3 },
@@ -22,8 +21,7 @@ const questThemes = {
     boss: { name: 'Big Chungus', health: 200, attack: 15, defense: 8 },
   },
   '2': {
-    // Jimmy Two-Toes Quest
-    backgroundColor: '#E6E6FA', // Lavender
+    backgroundColor: '#E6E6FA',
     bossBackground: '#9370DB',
     normalMonsters: [
       { name: 'One-Toe Bandit', health: 70, attack: 9, defense: 2 },
@@ -33,8 +31,7 @@ const questThemes = {
     boss: { name: 'Jimmy Two-Toes', health: 180, attack: 14, defense: 7 },
   },
   '3': {
-    // Swamp Hydra Quest
-    backgroundColor: '#98FF98', // Mint Green
+    backgroundColor: '#98FF98',
     bossBackground: '#2E8B57',
     normalMonsters: [
       { name: 'Swamp Crawler', health: 75, attack: 8, defense: 3 },
@@ -44,8 +41,7 @@ const questThemes = {
     boss: { name: 'The Swamp Hydra', health: 220, attack: 16, defense: 9 },
   },
   '4': {
-    // Lightning Ogre Quest
-    backgroundColor: '#FFFACD', // Lemon Chiffon
+    backgroundColor: '#FFFACD',
     bossBackground: '#FFD700',
     normalMonsters: [
       { name: 'Static Imp', health: 70, attack: 9, defense: 2 },
@@ -106,13 +102,10 @@ const Combat = () => {
   const [modalType, setModalType] = useState<'victory' | 'defeat'>('victory');
   const [expGained, setExpGained] = useState(0);
 
-  // Add state to track if this is the final boss fight
   const [isBossFight] = useState(() => {
-    // Check if this is the final fight of the quest
     return isBoss === 'true';
   });
 
-  // Reset function
   const resetCombatState = () => {
     setStrongAttackCooldown(0);
     setPotions({
@@ -124,12 +117,10 @@ const Combat = () => {
     setCombatLog([]);
   };
 
-  // Add this useEffect to reset state when component mounts (new fight starts)
   useEffect(() => {
     resetCombatState();
   }, []);
 
-  // Also add reset to the continue button press handler
   const handleContinue = () => {
     if (modalType === 'victory') {
       setPlayer((prev) => ({
@@ -163,26 +154,22 @@ const Combat = () => {
 
     setIsAnimating(true);
 
-    // Player attack
     const newMonsterHealth = Math.max(0, monster.health - damage);
     setMonster((prev) => ({ ...prev, health: newMonsterHealth }));
     setCombatLog((prev) => [...prev, `You dealt ${damage} damage!`]);
 
     if (isStrong) {
-      setStrongAttackCooldown(2); // Set cooldown
+      setStrongAttackCooldown(2);
     }
 
-    // Check if monster defeated
     if (newMonsterHealth <= 0) {
       setIsAnimating(false);
       handleVictory();
       return;
     }
 
-    // Wait before monster's turn
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Monster attack
     const monsterDamage = currentQuest.boss.attack;
     setPlayer((prev) => ({
       ...prev,
@@ -193,14 +180,12 @@ const Combat = () => {
       `${monster.name} dealt ${monsterDamage} damage!`,
     ]);
 
-    // Check if player defeated
     if (player.health - monsterDamage <= 0) {
       setIsAnimating(false);
       handleDefeat();
       return;
     }
 
-    // Reduce cooldown
     if (strongAttackCooldown > 0) {
       setStrongAttackCooldown((prev) => prev - 1);
     }
@@ -222,10 +207,8 @@ const Combat = () => {
     setPotions((prev) => ({ ...prev, [type]: prev[type] - 1 }));
     setCombatLog((prev) => [...prev, `You healed for ${healAmount} HP!`]);
 
-    // Wait before monster's turn
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Monster's turn after using potion
     const monsterDamage = currentQuest.boss.attack;
     setPlayer((prev) => ({
       ...prev,
@@ -242,27 +225,6 @@ const Combat = () => {
 
     setIsAnimating(false);
   };
-
-  // const handleMonsterTurn = async () => {
-  //   setIsAnimating(true);
-  //   await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  //   const monsterDamage = currentQuest.boss.attack;
-  //   setPlayer((prev) => ({
-  //     ...prev,
-  //     health: Math.max(0, prev.health - monsterDamage),
-  //   }));
-  //   setCombatLog((prev) => [
-  //     ...prev,
-  //     `${monster.name} dealt ${monsterDamage} damage!`,
-  //   ]);
-
-  //   if (strongAttackCooldown > 0) {
-  //     setStrongAttackCooldown((prev) => prev - 1);
-  //   }
-
-  //   setIsAnimating(false);
-  // };
 
   const handleVictory = () => {
     const exp = Math.floor(Math.random() * 20) + 30;
@@ -284,9 +246,7 @@ const Combat = () => {
 
       <Text className="text-2xl font-bold text-center mb-6">{questName}</Text>
 
-      {/* Combat Area */}
       <View className="flex-1">
-        {/* Monster Stats */}
         <View className="items-center mb-8">
           <View
             className={`w-20 h-20 rounded-full ${isBoss === 'true' ? 'bg-red-500' : 'bg-green-500'} mb-2`}
@@ -305,7 +265,6 @@ const Combat = () => {
           </Text>
         </View>
 
-        {/* Player Stats */}
         <View className="items-center">
           <View className="w-20 h-20 rounded-full bg-blue-500 mb-2" />
           <Text className="text-lg font-bold mb-1">{player.name}</Text>
@@ -323,7 +282,6 @@ const Combat = () => {
         </View>
       </View>
 
-      {/* Combat Log */}
       <View className="mb-4 p-2 bg-white/80 rounded">
         {combatLog.slice(-3).map((log, index) => (
           <Text key={index} className="text-sm mb-1">
@@ -332,7 +290,6 @@ const Combat = () => {
         ))}
       </View>
 
-      {/* Action Buttons */}
       <View className="flex-row">
         <View className="flex-1 mr-2">
           <Text className="text-lg font-bold mb-2">MOVES</Text>
