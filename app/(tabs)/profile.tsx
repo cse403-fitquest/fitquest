@@ -11,15 +11,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import FQModal from '@/components/FQModal';
 //import { User } from '@/types/user';
-import clsx from 'clsx';
 import { Item, ItemType } from '@/types/item';
 import { updateUserProfile } from '@/services/user';
 import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useSocialStore } from '@/store/social';
 //import { BASE_USER } from '@/constants/user';
-import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
+import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
+import clsx from 'clsx';
 
 // import { fillMissingUserFields } from '@/services/user';
 
@@ -33,7 +34,7 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 5,
     speed: -1,
     health: 0,
-    spriteID: 'sword-sprite',
+    spriteID: SpriteID.T1_SWORD,
     createdAt: new Date(Date.now()),
   },
   {
@@ -45,7 +46,7 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 0,
     speed: -2,
     health: 5,
-    spriteID: 'shield-sprite',
+    spriteID: SpriteID.T1_SHIELD,
     createdAt: new Date(Date.now()),
   },
   {
@@ -57,19 +58,19 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 0,
     speed: 0,
     health: 3,
-    spriteID: 'helmet-sprite',
+    spriteID: SpriteID.T1_HELM,
     createdAt: new Date(Date.now()),
   },
   {
     id: '4',
-    name: 'Boots',
+    name: 'Chestplate',
     type: ItemType.ACCESSORY,
     cost: 60,
-    description: 'Speedy boots',
+    description: 'Heavy armor',
     power: 0,
     speed: 2,
     health: 0,
-    spriteID: 'boots-sprite',
+    spriteID: SpriteID.T1_HEAVY_ARMOR,
     createdAt: new Date(Date.now()),
   },
   {
@@ -81,7 +82,7 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 0,
     speed: 0,
     health: 5,
-    spriteID: 'potion-sprite',
+    spriteID: SpriteID.HEALTH_POTION_SMALL,
     createdAt: new Date(Date.now()),
   },
 ];
@@ -125,7 +126,7 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
       <TouchableOpacity
         onPress={onPress}
         className={clsx(
-          'rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2',
+          'relative rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2 justify-center items-center',
           {
             'bg-red-800': item.type === ItemType.WEAPON,
             'bg-blue': item.type === ItemType.ARMOR,
@@ -137,7 +138,9 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
             ].includes(item.type),
           },
         )}
-      ></TouchableOpacity>
+      >
+        <Sprite id={item.spriteID} width={70} height={70} />
+      </TouchableOpacity>
       <Text className="text-lg text-gold mb-5 font-semibold">
         {item.cost} Gold
       </Text>
