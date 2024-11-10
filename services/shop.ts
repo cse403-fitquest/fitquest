@@ -156,12 +156,12 @@ export const purchaseItem: (
     if (itemInvType === 'equipments') {
       // Add item document ID to user's inventory
       await updateDoc(userRef, {
-        equipments: arrayUnion(itemData), // Ensure item is unique in equipments inventory
+        equipments: arrayUnion(itemData.id), // Ensure item is unique in equipments inventory
         gold: newBalance,
       });
     } else {
       // Add item to user's inventory
-      const newUserConsumables = [...userData.consumables, itemData];
+      const newUserConsumables = [...userData.consumables, itemData.id];
 
       // Add item document ID to user's inventory
       await updateDoc(userRef, {

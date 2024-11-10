@@ -26,7 +26,7 @@ export const isItemConsumable: (item: Item) => boolean = (item) => {
   );
 };
 
-export const getHealthPotionsCountFromItems: (
+export const getUserHealthPotionsCountFromItems: (
   items: Item[],
 ) => [number, number, number] = (items) => {
   const smallHealthPotions = filterItemsByType(items, ItemType.POTION_SMALL);

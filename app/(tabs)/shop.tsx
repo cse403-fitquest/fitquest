@@ -6,68 +6,64 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Item, ItemType } from '@/types/item';
 import {
   filterItemsByTypeAndSortByCost,
-  getHealthPotionsCountFromItems,
+  getUserHealthPotionsCountFromItems,
   isItemConsumable,
   itemTypeToString,
 } from '@/utils/item';
 import clsx from 'clsx';
 import FQModal from '@/components/FQModal';
 import { useUserStore } from '@/store/user';
-import purchaseItem, { getShopItems, setShopItemsInDB } from '@/services/shop';
-import { MOCK_SHOP_ITEMS } from '@/constants/shop';
+import purchaseItem from '@/services/shop';
+import { useItemStore } from '@/store/item';
+import { BASE_ITEM } from '@/constants/item';
 
 const Shop = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
-  const [shopItems, setShopItems] = useState<Item[]>([]);
+  const { items } = useItemStore();
 
   const { user, setUser } = useUserStore();
 
-  const userEquipments = user?.equipments || [];
-  const userConsumables = user?.consumables || [];
+  const userEquipmentsIDs = user?.equipments || [];
+  const userConsumablesIDs = user?.consumables || [];
+
+  // Turn user equipments ids into actual items
+  const userEquipments = useMemo(() => {
+    return userEquipmentsIDs.map((id) => {
+      const equipment = items.find((item) => item.id === id);
+      if (!equipment) {
+        console.error('User equipment not found:', id);
+        return { ...BASE_ITEM, id: id, name: 'Unknown Equipment' };
+      }
+      return equipment;
+    });
+  }, [user, items]);
+
+  // Turn user consumables ids into actual items
+  const userConsumables = useMemo(() => {
+    return userConsumablesIDs.map((id) => {
+      const consumable = items.find((item) => item.id === id);
+      if (!consumable) {
+        console.error('User consumable not found:', id);
+        return { ...BASE_ITEM, id: id, name: 'Unknown Consumable' };
+      }
+      return consumable;
+    });
+  }, [user, items]);
 
   const [
     userSmallHealthPotCount,
     userMediumHealthPotCount,
     userLargeHealthPotCount,
   ] = useMemo(() => {
-    return getHealthPotionsCountFromItems(userConsumables);
+    return getUserHealthPotionsCountFromItems(userConsumables);
   }, [user, userConsumables]);
-
-  useEffect(() => {
-    const getShopItemsData = async () => {
-      const getShopItemsResponse = await getShopItems();
-
-      if (getShopItemsResponse.success) {
-        setShopItems(getShopItemsResponse.data);
-      } else {
-        if (getShopItemsResponse.error)
-          Alert.alert('Error', getShopItemsResponse.error);
-      }
-    };
-
-    // Set shop items in DB (for testing)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _setShopItemsData = async () => {
-      const setShopItemsResponse = await setShopItemsInDB(MOCK_SHOP_ITEMS);
-
-      if (!setShopItemsResponse.success) {
-        if (setShopItemsResponse.error)
-          Alert.alert('Error', setShopItemsResponse.error);
-      } else {
-        getShopItemsData();
-      }
-    };
-
-    // void _setShopItemsData();
-    void getShopItemsData();
-  }, []);
 
   const handlePurchaseItem = async () => {
     if (!user || !selectedItem) return;
@@ -90,7 +86,7 @@ const Shop = () => {
       setUser({
         ...user,
         gold: user.gold - selectedItem.cost,
-        consumables: [...userConsumables, selectedItem],
+        consumables: [...userConsumablesIDs, selectedItem.id],
       });
 
       setModalVisible(false);
@@ -118,7 +114,7 @@ const Shop = () => {
       setUser({
         ...user,
         gold: user.gold - selectedItem.cost,
-        equipments: [...userEquipments, selectedItem],
+        equipments: [...userEquipmentsIDs, selectedItem.id],
       });
 
       setModalVisible(false);
@@ -264,7 +260,7 @@ const Shop = () => {
             WEAPONS
           </Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(shopItems, ItemType.WEAPON)}
+            data={filterItemsByTypeAndSortByCost(items, ItemType.WEAPON)}
             renderItem={({ item }) => (
               <ItemCard
                 item={item}
@@ -285,7 +281,7 @@ const Shop = () => {
         <View className="w-full  mb-5">
           <Text className="text-xl text-gray-black font-bold mb-2">ARMORS</Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(shopItems, ItemType.ARMOR)}
+            data={filterItemsByTypeAndSortByCost(items, ItemType.ARMOR)}
             renderItem={({ item }) => (
               <ItemCard
                 item={item}
@@ -307,7 +303,7 @@ const Shop = () => {
             ACCESSORIES
           </Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(shopItems, ItemType.ACCESSORY)}
+            data={filterItemsByTypeAndSortByCost(items, ItemType.ACCESSORY)}
             renderItem={({ item }) => (
               <ItemCard
                 item={item}
@@ -331,7 +327,7 @@ const Shop = () => {
           <View className="flex-row gap-3">
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                shopItems,
+                items,
                 ItemType.POTION_SMALL,
               )}
               renderItem={({ item }) => (
@@ -349,7 +345,7 @@ const Shop = () => {
             />
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                shopItems,
+                items,
                 ItemType.POTION_MEDIUM,
               )}
               renderItem={({ item }) => (
@@ -367,7 +363,7 @@ const Shop = () => {
             />
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                shopItems,
+                items,
                 ItemType.POTION_LARGE,
               )}
               renderItem={({ item }) => (

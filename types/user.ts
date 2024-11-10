@@ -1,5 +1,4 @@
 import { APIResponse } from './general';
-import { Item } from './item';
 
 export type CreateUserResponse = APIResponse & {};
 
@@ -24,9 +23,9 @@ export type User = {
   gold: number;
   attributePoints: number;
   currentQuest: string;
-  equippedItems: Item[]; // Array of equipped equipment
-  equipments: Item[]; // Array of all user's equipment
-  consumables: Item[]; // Array of all user's consumables
+  equippedItems: string[]; // Array of equipped equipment IDs
+  equipments: string[]; // Array of all user's equipment IDs
+  consumables: string[]; // Array of all user's consumables IDs
   privacySettings: {
     isLastWorkoutPublic: boolean;
     isCurrentQuestPublic: boolean;
