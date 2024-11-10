@@ -17,7 +17,7 @@ import { router } from 'expo-router';
  */
 const Welcome = () => {
   return (
-    <SafeAreaView className="relative w-full h-full px-10 py-8 justify-center items-center">
+    <SafeAreaView className="relative w-full h-full px-12 py-8 justify-center items-center">
       <View className="w-full">
         <Text className="text-2xl font-bold">Welcome to</Text>
         <AppTitle />
