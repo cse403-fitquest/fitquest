@@ -1,5 +1,6 @@
-export type OnboardingStep = {
-  step: number;
-  back: boolean;
-  next: boolean;
-};
+export enum FitnessLevel {
+  BEGINNER = 'BEGINNER',
+  NOVICE = 'NOVICE',
+  INTERMEDIATE = 'INTERMEDIATE',
+  ADVANCED = 'ADVANCED',
+}

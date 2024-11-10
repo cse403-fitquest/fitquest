@@ -22,9 +22,10 @@ const Welcome = () => {
           <View>
             <AnimatedSprite
               id={AnimatedSpriteID.HERO_14}
-              state={SpriteState.WALK}
+              state={SpriteState.IDLE}
               width={115}
               height={115}
+              delay={100}
             />
           </View>
           <View>
@@ -33,6 +34,7 @@ const Welcome = () => {
               state={SpriteState.IDLE}
               width={115}
               height={115}
+              delay={200}
             />
           </View>
           <View>
@@ -41,6 +43,8 @@ const Welcome = () => {
               state={SpriteState.IDLE}
               width={115}
               height={115}
+              // duration={4000}
+              // delay={1000}
             />
           </View>
         </View>

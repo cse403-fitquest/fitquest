@@ -24,6 +24,14 @@ export const isHeroSprite: (id: AnimatedSpriteID) => boolean = (id) => {
     case AnimatedSpriteID.HERO_20:
     case AnimatedSpriteID.HERO_21:
     case AnimatedSpriteID.HERO_22:
+    case AnimatedSpriteID.HERO_23:
+    case AnimatedSpriteID.HERO_24:
+    case AnimatedSpriteID.HERO_25:
+    case AnimatedSpriteID.HERO_26:
+    case AnimatedSpriteID.HERO_27:
+    case AnimatedSpriteID.HERO_28:
+    case AnimatedSpriteID.HERO_29:
+    case AnimatedSpriteID.HERO_30:
       return true;
     default:
       return false;
