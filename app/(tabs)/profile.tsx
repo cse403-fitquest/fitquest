@@ -1,17 +1,26 @@
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  TextInput,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import FQModal from '@/components/FQModal';
-import { User } from '@/types/user';
-import clsx from 'clsx';
+//import { User } from '@/types/user';
 import { Item, ItemType } from '@/types/item';
+import { updateUserProfile } from '@/services/user';
 import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useSocialStore } from '@/store/social';
-import { BASE_USER } from '@/constants/user';
-import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+//import { BASE_USER } from '@/constants/user';
+import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
+import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
+import clsx from 'clsx';
 
 // import { fillMissingUserFields } from '@/services/user';
 
@@ -25,7 +34,7 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 5,
     speed: -1,
     health: 0,
-    spriteID: 'sword-sprite',
+    spriteID: SpriteID.T1_SWORD,
     createdAt: new Date(Date.now()),
   },
   {
@@ -37,7 +46,7 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 0,
     speed: -2,
     health: 5,
-    spriteID: 'shield-sprite',
+    spriteID: SpriteID.T1_SHIELD,
     createdAt: new Date(Date.now()),
   },
   {
@@ -49,19 +58,19 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 0,
     speed: 0,
     health: 3,
-    spriteID: 'helmet-sprite',
+    spriteID: SpriteID.T1_HELM,
     createdAt: new Date(Date.now()),
   },
   {
     id: '4',
-    name: 'Boots',
+    name: 'Chestplate',
     type: ItemType.ACCESSORY,
     cost: 60,
-    description: 'Speedy boots',
+    description: 'Heavy armor',
     power: 0,
     speed: 2,
     health: 0,
-    spriteID: 'boots-sprite',
+    spriteID: SpriteID.T1_HEAVY_ARMOR,
     createdAt: new Date(Date.now()),
   },
   {
@@ -73,13 +82,13 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 0,
     speed: 0,
     health: 5,
-    spriteID: 'potion-sprite',
+    spriteID: SpriteID.HEALTH_POTION_SMALL,
     createdAt: new Date(Date.now()),
   },
 ];
 
 // Mock user data
-const MOCK_USER: User = {
+/*const MOCK_USER: User = {
   ...BASE_USER,
   id: 'mock-user-1',
   profileInfo: {
@@ -104,7 +113,7 @@ const MOCK_USER: User = {
   },
   createdAt: new Date(),
   attributePoints: 0,
-};
+};*/
 
 interface ItemCardProps {
   item: Item;
@@ -117,7 +126,7 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
       <TouchableOpacity
         onPress={onPress}
         className={clsx(
-          'rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2',
+          'relative rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2 justify-center items-center',
           {
             'bg-red-800': item.type === ItemType.WEAPON,
             'bg-blue': item.type === ItemType.ARMOR,
@@ -129,7 +138,9 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
             ].includes(item.type),
           },
         )}
-      ></TouchableOpacity>
+      >
+        <Sprite id={item.spriteID} width={70} height={70} />
+      </TouchableOpacity>
       <Text className="text-lg text-gold mb-5 font-semibold">
         {item.cost} Gold
       </Text>
@@ -140,20 +151,30 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
 const Profile = () => {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
-  const [isCurrentQuestPublic, setIsCurrentQuestPublic] = useState(
-    MOCK_USER.privacySettings.isCurrentQuestPublic,
-  );
-  const [isLastWorkoutPublic, setIsLastWorkoutPublic] = useState(
-    MOCK_USER.privacySettings.isLastWorkoutPublic,
-  );
 
   // Helper function to fill missing user fields
   useEffect(() => {
     // void fillMissingUserFields();
   }, []);
 
-  const { user } = useUserStore();
+  const { user, setUser } = useUserStore();
   const { resetSocialStore } = useSocialStore();
+
+  const [isCurrentQuestPublic, setIsCurrentQuestPublic] = useState(
+    user?.privacySettings.isCurrentQuestPublic,
+  );
+  const [isLastWorkoutPublic, setIsLastWorkoutPublic] = useState(
+    user?.privacySettings.isLastWorkoutPublic,
+  );
+
+  const [username, setUsername] = useState(user?.profileInfo.username || '');
+
+  const [height, setHeight] = useState(
+    user?.profileInfo.height?.toString() || '',
+  );
+  const [weight, setWeight] = useState(
+    user?.profileInfo.weight?.toString() || '',
+  );
 
   const handleEquipItem = (item: Item) => {
     // TODO: Implement actual equipping logic
@@ -172,6 +193,39 @@ const Profile = () => {
     return;
   };
 
+  const handleUpdateProfile = async () => {
+    if (!user) return;
+
+    const updates = {
+      profileInfo: {
+        ...user.profileInfo,
+        username: username.trim(),
+        height: parseFloat(height),
+        weight: parseFloat(weight),
+      },
+      privacySettings: {
+        isCurrentQuestPublic: isCurrentQuestPublic ?? false,
+        isLastWorkoutPublic: isLastWorkoutPublic ?? false,
+      },
+    };
+
+    const response = await updateUserProfile(user.id, updates);
+
+    if (response.success) {
+      // Update the user in the store
+      setUser({
+        ...user,
+        profileInfo: updates.profileInfo,
+        privacySettings: updates.privacySettings,
+      });
+      Alert.alert('Profile updated successfully');
+    } else {
+      Alert.alert('Error updating profile', response.error || '');
+    }
+
+    setIsSettingsVisible(false);
+  };
+
   return (
     <SafeAreaView className=" bg-offWhite">
       <ScrollView className="w-full h-full px-6 py-8">
@@ -181,6 +235,9 @@ const Profile = () => {
             <Text className="text-gray-500">Welcome back,</Text>
             <Text className="text-2xl font-bold">
               {user?.profileInfo.username || '-'}
+            </Text>
+            <Text className="text-xl text-gold font-semibold">
+              Gold: {user?.gold}
             </Text>
           </View>
           <TouchableOpacity
@@ -222,19 +279,19 @@ const Profile = () => {
           <View className="space-y-2">
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-500">
-                Power: {MOCK_USER.attributes.power}
+                Power: {user?.attributes.power}
               </Text>
               <Ionicons name="information-circle-outline" size={16} />
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-500">
-                Speed: {MOCK_USER.attributes.speed}
+                Speed: {user?.attributes.speed}
               </Text>
               <Ionicons name="information-circle-outline" size={16} />
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-500">
-                Health: {MOCK_USER.attributes.health}
+                Health: {user?.attributes.health}
               </Text>
               <Ionicons name="information-circle-outline" size={16} />
             </View>
@@ -294,30 +351,48 @@ const Profile = () => {
         visible={isSettingsVisible}
         setVisible={setIsSettingsVisible}
         title="Profile Settings"
-        onConfirm={() => setIsSettingsVisible(false)}
-        cancelText="CLOSE"
+        onConfirm={handleUpdateProfile}
       >
-        <View className="py-4 w-[220px]">
-          <View className="space-y-4">
+        <View className="py-4 w-[220px] relative">
+          {/* Close Button */}
+          <TouchableOpacity
+            onPress={() => setIsSettingsVisible(false)}
+            style={{ position: 'absolute', top: 2, right: 2 }}
+          >
+            <Ionicons name="close" size={24} color="#000" />
+          </TouchableOpacity>
+
+          <View className="space-y-4 mt-4">
             <View>
               <Text className="text-gray-500 mb-1">Username</Text>
-              <Text className="p-2 border border-gray-300 rounded">
-                {MOCK_USER.profileInfo.username}
-              </Text>
+              <TextInput
+                className="p-2 border border-gray-300 rounded"
+                value={username}
+                onChangeText={setUsername}
+                placeholder="Enter username"
+              />
             </View>
 
             <View>
               <Text className="text-gray-500 mb-1">Height (ft)</Text>
-              <Text className="p-2 border border-gray-300 rounded">
-                {MOCK_USER.profileInfo.height}
-              </Text>
+              <TextInput
+                className="p-2 border border-gray-300 rounded"
+                value={height}
+                onChangeText={setHeight}
+                keyboardType="decimal-pad"
+                placeholder="Enter height"
+              />
             </View>
 
             <View>
               <Text className="text-gray-500 mb-1">Weight (lbs)</Text>
-              <Text className="p-2 border border-gray-300 rounded">
-                {MOCK_USER.profileInfo.weight}
-              </Text>
+              <TextInput
+                className="p-2 border border-gray-300 rounded"
+                value={weight}
+                onChangeText={setWeight}
+                keyboardType="decimal-pad"
+                placeholder="Enter weight"
+              />
             </View>
 
             <View className="flex-row items-center justify-between">
@@ -326,18 +401,10 @@ const Profile = () => {
                 onPress={() => setIsCurrentQuestPublic(!isCurrentQuestPublic)}
               >
                 <Ionicons
-                  name="square-outline"
+                  name={isCurrentQuestPublic ? 'checkbox' : 'square-outline'}
                   size={24}
-                  color={isCurrentQuestPublic ? '#007AFF' : '#000000'}
+                  color="#007AFF"
                 />
-                {isCurrentQuestPublic && (
-                  <Ionicons
-                    name="checkmark"
-                    size={20}
-                    color="#007AFF"
-                    style={{ position: 'absolute', left: 2, top: 2 }}
-                  />
-                )}
               </TouchableOpacity>
             </View>
 
@@ -347,18 +414,10 @@ const Profile = () => {
                 onPress={() => setIsLastWorkoutPublic(!isLastWorkoutPublic)}
               >
                 <Ionicons
-                  name="square-outline"
+                  name={isLastWorkoutPublic ? 'checkbox' : 'square-outline'}
                   size={24}
-                  color={isLastWorkoutPublic ? '#007AFF' : '#000000'}
+                  color="#007AFF"
                 />
-                {isLastWorkoutPublic && (
-                  <Ionicons
-                    name="checkmark"
-                    size={20}
-                    color="#007AFF"
-                    style={{ position: 'absolute', left: 2, top: 2 }}
-                  />
-                )}
               </TouchableOpacity>
             </View>
 
