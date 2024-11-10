@@ -71,8 +71,19 @@ export enum AnimatedSpriteID {
   SLIME_GREEN = 'slime_green',
   SLIME_BLUE = 'slime_blue',
   SLIME_RED = 'slime_red',
+  FIRE_SKULL_RED = 'fire_skull_red',
+  FIRE_SKULL_BLUE = 'fire_skull_blue',
+  FIRE_SKULL_GREEN = 'fire_skull_green',
+  FIRE_SKULL_CRMISON = 'fire_skull_crimson',
+  CAT_BROWN = 'cat_brown',
+  CAT_GREEN = 'cat_green',
+  CAT_MOSS = 'cat_moss',
+  CAT_RED = 'cat_red',
 
   // Bosses
   MINOTAUR_RED = 'minotaur_red',
   MINOTAUR_BLACK = 'minotaur_black',
+  CHOMPBUG_GREEN = 'chompbug_green',
+  CHOMPBUG_RED = 'chompbug_red',
+  CHOMPBUG_BLACK = 'chompbug_black',
 }
