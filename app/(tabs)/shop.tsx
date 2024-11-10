@@ -21,6 +21,7 @@ import { useUserStore } from '@/store/user';
 import purchaseItem from '@/services/item';
 import { useItemStore } from '@/store/item';
 import { BASE_ITEM } from '@/constants/item';
+import { Sprite } from '@/components/Sprite';
 
 const Shop = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -67,6 +68,13 @@ const Shop = () => {
 
   const handlePurchaseItem = async () => {
     if (!user || !selectedItem) return;
+
+    // Handle clicking back button on owned item
+    if (userEquipments.some((i) => i.id === selectedItem.id)) {
+      setModalVisible(false);
+      setSelectedItem(null);
+      return;
+    }
 
     if (user.gold < selectedItem.cost) {
       Alert.alert(
@@ -138,6 +146,8 @@ const Shop = () => {
   const modalChildren = useMemo(() => {
     if (!user || !selectedItem) return null;
 
+    const owned = userEquipments.some((i) => i.id === selectedItem.id);
+
     if (
       [ItemType.WEAPON, ItemType.ARMOR, ItemType.ACCESSORY].includes(
         selectedItem.type,
@@ -145,8 +155,8 @@ const Shop = () => {
     ) {
       return (
         <View>
-          <View className="justify-center items-center h-24 my-5">
-            <Text>Item Sprite Here</Text>
+          <View className="justify-center items-center h-[120px] mt-3 mb-5">
+            <Sprite id={selectedItem.spriteID} width={120} height={120} />
           </View>
           <Text className="mb-5">{selectedItem.description}</Text>
           <View className="flex-row justify-evenly items-center mb-5">
@@ -193,9 +203,15 @@ const Shop = () => {
             </View>
           </View>
           <View className="justify-center items-center">
-            <Text className="text-base text-gold font-bold">
-              {selectedItem.cost} Gold to purchase
-            </Text>
+            {owned ? (
+              <Text className="text-base text-black font-bold">
+                You already own this item
+              </Text>
+            ) : (
+              <Text className="text-base text-gold font-bold">
+                {selectedItem.cost} Gold to purchase
+              </Text>
+            )}
           </View>
         </View>
       );
@@ -241,8 +257,16 @@ const Shop = () => {
         title={selectedItem ? 'Equip ' + selectedItem.name : ''}
         subtitle={selectedItem ? itemTypeToString(selectedItem.type) : ''}
         onConfirm={handlePurchaseItem}
-        cancelText={'CANCEL'}
-        confirmText={'BUY ITEM'}
+        cancelText={
+          selectedItem && userEquipments.some((i) => i.id === selectedItem.id)
+            ? undefined
+            : 'CANCEL'
+        }
+        confirmText={
+          selectedItem && userEquipments.some((i) => i.id === selectedItem.id)
+            ? 'BACK'
+            : 'BUY ITEM'
+        }
       >
         {modalChildren}
       </FQModal>
@@ -396,10 +420,9 @@ const ItemCard: React.FC<{
   return (
     <View className="flex-col justify-center items-center">
       <TouchableOpacity
-        disabled={owned}
         onPress={onPress}
         className={clsx(
-          'rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2 justify-center items-center',
+          'relative rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2 justify-center items-center',
           {
             'bg-red-800': item.type === ItemType.WEAPON,
             'bg-blue': item.type === ItemType.ARMOR,
@@ -412,7 +435,8 @@ const ItemCard: React.FC<{
           },
         )}
       >
-        {owned && <Text className="font-black z-10">OWNED</Text>}
+        <Sprite id={item.spriteID} width={70} height={70} />
+        {owned && <Text className="absolute font-black z-10">OWNED</Text>}
         {owned && (
           <View className="absolute bg-white opacity-50 w-full h-full" />
         )}

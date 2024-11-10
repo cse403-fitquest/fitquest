@@ -17,7 +17,7 @@ export const BASE_ITEM: Item = {
 const currentDate = new Date();
 
 export const MOCK_ITEMS: Item[] = [
-  // Tier 1 items
+  // Tier 1 equipment
   {
     id: 't1_dagger',
     type: ItemType.WEAPON,
@@ -32,16 +32,29 @@ export const MOCK_ITEMS: Item[] = [
     createdAt: currentDate,
   },
   {
-    id: 't1_heavy_armor',
-    type: ItemType.ARMOR,
-    name: 'T1 Heavy Armor',
+    id: 't1_sword',
+    type: ItemType.WEAPON,
+    name: 'T1 Sword',
     description:
-      'Clunky but dependable. Prepare for a slow, fashionable entrance.',
-    power: 0,
-    speed: -2,
-    health: 10,
-    spriteID: SpriteID.T1_HEAVY_ARMOR,
-    cost: 100,
+      'Simple but effective. Cuts down foes and keeps things classy.',
+    power: 7,
+    speed: 5,
+    health: 0,
+    spriteID: SpriteID.T1_SWORD,
+    cost: 60,
+    createdAt: currentDate,
+  },
+  {
+    id: 't1_ring',
+    type: ItemType.ACCESSORY,
+    name: 'T1 Ring',
+    description:
+      'Simple, shiny, and just magical enough to make you feel special.',
+    power: 1,
+    speed: 0,
+    health: 3,
+    spriteID: SpriteID.T1_RING,
+    cost: 30,
     createdAt: currentDate,
   },
   {
@@ -69,21 +82,22 @@ export const MOCK_ITEMS: Item[] = [
     cost: 70,
     createdAt: currentDate,
   },
+
   {
-    id: 't1_sword',
-    type: ItemType.WEAPON,
-    name: 'T1 Sword',
+    id: 't1_heavy_armor',
+    type: ItemType.ARMOR,
+    name: 'T1 Heavy Armor',
     description:
-      'Simple but effective. Cuts down foes and keeps things classy.',
-    power: 7,
-    speed: 5,
-    health: 0,
-    spriteID: SpriteID.T1_SWORD,
-    cost: 60,
+      'Clunky but dependable. Prepare for a slow, fashionable entrance.',
+    power: 0,
+    speed: -2,
+    health: 10,
+    spriteID: SpriteID.T1_HEAVY_ARMOR,
+    cost: 100,
     createdAt: currentDate,
   },
 
-  // Tier 2 items
+  // Tier 2 equipment
   {
     id: 't2_dagger',
     type: ItemType.WEAPON,
@@ -150,6 +164,88 @@ export const MOCK_ITEMS: Item[] = [
     createdAt: currentDate,
   },
 
+  // Tier 3 equipment
+  {
+    id: 't3_dagger',
+    type: ItemType.WEAPON,
+    name: 'T3 Dagger',
+    description:
+      'An assassin’s best friend. Sharp enough to cut through ego and armor alike.',
+    power: 15,
+    speed: 14,
+    health: 0,
+    spriteID: SpriteID.T3_DAGGER,
+    cost: 120,
+    createdAt: currentDate,
+  },
+  {
+    id: 't3_sword',
+    type: ItemType.WEAPON,
+    name: 'T3 Sword',
+    description:
+      'A sword fit for a knight who means business. Warning: might make you feel noble.',
+    power: 17,
+    speed: 7,
+    health: 0,
+    spriteID: SpriteID.T3_SWORD,
+    cost: 150,
+    createdAt: currentDate,
+  },
+  {
+    id: 't3_heavy_armor',
+    type: ItemType.ARMOR,
+    name: 'T3 Heavy Armor',
+    description:
+      'Sturdier than your average wall. You might as well be a fortress.',
+    power: 0,
+    speed: -4,
+    health: 20,
+    spriteID: SpriteID.T3_HEAVY_ARMOR,
+    cost: 200,
+    createdAt: currentDate,
+  },
+
+  // Tier 4 equipment
+  {
+    id: 't4_dagger',
+    type: ItemType.WEAPON,
+    name: 'T4 Dagger',
+    description:
+      'The pinnacle of poking potential. Goes in smooth, comes out victorious.',
+    power: 20,
+    speed: 16,
+    health: 0,
+    spriteID: SpriteID.T4_DAGGER,
+    cost: 160,
+    createdAt: currentDate,
+  },
+  {
+    id: 't4_sword',
+    type: ItemType.WEAPON,
+    name: 'T4 Sword',
+    description:
+      'Legendary craftsmanship. Slices foes and bread with equal ease and grace.',
+    power: 22,
+    speed: 8,
+    health: 0,
+    spriteID: SpriteID.T4_SWORD,
+    cost: 200,
+    createdAt: currentDate,
+  },
+  {
+    id: 't4_heavy_armor',
+    type: ItemType.ARMOR,
+    name: 'T4 Heavy Armor',
+    description: 'An armor so tough, even dragons might have second thoughts.',
+    power: 0,
+    speed: -5,
+    health: 25,
+    spriteID: SpriteID.T4_HEAVY_ARMOR,
+    cost: 250,
+    createdAt: currentDate,
+  },
+
+  // Consumables
   {
     id: 'health_potion_small',
     type: ItemType.POTION_SMALL,
