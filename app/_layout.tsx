@@ -41,7 +41,7 @@ export default function RootLayout() {
         );
 
         // Navigate to the appropriate screen
-        router.replace('/profile' as Href);
+        router.replace('/01-welcome' as Href);
       } else {
         // User is signed out
         console.log('User is signed out');
@@ -67,8 +67,9 @@ export default function RootLayout() {
 
   return (
     <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" />
     </Stack>
