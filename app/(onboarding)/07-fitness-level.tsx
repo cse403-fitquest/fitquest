@@ -34,7 +34,7 @@ const OnboardingFitnessLevel = () => {
     <SafeAreaView className="relative w-full h-full px-10 py-8 justify-center items-center">
       <View className="w-full">
         <View className="w-full items-center">
-          <Text className="mb-2 text-md font-medium">
+          <Text className="mb-2 text-lg font-medium">
             You're estimated fitness level is
           </Text>
           <Text className="text-4xl font-bold">{fitnessLevelDisplay}</Text>

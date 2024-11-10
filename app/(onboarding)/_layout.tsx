@@ -52,6 +52,12 @@ const OnboardingLayout = () => {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name="08-allocate-points"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
       <StatusBar backgroundColor="#161622" style="light" />
     </>
