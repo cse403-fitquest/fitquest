@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import { fetchItems, setItemsInDB } from '@/services/item';
 import { useItemStore } from '@/store/item';
 import { Alert } from 'react-native';
-import { MOCK_SHOP_ITEMS } from '@/constants/shop';
+import { MOCK_ITEMS } from '@/constants/item';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -36,7 +36,7 @@ export default function TabLayout() {
     // Set shop items in DB (for testing)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _setItemsData = async () => {
-      const setShopItemsResponse = await setItemsInDB(MOCK_SHOP_ITEMS);
+      const setShopItemsResponse = await setItemsInDB(MOCK_ITEMS);
 
       if (!setShopItemsResponse.success) {
         if (setShopItemsResponse.error)
@@ -46,6 +46,7 @@ export default function TabLayout() {
       }
     };
 
+    // _setItemsData();
     fetchItemsData();
   }, []);
 
