@@ -11,6 +11,7 @@ import {
   getDocs,
   QueryDocumentSnapshot,
   setDoc,
+  updateDoc,
   writeBatch,
 } from 'firebase/firestore';
 
@@ -197,5 +198,33 @@ export const getUser: (userID: string) => Promise<GetUserResponse> = async (
         error: 'Error getting user. Please try again.',
       };
     }
+  }
+};
+
+/**
+ * Update user profile in Firestore
+ * @param userId user's ID
+ * @param updates object containing the fields to update
+ * @returns APIResponse - an object containing the success status, data, and error message
+ */
+export const updateUserProfile = async (
+  userId: string,
+  updates: Partial<User>,
+): Promise<APIResponse> => {
+  try {
+    const userRef = doc(FIREBASE_DB, 'users', userId);
+    await updateDoc(userRef, updates);
+    return {
+      success: true,
+      data: null,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    return {
+      success: false,
+      data: null,
+      error: 'Failed to update profile',
+    };
   }
 };
