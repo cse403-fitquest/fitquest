@@ -5,7 +5,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
 import { useEffect } from 'react';
-import { getShopItems, setShopItemsInDB } from '@/services/shop';
+import { fetchItems, setItemsInDB } from '@/services/item';
 import { useItemStore } from '@/store/item';
 import { Alert } from 'react-native';
 import { MOCK_SHOP_ITEMS } from '@/constants/shop';
@@ -22,8 +22,8 @@ export default function TabLayout() {
   // Items, quests, etc.
   useEffect(() => {
     // Fetch items
-    const getShopItemsData = async () => {
-      const getShopItemsResponse = await getShopItems();
+    const fetchItemsData = async () => {
+      const getShopItemsResponse = await fetchItems();
 
       if (getShopItemsResponse.success) {
         setItems(getShopItemsResponse.data);
@@ -35,18 +35,18 @@ export default function TabLayout() {
 
     // Set shop items in DB (for testing)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _setShopItemsData = async () => {
-      const setShopItemsResponse = await setShopItemsInDB(MOCK_SHOP_ITEMS);
+    const _setItemsData = async () => {
+      const setShopItemsResponse = await setItemsInDB(MOCK_SHOP_ITEMS);
 
       if (!setShopItemsResponse.success) {
         if (setShopItemsResponse.error)
           Alert.alert('Error', setShopItemsResponse.error);
       } else {
-        getShopItemsData();
+        fetchItemsData();
       }
     };
 
-    getShopItemsData();
+    fetchItemsData();
   }, []);
 
   return (

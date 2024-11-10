@@ -25,7 +25,7 @@ export const itemConverter = {
  * Get all shop items.
  * @returns {Promise<GetShopItemsResponse>} Returns an GetShopItemsResponse object.
  */
-export const getShopItems: () => Promise<GetShopItemsResponse> = async () => {
+export const fetchItems: () => Promise<GetShopItemsResponse> = async () => {
   try {
     const itemCollection = collection(FIREBASE_DB, 'items').withConverter(
       itemConverter,
@@ -56,7 +56,7 @@ export const getShopItems: () => Promise<GetShopItemsResponse> = async () => {
  * @param {Item[]} items - The items to set.
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
-export const setShopItemsInDB: (items: Item[]) => Promise<APIResponse> = async (
+export const setItemsInDB: (items: Item[]) => Promise<APIResponse> = async (
   items,
 ) => {
   try {

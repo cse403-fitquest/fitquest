@@ -18,7 +18,7 @@ import {
 import clsx from 'clsx';
 import FQModal from '@/components/FQModal';
 import { useUserStore } from '@/store/user';
-import purchaseItem from '@/services/shop';
+import purchaseItem from '@/services/item';
 import { useItemStore } from '@/store/item';
 import { BASE_ITEM } from '@/constants/item';
 
