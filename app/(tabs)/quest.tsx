@@ -23,7 +23,7 @@ interface ActiveQuest {
   bossThreshold: number;
 }
 
-const quests = [
+export const quests = [
   {
     questId: '1',
     name: 'Hunt Big Chungus',
@@ -184,15 +184,19 @@ const Quest = () => {
           progress: nextMilestone,
         };
 
-        if (nextMilestone >= activeQuest.bossThreshold) {
-          Alert.alert('Boss Fight!', 'The boss has appeared!', [
-            {
-              text: 'Fight!',
-              onPress: () => router.push('/combat'),
-            },
-            { text: 'Later', style: 'cancel' },
-          ]);
-        }
+        const isBoss = nextMilestone >= activeQuest.bossThreshold;
+
+        const uniqueKey = Date.now();
+
+        router.replace({
+          pathname: '/combat',
+          params: {
+            isBoss: isBoss ? 'true' : 'false',
+            questId: activeQuest.questID,
+            questName: activeQuest.questName,
+            uniqueKey: uniqueKey,
+          },
+        });
 
         setActiveQuest(updatedQuest);
         AsyncStorage.setItem('activeQuest', JSON.stringify(updatedQuest));
