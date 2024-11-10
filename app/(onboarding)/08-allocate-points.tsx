@@ -4,7 +4,6 @@ import { BASE_ATTRIBUTES } from '@/constants/onboarding';
 import { useOnboardingStore } from '@/store/onboarding';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
 import {
   View,
   Text,
@@ -16,12 +15,6 @@ import {
 const OnboardingAllocatePoints = () => {
   const { currentPoints, setCurrentPoints, attributes, setAttributes } =
     useOnboardingStore();
-
-  const [currentAttributes, setCurrentAttributes] = useState<{
-    power: number;
-    speed: number;
-    health: number;
-  }>(attributes);
 
   return (
     <SafeAreaView className="relative w-full h-full px-10 py-8 justify-center items-center">
@@ -39,18 +32,16 @@ const OnboardingAllocatePoints = () => {
           <View className="w-full flex-row justify-between items-center mb-5">
             <View className="flex-row justify-start items-center">
               <Text className="text-2xl font-medium">Power: </Text>
-              <Text className="text-2xl font-bold">
-                {currentAttributes.power}
-              </Text>
+              <Text className="text-2xl font-bold">{attributes.power}</Text>
             </View>
             <View className="flex-row items-center justify-center">
-              {currentAttributes.power > BASE_ATTRIBUTES.power ? (
+              {attributes.power > BASE_ATTRIBUTES.power ? (
                 <TouchableOpacity
-                  className="mr-3 w-[30px] h-[30px]"
+                  className="w-[35px] h-[30px] items-center"
                   onPress={() => {
-                    setCurrentAttributes({
-                      ...currentAttributes,
-                      power: currentAttributes.power - 1,
+                    setAttributes({
+                      ...attributes,
+                      power: attributes.power - 1,
                     });
                     setCurrentPoints(currentPoints + 1);
                   }}
@@ -58,15 +49,15 @@ const OnboardingAllocatePoints = () => {
                   <Ionicons name="remove" size={30} color={'red'} />
                 </TouchableOpacity>
               ) : (
-                <View className="w-[30px]" />
+                <View className="w-[35px]" />
               )}
               {currentPoints > 0 ? (
                 <TouchableOpacity
-                  className="mr-2 w-[30px] h-[30px]"
+                  className="w-[35px] h-[30px] items-center mr-2"
                   onPress={() => {
-                    setCurrentAttributes({
-                      ...currentAttributes,
-                      power: currentAttributes.power + 1,
+                    setAttributes({
+                      ...attributes,
+                      power: attributes.power + 1,
                     });
                     setCurrentPoints(currentPoints - 1);
                   }}
@@ -74,7 +65,7 @@ const OnboardingAllocatePoints = () => {
                   <Ionicons name="add-outline" size={30} color={Colors.blue} />
                 </TouchableOpacity>
               ) : (
-                <View className="w-[30px]" />
+                <View className="w-[35px] mr-2" />
               )}
               <TouchableOpacity
                 onPress={() =>
@@ -97,18 +88,16 @@ const OnboardingAllocatePoints = () => {
           <View className="w-full flex-row justify-between items-center mb-5">
             <View className="flex-row justify-start items-center">
               <Text className="text-2xl font-medium">Speed: </Text>
-              <Text className="text-2xl font-bold">
-                {currentAttributes.speed}
-              </Text>
+              <Text className="text-2xl font-bold">{attributes.speed}</Text>
             </View>
             <View className="flex-row items-center justify-center">
-              {currentAttributes.speed > BASE_ATTRIBUTES.speed ? (
+              {attributes.speed > BASE_ATTRIBUTES.speed ? (
                 <TouchableOpacity
-                  className="mr-3 w-[30px] h-[30px]"
+                  className="w-[35px] h-[30px] items-center"
                   onPress={() => {
-                    setCurrentAttributes({
-                      ...currentAttributes,
-                      speed: currentAttributes.speed - 1,
+                    setAttributes({
+                      ...attributes,
+                      speed: attributes.speed - 1,
                     });
                     setCurrentPoints(currentPoints + 1);
                   }}
@@ -116,15 +105,15 @@ const OnboardingAllocatePoints = () => {
                   <Ionicons name="remove" size={30} color={'red'} />
                 </TouchableOpacity>
               ) : (
-                <View className="w-[30px]" />
+                <View className="w-[35px]" />
               )}
               {currentPoints > 0 ? (
                 <TouchableOpacity
-                  className="mr-2 w-[30px] h-[30px]"
+                  className="w-[35px] h-[30px] items-center mr-2"
                   onPress={() => {
-                    setCurrentAttributes({
-                      ...currentAttributes,
-                      speed: currentAttributes.speed + 1,
+                    setAttributes({
+                      ...attributes,
+                      speed: attributes.speed + 1,
                     });
                     setCurrentPoints(currentPoints - 1);
                   }}
@@ -132,7 +121,7 @@ const OnboardingAllocatePoints = () => {
                   <Ionicons name="add-outline" size={30} color={Colors.blue} />
                 </TouchableOpacity>
               ) : (
-                <View className="w-[30px]" />
+                <View className="w-[35px] mr-2" />
               )}
               <TouchableOpacity
                 onPress={() =>
@@ -153,18 +142,16 @@ const OnboardingAllocatePoints = () => {
           <View className="w-full flex-row justify-between items-center mb-5">
             <View className="flex-row justify-start items-center">
               <Text className="text-2xl font-medium">Health: </Text>
-              <Text className="text-2xl font-bold">
-                {currentAttributes.health}
-              </Text>
+              <Text className="text-2xl font-bold">{attributes.health}</Text>
             </View>
             <View className="flex-row items-center justify-center">
-              {currentAttributes.health > BASE_ATTRIBUTES.health ? (
+              {attributes.health > BASE_ATTRIBUTES.health ? (
                 <TouchableOpacity
-                  className="mr-3 w-[30px] h-[30px]"
+                  className="w-[35px] h-[30px] items-center"
                   onPress={() => {
-                    setCurrentAttributes({
-                      ...currentAttributes,
-                      health: currentAttributes.health - 1,
+                    setAttributes({
+                      ...attributes,
+                      health: attributes.health - 1,
                     });
                     setCurrentPoints(currentPoints + 1);
                   }}
@@ -172,15 +159,15 @@ const OnboardingAllocatePoints = () => {
                   <Ionicons name="remove" size={30} color={'red'} />
                 </TouchableOpacity>
               ) : (
-                <View className="w-[30px]" />
+                <View className="w-[35px]" />
               )}
               {currentPoints > 0 ? (
                 <TouchableOpacity
-                  className="mr-2 w-[30px] h-[30px]"
+                  className="w-[35px] h-[30px] items-center mr-2"
                   onPress={() => {
-                    setCurrentAttributes({
-                      ...currentAttributes,
-                      health: currentAttributes.health + 1,
+                    setAttributes({
+                      ...attributes,
+                      health: attributes.health + 1,
                     });
                     setCurrentPoints(currentPoints - 1);
                   }}
@@ -188,7 +175,7 @@ const OnboardingAllocatePoints = () => {
                   <Ionicons name="add-outline" size={30} color={Colors.blue} />
                 </TouchableOpacity>
               ) : (
-                <View className="w-[30px]" />
+                <View className="w-[35px] mr-2" />
               )}
               <TouchableOpacity
                 onPress={() =>
@@ -210,7 +197,7 @@ const OnboardingAllocatePoints = () => {
 
         <FQButton
           onPress={() => {
-            setAttributes(currentAttributes);
+            setAttributes(attributes);
             router.replace('./09-choose-avatar');
           }}
           className="mb-5"

@@ -10,7 +10,7 @@ import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { BASE_ATTRIBUTES } from '@/constants/onboarding';
 
 const OnboardingFitnessLevel = () => {
-  const { fitnessLevel, setAttributes, setCurrentPoints } =
+  const { fitnessLevel, setAttributes, setCurrentPoints, setSpriteID } =
     useOnboardingStore();
 
   const fitnessLevelDisplay = useMemo(() => {
@@ -75,6 +75,7 @@ const OnboardingFitnessLevel = () => {
               // Reset attributes and points
               setAttributes({ ...BASE_ATTRIBUTES });
               setCurrentPoints(0);
+              setSpriteID(AnimatedSpriteID.HERO_01);
 
               router.replace('./03-frequency');
             }}

@@ -1,3 +1,5 @@
+import { BASE_ATTRIBUTES } from '@/constants/onboarding';
+import { AnimatedSpriteID } from '@/constants/sprite';
 import { FitnessLevel } from '@/types/onboarding';
 import { create } from 'zustand';
 
@@ -38,6 +40,10 @@ interface IOnboardingStateStore {
     health: number;
   }) => void;
 
+  spriteID: AnimatedSpriteID;
+
+  setSpriteID: (spriteID: AnimatedSpriteID) => void;
+
   resetStore: () => void;
 }
 
@@ -74,14 +80,21 @@ export const useOnboardingStore = create<IOnboardingStateStore>((set) => ({
 
   setAttributes: (attributes) => set({ attributes: attributes }),
 
+  spriteID: AnimatedSpriteID.HERO_01,
+
+  setSpriteID: (spriteID) => set({ spriteID }),
+
   resetStore: () =>
     set({
       frequency: 1,
-
       length: 1,
-
       intensity: 1,
-
       experience: 1,
+      fitnessLevel: FitnessLevel.BEGINNER,
+      currentPoints: 0,
+      attributes: {
+        ...BASE_ATTRIBUTES,
+      },
+      spriteID: AnimatedSpriteID.HERO_01,
     }),
 }));

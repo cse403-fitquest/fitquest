@@ -1,3 +1,4 @@
+import { AnimatedSpriteID } from '@/constants/sprite';
 import { APIResponse } from './general';
 
 export type CreateUserResponse = APIResponse & {};
@@ -17,7 +18,7 @@ export type User = {
     height: number;
     weight: number;
   };
-  spriteID: string;
+  spriteID: AnimatedSpriteID;
   attributes: { power: number; speed: number; health: number };
   exp: number;
   gold: number;
