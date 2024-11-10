@@ -4,19 +4,17 @@ import { useOnboardingStore } from '@/store/onboarding';
 import FQButton from '@/components/FQButton';
 import { router } from 'expo-router';
 import { useMemo } from 'react';
-import { computeFitnessLevel } from '@/utils/onboarding';
 import { FitnessLevel } from '@/types/onboarding';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+import { BASE_ATTRIBUTES } from '@/constants/onboarding';
 
 const OnboardingFitnessLevel = () => {
-  const { frequency, length, intensity, experience } = useOnboardingStore();
+  const { fitnessLevel, setAttributes, setCurrentPoints } =
+    useOnboardingStore();
 
-  // Calculate the user's fitness level based on their answers to the onboarding questions
   const fitnessLevelDisplay = useMemo(() => {
-    const fl = computeFitnessLevel(frequency, length, intensity, experience);
-
-    switch (fl) {
+    switch (fitnessLevel) {
       case FitnessLevel.BEGINNER:
         return 'BEGINNER';
       case FitnessLevel.NOVICE:
@@ -28,7 +26,7 @@ const OnboardingFitnessLevel = () => {
       default:
         return 'BEGINNER';
     }
-  }, [frequency, length, intensity, experience]);
+  }, [fitnessLevel]);
 
   return (
     <SafeAreaView className="relative w-full h-full px-10 py-8 justify-center items-center">
@@ -72,7 +70,15 @@ const OnboardingFitnessLevel = () => {
           ALLOCATE POINTS
         </FQButton>
         <View className="w-full items-center">
-          <TouchableOpacity onPress={() => router.replace('./03-frequency')}>
+          <TouchableOpacity
+            onPress={() => {
+              // Reset attributes and points
+              setAttributes({ ...BASE_ATTRIBUTES });
+              setCurrentPoints(0);
+
+              router.replace('./03-frequency');
+            }}
+          >
             <Text className="text-lg font-black text-gray">
               OR REDO THE SURVEY
             </Text>

@@ -5,4 +5,10 @@ export const ONBOARDING_FITNESS_LEVEL_POINTS: Record<FitnessLevel, number> = {
   NOVICE: 3,
   INTERMEDIATE: 6,
   ADVANCED: 10,
-};
+} as const;
+
+export const BASE_ATTRIBUTES = {
+  power: 5,
+  speed: 5,
+  health: 5,
+} as const;

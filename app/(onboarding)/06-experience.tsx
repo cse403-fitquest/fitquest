@@ -4,9 +4,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboardingStore } from '@/store/onboarding';
 import FQButton from '@/components/FQButton';
 import { router } from 'expo-router';
+import { computeFitnessLevel } from '@/utils/onboarding';
+import { ONBOARDING_FITNESS_LEVEL_POINTS } from '@/constants/onboarding';
 
 const OnboardingExperience = () => {
-  const { experience, setExperience } = useOnboardingStore();
+  const {
+    frequency,
+    length,
+    intensity,
+    experience,
+    setExperience,
+    setFitnessLevel,
+    setCurrentPoints,
+  } = useOnboardingStore();
 
   const handleRadioChange = (data: string) => {
     const value = parseInt(data);
@@ -17,6 +27,16 @@ const OnboardingExperience = () => {
     }
 
     console.log('Invalid experience value');
+  };
+
+  const handleGoToFitnessLevel = () => {
+    const fl = computeFitnessLevel(frequency, length, intensity, experience);
+    setFitnessLevel(fl);
+
+    const pointsToAllocate = ONBOARDING_FITNESS_LEVEL_POINTS[fl];
+    setCurrentPoints(pointsToAllocate);
+
+    router.replace('./07-fitness-level');
   };
 
   return (
@@ -60,10 +80,7 @@ const OnboardingExperience = () => {
             onPress={handleRadioChange}
           />
         </View>
-        <FQButton
-          onPress={() => router.replace('./07-fitness-level')}
-          className="mb-5"
-        >
+        <FQButton onPress={handleGoToFitnessLevel} className="mb-5">
           NEXT
         </FQButton>
         <FQButton onPress={() => router.replace('./05-intensity')} secondary>

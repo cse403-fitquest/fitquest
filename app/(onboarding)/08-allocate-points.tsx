@@ -1,12 +1,10 @@
 import FQButton from '@/components/FQButton';
 import { Colors } from '@/constants/Colors';
-import { ONBOARDING_FITNESS_LEVEL_POINTS } from '@/constants/onboarding';
+import { BASE_ATTRIBUTES } from '@/constants/onboarding';
 import { useOnboardingStore } from '@/store/onboarding';
-import { useUserStore } from '@/store/user';
-import { computeFitnessLevel } from '@/utils/onboarding';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -16,44 +14,14 @@ import {
 } from 'react-native';
 
 const OnboardingAllocatePoints = () => {
-  const { frequency, length, intensity, experience, setNewAttributes } =
+  const { currentPoints, setCurrentPoints, attributes, setAttributes } =
     useOnboardingStore();
-  const { user } = useUserStore();
 
-  const [currentPoints, setCurrentPoints] = useState(0);
   const [currentAttributes, setCurrentAttributes] = useState<{
     power: number;
     speed: number;
     health: number;
-  }>({
-    power: 5,
-    speed: 5,
-    health: 5,
-  });
-
-  const [baseAttributes, setBaseAttributes] = useState({
-    power: 5,
-    speed: 5,
-    health: 5,
-  });
-
-  // Calculate the user's fitness level based on their answers to the onboarding questions
-  const pointsToAllocate = useMemo(() => {
-    const fl = computeFitnessLevel(frequency, length, intensity, experience);
-
-    return ONBOARDING_FITNESS_LEVEL_POINTS[fl];
-  }, [frequency, length, intensity, experience]);
-
-  useEffect(() => {
-    setCurrentPoints(pointsToAllocate);
-  }, [pointsToAllocate]);
-
-  useEffect(() => {
-    if (user) {
-      setCurrentAttributes(user.attributes);
-      setBaseAttributes(user.attributes);
-    }
-  }, [user]);
+  }>(attributes);
 
   return (
     <SafeAreaView className="relative w-full h-full px-10 py-8 justify-center items-center">
@@ -76,7 +44,7 @@ const OnboardingAllocatePoints = () => {
               </Text>
             </View>
             <View className="flex-row items-center justify-center">
-              {currentAttributes.power > baseAttributes.power ? (
+              {currentAttributes.power > BASE_ATTRIBUTES.power ? (
                 <TouchableOpacity
                   className="mr-3 w-[30px] h-[30px]"
                   onPress={() => {
@@ -134,7 +102,7 @@ const OnboardingAllocatePoints = () => {
               </Text>
             </View>
             <View className="flex-row items-center justify-center">
-              {currentAttributes.speed > baseAttributes.speed ? (
+              {currentAttributes.speed > BASE_ATTRIBUTES.speed ? (
                 <TouchableOpacity
                   className="mr-3 w-[30px] h-[30px]"
                   onPress={() => {
@@ -190,7 +158,7 @@ const OnboardingAllocatePoints = () => {
               </Text>
             </View>
             <View className="flex-row items-center justify-center">
-              {currentAttributes.health > baseAttributes.health ? (
+              {currentAttributes.health > BASE_ATTRIBUTES.health ? (
                 <TouchableOpacity
                   className="mr-3 w-[30px] h-[30px]"
                   onPress={() => {
@@ -242,7 +210,7 @@ const OnboardingAllocatePoints = () => {
 
         <FQButton
           onPress={() => {
-            setNewAttributes(currentAttributes);
+            setAttributes(currentAttributes);
             router.replace('./09-choose-avatar');
           }}
           className="mb-5"

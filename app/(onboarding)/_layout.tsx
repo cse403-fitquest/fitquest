@@ -58,6 +58,12 @@ const OnboardingLayout = () => {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name="09-choose-avatar"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
       <StatusBar backgroundColor="#161622" style="light" />
     </>

@@ -59,7 +59,7 @@ const Welcome = () => {
             router.replace('./02-before-begin');
           }}
         >
-          START MY JOURNEY
+          GET STARTED
         </FQButton>
       </View>
     </SafeAreaView>

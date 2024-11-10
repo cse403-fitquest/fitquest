@@ -1,3 +1,4 @@
+import { FitnessLevel } from '@/types/onboarding';
 import { create } from 'zustand';
 
 interface IOnboardingStateStore {
@@ -17,13 +18,21 @@ interface IOnboardingStateStore {
 
   setExperience: (experience: 1 | 2 | 3 | 4) => void;
 
-  newAttibutes: {
+  fitnessLevel: FitnessLevel;
+
+  setFitnessLevel: (fitnessLevel: FitnessLevel) => void;
+
+  currentPoints: number;
+
+  setCurrentPoints: (currentPoints: number) => void;
+
+  attributes: {
     power: number;
     speed: number;
     health: number;
   };
 
-  setNewAttributes: (newAttributes: {
+  setAttributes: (attributes: {
     power: number;
     speed: number;
     health: number;
@@ -49,13 +58,21 @@ export const useOnboardingStore = create<IOnboardingStateStore>((set) => ({
 
   setExperience: (experience) => set({ experience }),
 
-  newAttibutes: {
+  fitnessLevel: FitnessLevel.BEGINNER,
+
+  setFitnessLevel: (fitnessLevel) => set({ fitnessLevel }),
+
+  currentPoints: 0,
+
+  setCurrentPoints: (currentPoints) => set({ currentPoints }),
+
+  attributes: {
     power: 5,
     speed: 5,
     health: 5,
   },
 
-  setNewAttributes: (newAttributes) => set({ newAttibutes: newAttributes }),
+  setAttributes: (attributes) => set({ attributes: attributes }),
 
   resetStore: () =>
     set({
