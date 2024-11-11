@@ -203,7 +203,33 @@ This app was built with the following technologies:
 
 <div align="center">
 
-  <img src="./readme-images/auth-screens.png" width="400"> &nbsp;
+  <img src="./readme-images/auth-sign-in.png" width="150"> &nbsp;
+  <img src="./readme-images/auth-sign-up.png" width="150"> &nbsp;
+
+</div>
+
+<div align="center">
+
+  <img src="./readme-images/onboarding-welcome.png" width="150"> &nbsp;
+  <img src="./readme-images/onboarding-fitness-level.png" width="150"> &nbsp;
+  <img src="./readme-images/onboarding-allocate-points.png" width="150"> &nbsp;
+  <img src="./readme-images/onboarding-choose-avatar.png" width="150"> &nbsp;
+
+</div>
+
+<div align="center">
+
+  <img src="./readme-images/shop-display.png" width="150"> &nbsp;
+  <img src="./readme-images/shop-modal.png" width="150"> &nbsp;
+
+</div>
+
+<div align="center">
+
+  <img src="./readme-images/social-display.png" width="150"> &nbsp;
+  <img src="./readme-images/social-add-friend-modal.png" width="150"> &nbsp;
+  <img src="./readme-images/social-sent-requests.png" width="150"> &nbsp;
+  <img src="./readme-images/social-new-friend.png" width="150"> &nbsp;
 
 </div>
 
