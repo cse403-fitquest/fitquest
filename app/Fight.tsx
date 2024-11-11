@@ -7,14 +7,13 @@ import { AnimatedSprite } from '@/components/AnimatedSprite';
 const initialPlayer = {
   id: '',
   name: 'Player',
-  health: 100,
-  power: 10000,
+  health: 120,
+  power: 15,
+  speed: 15,
 };
 
 const questThemes = {
   '1': {
-    backgroundColor: '#FFE4E1',
-    bossBackground: '#FF6B6B',
     normalMonsters: [
       {
         name: 'Baby Chungus',
@@ -43,12 +42,11 @@ const questThemes = {
       maxHealth: 200,
       health: 200,
       power: 15,
+      speed: 15,
       spriteId: AnimatedSpriteID.MINOTAUR_RED,
     },
   },
   '2': {
-    backgroundColor: '#E6E6FA',
-    bossBackground: '#9370DB',
     normalMonsters: [
       {
         name: 'Flaming Skull',
@@ -78,6 +76,15 @@ const questThemes = {
 const Combat = () => {
   const { isBoss, questId, questName, uniqueKey } = useLocalSearchParams();
   const currentQuest = questThemes[questId as keyof typeof questThemes];
+
+  // Fetch current quest from Firebase
+  useEffect(() => {
+    const fetchCurrentQuest = async () => {
+      // const questData = await getCurrentQuest(); // Fetch from Firebase
+      // Update state or perform actions based on questData
+    };
+    fetchCurrentQuest();
+  }, []);
 
   const getNewMonster = () => {
     if (isBoss === 'true') {
@@ -248,7 +255,7 @@ const Combat = () => {
     setIsAnimating(false);
   };
 
-  const handleVictory = () => {
+  const handleVictory = async () => {
     const exp = Math.floor(Math.random() * 20) + 30;
     setExpGained(exp);
     setModalType('victory');
