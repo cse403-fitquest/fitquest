@@ -1,3 +1,4 @@
+import { SpriteID } from '@/constants/sprite';
 import { Item, ItemType } from '@/types/item';
 import {
   filterItemsByTypeAndSortByCost,
@@ -15,7 +16,7 @@ describe('Item Utility Functions', () => {
       power: 10,
       speed: 7,
       health: 0,
-      spriteID: 'swordSprite',
+      spriteID: SpriteID.T1_SWORD,
       cost: 100,
       createdAt: new Date(),
     },
@@ -27,7 +28,7 @@ describe('Item Utility Functions', () => {
       power: 0,
       speed: 5,
       health: 20,
-      spriteID: 'armorSprite',
+      spriteID: SpriteID.T1_HEAVY_ARMOR,
       cost: 150,
       createdAt: new Date(),
     },
@@ -39,7 +40,7 @@ describe('Item Utility Functions', () => {
       power: 0,
       speed: 0,
       health: 20,
-      spriteID: 'potionSprite',
+      spriteID: SpriteID.HEALTH_POTION_SMALL,
       cost: 25,
       createdAt: new Date(),
     },
