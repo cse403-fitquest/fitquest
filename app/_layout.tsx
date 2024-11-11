@@ -32,23 +32,26 @@ export default function RootLayout() {
         }
 
         // Set user data
-        setUser(getUserResponse.data.user);
+        const userData = getUserResponse.data.user;
+        setUser(userData);
 
         // User is signed in
         console.log(
           'User is signed in as username:',
-          getUserResponse.data.user.profileInfo.username,
+          userData.profileInfo.username,
         );
 
         // Navigate to the appropriate screen
-        router.replace('/01-welcome' as Href);
+        if (userData.isOnboardingCompleted) {
+          router.replace('/profile' as Href);
+        } else {
+          router.replace('/01-welcome' as Href);
+        }
       } else {
         // User is signed out
         console.log('User is signed out');
 
-        // Clear user data
-        setUser(null);
-
+        console.log('Navigating to sign-in screen');
         // Navigate to the appropriate screen
         router.replace('/sign-in' as Href);
       }
