@@ -29,7 +29,7 @@ export enum SpriteID {
 
 export enum SpriteState {
   IDLE = 'idle',
-  WALK = 'walk',
+  MOVE = 'move',
   ATTACK_1 = 'attack_1',
   ATTACK_2 = 'attack_2',
   ATTACK_3 = 'attack_3',

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import FQModal from '@/components/FQModal';
 //import { User } from '@/types/user';
 import { Item, ItemType } from '@/types/item';
@@ -152,10 +152,10 @@ const Profile = () => {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 
-  // Helper function to fill missing user fields
-  useEffect(() => {
-    // void fillMissingUserFields();
-  }, []);
+  // Helper function to fill missing user fields in DB
+  // useEffect(() => {
+  //   void fillMissingUserFields();
+  // }, []);
 
   const { user, setUser } = useUserStore();
   const { resetSocialStore } = useSocialStore();
@@ -183,14 +183,16 @@ const Profile = () => {
   };
 
   const handleSignOut = async () => {
+    console.log('Signing out...');
     const signOutResponse = await signOut();
 
+    console.log('Sign out response:', signOutResponse);
     if (signOutResponse.error) {
       Alert.alert('Error signing out', signOutResponse.error);
     }
 
+    setUser(null);
     resetSocialStore();
-    return;
   };
 
   const handleUpdateProfile = async () => {
@@ -226,6 +228,10 @@ const Profile = () => {
     setIsSettingsVisible(false);
   };
 
+  if (!user) {
+    return;
+  }
+
   return (
     <SafeAreaView className=" bg-offWhite">
       <ScrollView className="w-full h-full px-6 py-8">
@@ -251,7 +257,7 @@ const Profile = () => {
         <View className="items-center justify-center h-[160px] overflow-hidden mb-10">
           <View className="absolute bottom-0">
             <AnimatedSprite
-              id={AnimatedSpriteID.HERO_20}
+              id={user?.spriteID || AnimatedSpriteID.HERO_20}
               state={SpriteState.IDLE}
               width={200}
               height={200}

@@ -9,18 +9,25 @@ interface IAnimatedSprite {
   state: SpriteState;
   width?: number;
   height?: number;
+  duration?: number;
+  direction?: 'left' | 'right';
+  delay?: number;
   className?: string;
 }
 
 export const AnimatedSprite: FC<IAnimatedSprite> = ({
   id,
-  width,
-  height,
+  state = SpriteState.IDLE,
+  width = 96,
+  height = 96,
+  duration = 1000,
+  direction = 'right',
+  delay = 0,
   className,
 }) => {
-  const frameWidth = width ?? 96; // Width of each frame
-  const frameHeight = height ?? 96; // Height of each frame
-  const animationDuration = 1000; // Total animation duration in ms
+  const frameWidth = width; // Width of each frame
+  const frameHeight = height; // Height of each frame
+  const animationDuration = duration; // Total animation duration in ms
 
   const totalFramesHorizontal = useMemo(() => {
     if (isHeroSprite(id)) {
@@ -154,15 +161,73 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
     }
   }, [id]);
 
+  // Calculate the frame index based on the sprite state
+  const stateFrameIndex = useMemo(() => {
+    if (state === SpriteState.IDLE) {
+      return 0;
+    } else if (state === SpriteState.MOVE) {
+      return 1;
+    }
+
+    // Each sprite sheet has a different number of frames for each state
+    if (isHeroSprite(id)) {
+      switch (state) {
+        case SpriteState.ATTACK_1:
+          return 2;
+        case SpriteState.DAMAGED:
+          return 8;
+        default:
+          return 0;
+      }
+    } else if (isMonsterSprite(id)) {
+      switch (state) {
+        case SpriteState.ATTACK_1:
+          return 2;
+        case SpriteState.DAMAGED:
+          return 3;
+        case SpriteState.DEATH:
+          return 4;
+        default:
+          return 0;
+      }
+    } else if (isBossSprite(id)) {
+      switch (state) {
+        case SpriteState.ATTACK_1:
+          return 2;
+        case SpriteState.ATTACK_2:
+          return 3;
+        case SpriteState.DAMAGED:
+          return 4;
+        case SpriteState.DEATH:
+          return 5;
+        default:
+          return 0;
+      }
+    }
+
+    return 0;
+  }, [id, state]);
+
   useEffect(() => {
-    Animated.loop(
+    const loopAnimation = () =>
       Animated.timing(animatedValue, {
         toValue: -frameWidth * (totalFramesHorizontal - 1), // Move to the last frame
         duration: animationDuration,
+        delay: duration / totalFramesHorizontal,
         easing: Easing.steps(totalFramesHorizontal - 1), // Move up to the last frame
         useNativeDriver: true,
-      }),
-    ).start();
+      }).start(() => {
+        animatedValue.setValue(0); // Reset value after animation completes
+        loopAnimation(); // Start the animation again
+      });
+
+    setTimeout(() => {
+      loopAnimation();
+    }, delay);
+
+    return () => {
+      animatedValue.stopAnimation();
+    };
   }, [animatedValue, frameWidth, totalFramesHorizontal, animationDuration]);
 
   return (
@@ -170,18 +235,34 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
       style={{
         width: frameWidth,
         height: frameHeight,
+        overflow: 'hidden',
+        transform: [
+          {
+            scaleX: direction === 'left' ? -1 : 1,
+          },
+        ],
       }}
-      className={`top-0 left-0 overflow-hidden ${className}`}
+      className={`relative top-0 ${className}`}
     >
       <Animated.Image
         source={spriteSource}
         style={[
           {
-            top: 0,
-            left: 0,
+            position: 'absolute',
+            top: -1,
+            left: direction === 'right' ? 0 : undefined,
+            right:
+              direction === 'left'
+                ? -frameWidth * totalFramesHorizontal + frameWidth
+                : undefined,
             width: frameWidth * totalFramesHorizontal, // Total width of the sprite sheet
             height: frameHeight * totalFramesVertical, // Total height of the sprite sheet
-            transform: [{ translateX: animatedValue }],
+            transform: [
+              { translateX: animatedValue },
+              {
+                translateY: -frameHeight * stateFrameIndex,
+              },
+            ],
           },
         ]}
       />

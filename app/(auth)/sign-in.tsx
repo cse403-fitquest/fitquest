@@ -100,26 +100,24 @@ const SignIn = () => {
     // No need for try-catch block since signIn function handles errors
     const signInResponse = await signIn(form.email, form.password);
 
-    if (signInResponse.error) {
+    if (signInResponse.success && !signInResponse.error) {
+      // If there is no error, reset the form and save the user to global state
+      resetForm();
+    } else {
       setErrors({
         ...errors,
-        general: signInResponse.error,
+        general: signInResponse.error ?? 'An error occurred while signing in',
       });
 
       if (signInResponse.success) {
-        Alert.alert('Sign In Error', signInResponse.error);
+        Alert.alert(
+          'Sign In Error',
+          signInResponse.error ?? 'An error occurred while signing in',
+        );
       }
-    } else {
-      // If there is no error, reset the form and save the user to global state
-      resetForm();
 
-      // Set the user to global state
-      if (!signInResponse.success) {
-        Alert.alert('Sign In Error', 'An error occurred while signing in');
-      }
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const renderSignInButtonContent = () => {
