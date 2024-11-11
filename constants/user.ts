@@ -24,4 +24,5 @@ export const BASE_USER: User = {
   },
   attributePoints: 0,
   createdAt: new Date(),
+  isOnboardingCompleted: false,
 };

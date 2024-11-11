@@ -38,22 +38,22 @@ const OnboardingIntensity = () => {
             radioButtons={[
               {
                 id: '1',
-                label: 'Light (casual walking)',
+                label: 'Light (feels effortless)',
                 value: '0',
               },
               {
                 id: '2',
-                label: 'Moderate (easy jogging)',
+                label: 'Moderate (some effort)',
                 value: '1',
               },
               {
                 id: '3',
-                label: 'Vigorous (fast cycling)',
+                label: 'Vigorous (demanding effort)',
                 value: '2',
               },
               {
                 id: '4',
-                label: 'Intense (heavy powerlifting)',
+                label: 'Intense (maximal effort)',
                 value: '3',
               },
             ]}

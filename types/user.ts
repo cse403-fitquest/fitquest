@@ -32,4 +32,5 @@ export type User = {
     isCurrentQuestPublic: boolean;
   };
   createdAt: Date;
+  isOnboardingCompleted: boolean;
 };

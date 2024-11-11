@@ -77,7 +77,7 @@ const OnboardingFitnessLevel = () => {
               setCurrentPoints(0);
               setSpriteID(AnimatedSpriteID.HERO_01);
 
-              router.replace('./03-frequency');
+              router.replace('./02-before-begin');
             }}
           >
             <Text className="text-lg font-black text-gray">

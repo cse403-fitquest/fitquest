@@ -1,4 +1,11 @@
-import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  SafeAreaView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import FQButton from '@/components/FQButton';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
@@ -6,11 +13,15 @@ import { router } from 'expo-router';
 import { useOnboardingStore } from '@/store/onboarding';
 import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { getUser, updateUserProfile } from '@/services/user';
+import { useUserStore } from '@/store/user';
 
 const OnboardingChooseAvatar = () => {
-  const { spriteID, setSpriteID } = useOnboardingStore();
-
   const [currentSpriteID, setCurrentSpriteID] = useState<number>(1);
+  const [loading, setLoading] = useState(false);
+
+  const { user, setUser } = useUserStore();
+  const { attributes, spriteID, setSpriteID } = useOnboardingStore();
 
   useEffect(() => {
     switch (spriteID) {
@@ -208,7 +219,54 @@ const OnboardingChooseAvatar = () => {
     }
   }, [currentSpriteID]);
 
-  const handleStartJourney = () => {};
+  const handleStartJourney = async () => {
+    if (!user) {
+      Alert.alert('Error', 'User not found. Please try again.');
+      return;
+    }
+
+    setLoading(true);
+    const updateUserProfileResponse = await updateUserProfile(user.id, {
+      spriteID: spriteID,
+      attributes: attributes,
+      isOnboardingCompleted: true,
+    });
+
+    const getUserResponse = await getUser(user.id);
+
+    if (getUserResponse.success && getUserResponse.data) {
+      setUser(getUserResponse.data.user);
+    } else {
+      Alert.alert(
+        'Error',
+        getUserResponse.error ?? 'An error occurred. Please try again.',
+      );
+    }
+
+    setLoading(false);
+
+    if (updateUserProfileResponse.success) {
+      router.replace('/profile');
+    } else {
+      Alert.alert(
+        'Error',
+        updateUserProfileResponse.error ??
+          'An error occurred. Please try again.',
+      );
+    }
+  };
+
+  const renderStartJourneyButtonContent = () => {
+    if (loading) {
+      return (
+        <View className="h-full justify-center items-center">
+          <ActivityIndicator size="small" color="white" />
+        </View>
+      );
+    }
+
+    return 'START YOUR JOURNEY';
+  };
 
   return (
     <SafeAreaView className="relative w-full h-full px-10 py-8 justify-center items-center">
@@ -260,12 +318,17 @@ const OnboardingChooseAvatar = () => {
           </Text>
         </View>
 
-        <FQButton onPress={handleStartJourney} className="mb-5">
-          START YOUR JOURNEY
+        <FQButton
+          onPress={handleStartJourney}
+          className="mb-5"
+          disabled={loading}
+        >
+          {renderStartJourneyButtonContent()}
         </FQButton>
         <FQButton
           onPress={() => router.replace('./08-allocate-points')}
           secondary
+          disabled={loading}
         >
           BACK
         </FQButton>
