@@ -17,6 +17,7 @@ interface Quest {
   duration: number;
   createdAt?: '';
   expiredAt?: '';
+  bossDefeated: boolean; // New flag for boss defeat status
 }
 
 interface ActiveQuest {
@@ -27,6 +28,7 @@ interface ActiveQuest {
   timer: number;
   bossThreshold: number;
   spriteId: AnimatedSpriteID;
+  bossDefeated: boolean;
 }
 
 export const quests = [
@@ -77,6 +79,7 @@ const startQuest = async (
       timer: Date.now(),
       bossThreshold: selectedQuest.bossThreshold,
       spriteId: selectedQuest.spriteId,
+      bossDefeated: false,
     };
     await AsyncStorage.setItem(
       'activeQuest',
@@ -175,7 +178,7 @@ const Quest = () => {
 
       if (nextMilestone) {
         const updatedQuest = { ...activeQuest, progress: nextMilestone };
-        const isBoss = nextMilestone >= activeQuest.bossThreshold;
+        const isBoss = nextMilestone === activeQuest.bossThreshold;
         const uniqueKey = Date.now();
 
         router.replace({
@@ -215,20 +218,13 @@ const Quest = () => {
         spriteId: quest.spriteId,
         createdAt: '',
         expiredAt: '',
+        bossDefeated: false,
       },
       progress,
     );
 
     // Add the "start" node as the first milestone visually
     const visualMilestones = [startingPoint, ...nextMilestones];
-
-    // const isBossNearby = visualMilestones.some(
-    //   (milestone) =>
-    //     milestone !== 'start' &&
-    //     typeof milestone === 'number' &&
-    //     milestone >= quest.bossThreshold &&
-    //     milestone <= quest.bossThreshold + 300,
-    // );
 
     const percentage = calculateQuestPercentage(quest, progress);
 
@@ -258,7 +254,7 @@ const Quest = () => {
                     borderColor: '#404040',
                   }}
                 />
-              ) : milestone === quest.bossThreshold ? (
+              ) : milestone === quest.bossThreshold && !quest.bossDefeated ? (
                 <View style={{ width: 48, height: 48 }}>
                   <AnimatedSprite
                     id={
@@ -272,6 +268,7 @@ const Quest = () => {
                   />
                 </View>
               ) : (
+                // Display normal fight sprite for all other nodes
                 <View style={{ width: 32, height: 32 }}>
                   <AnimatedSprite
                     id={
@@ -290,7 +287,9 @@ const Quest = () => {
                   Start
                 </Text>
               ) : milestone === quest.bossThreshold ? (
-                <Text className="text-sm text-red-500 mt-2 font-bold"></Text>
+                <Text className="text-sm text-red-500 mt-2 font-bold">
+                  Boss
+                </Text>
               ) : null}
             </View>
           ))}
