@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, View, Text, Pressable, Modal } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+import { AnimatedSprite } from '@/components/AnimatedSprite';
 
 const initialPlayer = {
+  id: '',
   name: 'Player',
-  health: 1000,
-  attack: 2500,
-  defense: 5,
+  health: 100,
+  power: 10000,
 };
 
 const questThemes = {
@@ -14,41 +16,62 @@ const questThemes = {
     backgroundColor: '#FFE4E1',
     bossBackground: '#FF6B6B',
     normalMonsters: [
-      { name: 'Baby Chungus', health: 80, attack: 8, defense: 3 },
-      { name: 'Chungus Jr.', health: 85, attack: 9, defense: 4 },
-      { name: 'Chungling', health: 75, attack: 7, defense: 2 },
+      {
+        name: 'Baby Chungus',
+        maxHealth: 80,
+        health: 80,
+        power: 8,
+        spriteId: AnimatedSpriteID.SLIME_GREEN,
+      },
+      {
+        name: 'Chungus Jr.',
+        maxHealth: 85,
+        health: 85,
+        power: 9,
+        spriteId: AnimatedSpriteID.SLIME_BLUE,
+      },
+      {
+        name: 'Chungling',
+        maxHealth: 75,
+        health: 75,
+        power: 7,
+        spriteId: AnimatedSpriteID.SLIME_RED,
+      },
     ],
-    boss: { name: 'Big Chungus', health: 200, attack: 15, defense: 8 },
+    boss: {
+      name: 'Big Chungus',
+      maxHealth: 200,
+      health: 200,
+      power: 15,
+      spriteId: AnimatedSpriteID.MINOTAUR_RED,
+    },
   },
   '2': {
     backgroundColor: '#E6E6FA',
     bossBackground: '#9370DB',
     normalMonsters: [
-      { name: 'One-Toe Bandit', health: 70, attack: 9, defense: 2 },
-      { name: 'Three-Toe Thug', health: 85, attack: 7, defense: 4 },
-      { name: 'Four-Toe Fighter', health: 80, attack: 8, defense: 3 },
+      {
+        name: 'Flaming Skull',
+        maxHealth: 70,
+        health: 70,
+        power: 9,
+        spriteId: AnimatedSpriteID.FIRE_SKULL_RED,
+      },
+      {
+        name: 'Firey Skull',
+        maxHealth: 85,
+        health: 85,
+        power: 7,
+        spriteId: AnimatedSpriteID.FIRE_SKULL_BLUE,
+      },
     ],
-    boss: { name: 'Jimmy Two-Toes', health: 180, attack: 14, defense: 7 },
-  },
-  '3': {
-    backgroundColor: '#98FF98',
-    bossBackground: '#2E8B57',
-    normalMonsters: [
-      { name: 'Swamp Crawler', health: 75, attack: 8, defense: 3 },
-      { name: 'Marsh Beast', health: 85, attack: 7, defense: 4 },
-      { name: 'Bog Creature', health: 80, attack: 9, defense: 2 },
-    ],
-    boss: { name: 'The Swamp Hydra', health: 220, attack: 16, defense: 9 },
-  },
-  '4': {
-    backgroundColor: '#FFFACD',
-    bossBackground: '#FFD700',
-    normalMonsters: [
-      { name: 'Static Imp', health: 70, attack: 9, defense: 2 },
-      { name: 'Thunder Goblin', health: 85, attack: 7, defense: 4 },
-      { name: 'Storm Troll', health: 80, attack: 8, defense: 3 },
-    ],
-    boss: { name: 'The Lightning Ogre', health: 190, attack: 17, defense: 6 },
+    boss: {
+      name: 'Jimmy Two-Toes',
+      maxHealth: 180,
+      health: 180,
+      power: 14,
+      spriteId: AnimatedSpriteID.CHOMPBUG_GREEN,
+    },
   },
 };
 
@@ -69,17 +92,13 @@ const Combat = () => {
   const [player, setPlayer] = useState(initialPlayer);
   const [monster, setMonster] = useState(() => {
     if (isBoss === 'true') {
-      return {
-        name: currentQuest.boss.name,
-        health: currentQuest.boss.health,
-        attack: currentQuest.boss.attack,
-      };
+      return { ...currentQuest.boss };
     } else {
-      return {
-        name: 'Monster',
-        health: 100,
-        attack: 15,
-      };
+      const randomMonster =
+        currentQuest.normalMonsters[
+          Math.floor(Math.random() * currentQuest.normalMonsters.length)
+        ];
+      return { ...randomMonster };
     }
   });
   const [combatLog, setCombatLog] = useState<string[]>([]);
@@ -93,8 +112,8 @@ const Combat = () => {
     large: 1,
   });
 
-  const NORMAL_ATTACK = 20;
-  const STRONG_ATTACK = 35;
+  // const NORMAL_ATTACK = 20;
+  // const STRONG_ATTACK = 35;
   const SMALL_POTION_HEAL = 30;
   const LARGE_POTION_HEAL = 70;
 
@@ -127,9 +146,12 @@ const Combat = () => {
         ...prev,
         exp: 0 + expGained,
       }));
+
+      router.replace(`/(tabs)/quest`);
+    } else {
+      router.replace('/(tabs)/quest');
+      resetCombatState();
     }
-    resetCombatState();
-    router.back();
   };
 
   useEffect(() => {
@@ -145,7 +167,7 @@ const Combat = () => {
   const handleAttack = async (isStrong = false) => {
     if (!isPlayerTurn || isAnimating) return;
 
-    const damage = isStrong ? STRONG_ATTACK : NORMAL_ATTACK;
+    const damage = isStrong ? Math.floor(player.power * 1.5) : player.power;
 
     if (isStrong && strongAttackCooldown > 0) {
       setCombatLog((prev) => [...prev, 'Strong attack is on cooldown!']);
@@ -170,7 +192,7 @@ const Combat = () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const monsterDamage = currentQuest.boss.attack;
+    const monsterDamage = monster.power;
     setPlayer((prev) => ({
       ...prev,
       health: Math.max(0, prev.health - monsterDamage),
@@ -209,7 +231,7 @@ const Combat = () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const monsterDamage = currentQuest.boss.attack;
+    const monsterDamage = monster.power;
     setPlayer((prev) => ({
       ...prev,
       health: Math.max(0, prev.health - monsterDamage),
@@ -239,46 +261,64 @@ const Combat = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 p-4">
+    <SafeAreaView className="flex-1 p-4 pb-20">
       <View className="h-2 bg-gray-200 rounded-full mb-8">
         <View className="h-full bg-blue-500 rounded-full w-1/2" />
       </View>
 
       <Text className="text-2xl font-bold text-center mb-6">{questName}</Text>
-
       <View className="flex-1">
-        <View className="items-center mb-8">
-          <View
-            className={`w-20 h-20 rounded-full ${isBoss === 'true' ? 'bg-red-500' : 'bg-green-500'} mb-2`}
-          />
-          <Text className="text-lg font-bold mb-1">{monster.name}</Text>
-          <View className="w-32 h-2 bg-gray-200 rounded-full">
-            <View
-              className="h-full bg-green-500 rounded-full"
-              style={{
-                width: `${(monster.health / currentQuest.boss.health) * 100}%`,
-              }}
+        <View className="flex-row justify-between items-start mb-8">
+          <View className="w-1/2 pr-4 border border-gray p-5 rounded">
+            <Text className="text-lg font-bold mb-1">{monster.name}</Text>
+            <View className="w-full h-4 bg-gray rounded-full overflow-hidden b-black border border-black border-2">
+              <View
+                className="h-full bg-green"
+                style={{
+                  width: `${(monster.health / monster.maxHealth!) * 100}%`,
+                }}
+              />
+            </View>
+            <Text className="text-sm mt-1">
+              HP: {monster.health}/
+              {isBossFight ? currentQuest.boss.health : monster.maxHealth}
+            </Text>
+          </View>
+
+          <View className="w-1/2 items-end">
+            <AnimatedSprite
+              id={monster.spriteId}
+              width={120}
+              height={120}
+              state={SpriteState.IDLE}
             />
           </View>
-          <Text className="text-sm">
-            HP: {monster.health}/{currentQuest.boss.health}
-          </Text>
         </View>
 
-        <View className="items-center">
-          <View className="w-20 h-20 rounded-full bg-blue-500 mb-2" />
-          <Text className="text-lg font-bold mb-1">{player.name}</Text>
-          <View className="w-32 h-2 bg-gray-200 rounded-full">
-            <View
-              className="h-full bg-green-500 rounded-full"
-              style={{
-                width: `${(player.health / initialPlayer.health) * 100}%`,
-              }}
+        <View className="flex-row justify-between items-end mt-auto mb-8">
+          <View className="w-1/2">
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_20}
+              width={120}
+              height={120}
+              state={SpriteState.IDLE}
             />
           </View>
-          <Text className="text-sm">
-            HP: {player.health}/{initialPlayer.health}
-          </Text>
+
+          <View className="w-1/2 pl-4 border border-gray p-5 rounded">
+            <Text className="text-lg font-bold mb-1">{player.name}</Text>
+            <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
+              <View
+                className="h-full bg-green"
+                style={{
+                  width: `${(player.health / initialPlayer.health) * 100}%`,
+                }}
+              />
+            </View>
+            <Text className="text-sm mt-1">
+              HP: {player.health}/{initialPlayer.health}
+            </Text>
+          </View>
         </View>
       </View>
 
