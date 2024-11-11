@@ -8,19 +8,18 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import FQModal from '@/components/FQModal';
 //import { User } from '@/types/user';
+import clsx from 'clsx';
 import { Item, ItemType } from '@/types/item';
 import { updateUserProfile } from '@/services/user';
 import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useSocialStore } from '@/store/social';
 //import { BASE_USER } from '@/constants/user';
-import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
-import { Sprite } from '@/components/Sprite';
+import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
-import clsx from 'clsx';
 
 // import { fillMissingUserFields } from '@/services/user';
 
@@ -34,7 +33,7 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 5,
     speed: -1,
     health: 0,
-    spriteID: SpriteID.T1_SWORD,
+    spriteID: 'sword-sprite',
     createdAt: new Date(Date.now()),
   },
   {
@@ -46,7 +45,7 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 0,
     speed: -2,
     health: 5,
-    spriteID: SpriteID.T1_SHIELD,
+    spriteID: 'shield-sprite',
     createdAt: new Date(Date.now()),
   },
   {
@@ -58,19 +57,19 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 0,
     speed: 0,
     health: 3,
-    spriteID: SpriteID.T1_HELM,
+    spriteID: 'helmet-sprite',
     createdAt: new Date(Date.now()),
   },
   {
     id: '4',
-    name: 'Chestplate',
+    name: 'Boots',
     type: ItemType.ACCESSORY,
     cost: 60,
-    description: 'Heavy armor',
+    description: 'Speedy boots',
     power: 0,
     speed: 2,
     health: 0,
-    spriteID: SpriteID.T1_HEAVY_ARMOR,
+    spriteID: 'boots-sprite',
     createdAt: new Date(Date.now()),
   },
   {
@@ -82,7 +81,7 @@ const MOCK_EQUIPPED_ITEMS: Item[] = [
     power: 0,
     speed: 0,
     health: 5,
-    spriteID: SpriteID.HEALTH_POTION_SMALL,
+    spriteID: 'potion-sprite',
     createdAt: new Date(Date.now()),
   },
 ];
@@ -126,7 +125,7 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
       <TouchableOpacity
         onPress={onPress}
         className={clsx(
-          'relative rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2 justify-center items-center',
+          'rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2',
           {
             'bg-red-800': item.type === ItemType.WEAPON,
             'bg-blue': item.type === ItemType.ARMOR,
@@ -138,9 +137,7 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
             ].includes(item.type),
           },
         )}
-      >
-        <Sprite id={item.spriteID} width={70} height={70} />
-      </TouchableOpacity>
+      ></TouchableOpacity>
       <Text className="text-lg text-gold mb-5 font-semibold">
         {item.cost} Gold
       </Text>
@@ -152,10 +149,10 @@ const Profile = () => {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 
-  // Helper function to fill missing user fields in DB
-  // useEffect(() => {
-  //   void fillMissingUserFields();
-  // }, []);
+  // Helper function to fill missing user fields
+  useEffect(() => {
+    // void fillMissingUserFields();
+  }, []);
 
   const { user, setUser } = useUserStore();
   const { resetSocialStore } = useSocialStore();
@@ -183,16 +180,14 @@ const Profile = () => {
   };
 
   const handleSignOut = async () => {
-    console.log('Signing out...');
     const signOutResponse = await signOut();
 
-    console.log('Sign out response:', signOutResponse);
     if (signOutResponse.error) {
       Alert.alert('Error signing out', signOutResponse.error);
     }
 
-    setUser(null);
     resetSocialStore();
+    return;
   };
 
   const handleUpdateProfile = async () => {
@@ -228,10 +223,6 @@ const Profile = () => {
     setIsSettingsVisible(false);
   };
 
-  if (!user) {
-    return;
-  }
-
   return (
     <SafeAreaView className=" bg-offWhite">
       <ScrollView className="w-full h-full px-6 py-8">
@@ -257,7 +248,7 @@ const Profile = () => {
         <View className="items-center justify-center h-[160px] overflow-hidden mb-10">
           <View className="absolute bottom-0">
             <AnimatedSprite
-              id={user?.spriteID || AnimatedSpriteID.HERO_20}
+              id={AnimatedSpriteID.HERO_20}
               state={SpriteState.IDLE}
               width={200}
               height={200}
