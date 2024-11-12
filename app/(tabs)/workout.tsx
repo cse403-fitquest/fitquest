@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 
 import { secondsToMinutes } from '@/utils/workout';
 import updateEXP from "@/services/workout"
@@ -50,6 +49,8 @@ const Workout = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
+  const [savedTemplates, setSavedTemplates] = useState<Exercise[][]>([]);
+
 
   // adds to selected
   const addExercise = (exercise: Exercise) => {
@@ -107,6 +108,10 @@ const Workout = () => {
     }
     return str;
   };
+
+  const saveWorkout = (workout: Exercise[]) => {
+    setSavedTemplates([...savedTemplates, workout])
+  }
 
   //constructor for a Template
   const Template = (title: string, exercises: Exercise[]) => {
@@ -347,6 +352,14 @@ const Workout = () => {
                 <Text className="text-xl text-grayDark font-bold mb-2">
                   SUGGESTED TEMPLATES
                 </Text>
+                  <FlatList
+                    data={savedTemplates}
+                    keyExtractor={(item, index) => item + '' + index}
+                    renderItem={({ item }) => (
+                      <Text style={templatestyles.dropdownItem}>{Template('New workout 1',item)}</Text>
+                    )}
+                    nestedScrollEnabled={true}
+                  />
                 {Template('doms push2', fillerworkoutsuggest)}
               </View>
             </View>
