@@ -34,7 +34,7 @@ interface ActiveQuest {
 export const quests = [
   {
     questId: '1',
-    name: 'Hunt Big Chungus',
+    name: 'Hunt Red Minotaur',
     questDescription: '',
     spriteId: AnimatedSpriteID.MINOTAUR_RED,
     milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),
@@ -45,7 +45,7 @@ export const quests = [
   },
   {
     questId: '2',
-    name: 'Hunt Jimmy Two-Toes',
+    name: 'Hunt Green Chompbug',
     questDescription: '',
     spriteId: AnimatedSpriteID.CHOMPBUG_GREEN,
     milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),

@@ -17,21 +17,21 @@ const questThemes = {
   '1': {
     normalMonsters: [
       {
-        name: 'Baby Chungus',
+        name: 'Green Slime',
         maxHealth: 80,
         health: 80,
         power: 8,
         spriteId: AnimatedSpriteID.SLIME_GREEN,
       },
       {
-        name: 'Chungus Jr.',
+        name: 'Blue Slime',
         maxHealth: 85,
         health: 85,
         power: 9,
         spriteId: AnimatedSpriteID.SLIME_BLUE,
       },
       {
-        name: 'Chungling',
+        name: 'Red Slime',
         maxHealth: 75,
         health: 75,
         power: 7,
@@ -39,7 +39,7 @@ const questThemes = {
       },
     ],
     boss: {
-      name: 'Big Chungus',
+      name: 'Red Minotaur',
       maxHealth: 200,
       health: 200,
       power: 15,
@@ -57,7 +57,7 @@ const questThemes = {
         spriteId: AnimatedSpriteID.FIRE_SKULL_RED,
       },
       {
-        name: 'Firey Skull',
+        name: 'Blue Flaming Skull',
         maxHealth: 85,
         health: 85,
         power: 7,
@@ -65,7 +65,7 @@ const questThemes = {
       },
     ],
     boss: {
-      name: 'Jimmy Two-Toes',
+      name: 'Green Chompbug',
       maxHealth: 180,
       health: 180,
       power: 14,
@@ -410,14 +410,33 @@ const Combat = () => {
           <View className="bg-white m-5 p-6 rounded-2xl w-[85%] items-center">
             {modalType === 'victory' ? (
               <>
-                <Text className="text-2xl font-bold mb-6">
+                <Text className="text-2xl font-bold">
                   You have defeated {isBossFight ? 'Boss' : 'the monster'}!
                 </Text>
 
-                <View className="h-32 w-full items-center justify-center mb-6 border-2 border-dashed border-gray-200 rounded-lg">
-                  <Text className="text-gray-400 italic">
-                    Victory Animation Here
-                  </Text>
+                <View className="w-full relative items-center justify-center h-[160px] overflow-hidden mb-10">
+                  <View className="absolute bottom-0 flex-row justify-center items-end">
+                    <View className="relative left-[25px]">
+                      <AnimatedSprite
+                        id={AnimatedSpriteID.HERO_20}
+                        state={SpriteState.ATTACK_1}
+                        width={120}
+                        height={120}
+                        duration={600}
+                      />
+                    </View>
+                    <View className="relative right-[25px]">
+                      <AnimatedSprite
+                        id={AnimatedSpriteID.SLIME_GREEN}
+                        state={SpriteState.DAMAGED}
+                        direction="left"
+                        width={150}
+                        height={150}
+                        duration={600}
+                        delay={200}
+                      />
+                    </View>
+                  </View>
                 </View>
 
                 <View className="mb-8">
