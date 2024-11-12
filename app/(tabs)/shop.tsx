@@ -232,7 +232,9 @@ const Shop = () => {
     return (
       <View>
         <View className="justify-center items-center h-24 my-5">
-          <Text>Item Sprite Here</Text>
+          <View className="justify-center items-center h-[120px] mt-3 mb-5">
+            <Sprite id={selectedItem.spriteID} width={120} height={120} />
+          </View>
         </View>
         <Text className="mb-2">{selectedItem.description}</Text>
         <Text className="mb-5">
