@@ -82,9 +82,92 @@ const Profile = () => {
     user?.profileInfo.weight?.toString() || '',
   );
 
-  const handleEquipItem = (item: Item) => {
-    // TODO: Implement actual equipping logic
-    console.log('Equipping item:', item);
+  const isItemEquipped = selectedItem
+    ? user?.equippedItems.includes(selectedItem.id)
+    : false;
+
+  // const handleEquipItem = (item: Item) => {
+  //   // TODO: Implement actual equipping logic
+  //   console.log('Equipping item:', item);
+  //   setSelectedItem(null);
+  // };
+
+  // Function to handle equipping an item
+  const handleEquipItem = async (item: Item) => {
+    if (!user) return;
+
+    try {
+      // Determine the item's type
+      const itemType = item.type;
+
+      // Create a new array for equipped items
+      const newEquippedItems = [...user.equippedItems];
+
+      // Check if an item of the same type is already equipped
+      const existingItemIndex = newEquippedItems.findIndex((equippedItemId) => {
+        const equippedItem = items.find((i) => i.id === equippedItemId);
+        return equippedItem?.type === itemType;
+      });
+
+      if (existingItemIndex !== -1) {
+        // Replace the existing item with the new one
+        newEquippedItems[existingItemIndex] = item.id;
+      } else {
+        // Add the new item
+        newEquippedItems.push(item.id);
+      }
+
+      // Update the user's equipped items in Firestore
+      const response = await updateUserProfile(user.id, {
+        equippedItems: newEquippedItems,
+      });
+
+      if (response.success) {
+        // Update the user in the store
+        setUser({
+          ...user,
+          equippedItems: newEquippedItems,
+        });
+        Alert.alert('Item equipped successfully');
+        console.log('after equip, newEquippedItems: ', newEquippedItems);
+      } else {
+        Alert.alert('Error equipping item', response.error || '');
+      }
+    } catch (error) {
+      console.error('Error equipping item:', error);
+      Alert.alert('Error', 'An error occurred while equipping the item.');
+    }
+
+    setSelectedItem(null);
+  };
+
+  const handleUnequipItem = async (item: Item) => {
+    if (!user) return;
+
+    try {
+      const newEquippedItems = user.equippedItems.filter(
+        (equippedItemId) => equippedItemId !== item.id,
+      );
+
+      const response = await updateUserProfile(user.id, {
+        equippedItems: newEquippedItems,
+      });
+
+      if (response.success) {
+        setUser({
+          ...user,
+          equippedItems: newEquippedItems,
+        });
+        Alert.alert('Item unequipped successfully');
+        console.log('after unequip, newEquippedItems: ', newEquippedItems);
+      } else {
+        Alert.alert('Error unequipping item', response.error || '');
+      }
+    } catch (error) {
+      console.error('Error unequipping item:', error);
+      Alert.alert('Error', 'An error occurred while unequipping the item.');
+    }
+
     setSelectedItem(null);
   };
 
@@ -371,10 +454,19 @@ const Profile = () => {
       <FQModal
         visible={selectedItem !== null}
         setVisible={(visible) => !visible && setSelectedItem(null)}
-        title={`Equip ${selectedItem?.name}`}
+        title={
+          isItemEquipped
+            ? `Unequip ${selectedItem?.name}`
+            : `Equip ${selectedItem?.name}`
+        }
         cancelText={'CANCEL'}
-        confirmText="EQUIP ITEM"
-        onConfirm={() => handleEquipItem(selectedItem!)}
+        onConfirm={() =>
+          selectedItem &&
+          (isItemEquipped
+            ? handleUnequipItem(selectedItem)
+            : handleEquipItem(selectedItem))
+        }
+        confirmText={isItemEquipped ? 'Unequip' : 'Equip'}
         onCancel={() => setSelectedItem(null)}
         subtitle={selectedItem?.type}
       >
