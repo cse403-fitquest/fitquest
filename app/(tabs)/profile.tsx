@@ -142,15 +142,15 @@ const Profile = () => {
   }
 
   // Get the user's items from the store
-  // const userItemIds = [
-  //   ...user.equipments,
-  //   ...user.consumables,
-  //   ...user.equippedItems,
-  // ];
+  const userItemIds = [
+    ...user.equipments,
+    ...user.consumables,
+    ...user.equippedItems,
+  ];
 
-  // const userItems = items.filter((item: { id: string }) =>
-  //   userItemIds.includes(item.id),
-  // );
+  const userItems = items.filter((item: { id: string }) =>
+    userItemIds.includes(item.id),
+  );
 
   return (
     <SafeAreaView className=" bg-offWhite">
@@ -227,9 +227,9 @@ const Profile = () => {
         {/* Items Grid */}
         <View className="mt-8">
           <Text className="font-bold mb-2 text-xl text-grayDark">ITEMS</Text>
-          {items.length > 0 ? (
+          {userItems.length > 0 ? (
             <View className="flex-row flex-wrap gap-y-4">
-              {items.map((item: Item) => (
+              {userItems.map((item: Item) => (
                 <View key={item.id} className="w-1/3 flex items-center">
                   <ItemCard item={item} onPress={() => setSelectedItem(item)} />
                 </View>
