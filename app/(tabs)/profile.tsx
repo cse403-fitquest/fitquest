@@ -10,14 +10,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import FQModal from '@/components/FQModal';
-//import { User } from '@/types/user';
 import { Item, ItemType } from '@/types/item';
 import { updateUserProfile } from '@/services/user';
 import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useItemStore } from '@/store/item';
 import { useSocialStore } from '@/store/social';
-//import { BASE_USER } from '@/constants/user';
 import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
 import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
@@ -45,8 +43,7 @@ const ItemCard = ({ item, onPress, isEquipped }: ItemCardProps) => {
               ItemType.POTION_MEDIUM,
               ItemType.POTION_LARGE,
             ].includes(item.type),
-            'border-yellow-800 border-10': isEquipped, // Change border color if equipped
-            'border-4': isEquipped, // Optional: Increase border width if equipped
+            'border-4': isEquipped, // Increase border width if equipped
           },
         )}
       >
@@ -89,12 +86,6 @@ const Profile = () => {
   const isItemEquipped = selectedItem
     ? user?.equippedItems.includes(selectedItem.id)
     : false;
-
-  // const handleEquipItem = (item: Item) => {
-  //   // TODO: Implement actual equipping logic
-  //   console.log('Equipping item:', item);
-  //   setSelectedItem(null);
-  // };
 
   // Function to handle equipping an item
   const handleEquipItem = async (item: Item) => {
@@ -278,7 +269,7 @@ const Profile = () => {
           </View>
 
           <Text className="text-xs text-center text-gray-500 mt-1 mb-4">
-            300 EXP TILL LEVEL
+            300 EXP TILL LEVEL 10
           </Text>
         </View>
 
@@ -291,19 +282,19 @@ const Profile = () => {
               <Text className="text-gray-500">
                 Power: {user?.attributes.power}
               </Text>
-              <Ionicons name="information-circle-outline" size={16} />
+              <Ionicons name="information-circle-outline" size={24} />
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-500">
                 Speed: {user?.attributes.speed}
               </Text>
-              <Ionicons name="information-circle-outline" size={16} />
+              <Ionicons name="information-circle-outline" size={24} />
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-500">
                 Health: {user?.attributes.health}
               </Text>
-              <Ionicons name="information-circle-outline" size={16} />
+              <Ionicons name="information-circle-outline" size={24} />
             </View>
           </View>
         </View>
