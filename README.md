@@ -226,16 +226,16 @@ This app was built with the following technologies:
    - [ ] Attributes & inventory
    - [ ] Workouts per week graph
 - [ ] Implement Workout
-   - [ ] Active workout session
+   - [x] Active workout session
    - [ ] Workout templates
    - [ ] Calculate exp gain from workout
-- [ ] Implement Quest
-   - [ ] Active quest
-   - [ ] Available quests this week
-- [ ] Implement Fight
-   - [ ] Speed turn system
-   - [ ] Player and enemy sprite animations
-   - [ ] Player turn actions
+- [x] Implement Quest
+   - [x] Active quest
+   - [x] Available quests this week
+- [x] Implement Fight
+   - [x] Speed turn system
+   - [x] Player and enemy sprite animations
+   - [x] Player turn actions
 - [x] Implement Shop
    - [x] Consumables and inventory items
    - [x] Confirmation on item purchase
