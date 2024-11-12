@@ -755,6 +755,19 @@ const Profile = () => {
                 const newStats = isItemEquipped
                   ? calculateNewStats(selectedItem, 'unequip')
                   : calculateNewStats(selectedItem, 'equip');
+
+                const getStatColor = (
+                  current: number,
+                  newStat: number,
+                  isEquipping: boolean,
+                ) => {
+                  if (newStat === current) return 'text-black';
+                  if (isEquipping) {
+                    return newStat > current ? 'text-green' : 'text-red-500';
+                  } else {
+                    return newStat > current ? 'text-green' : 'text-red-500';
+                  }
+                };
                 return (
                   <>
                     {/* Power */}
@@ -770,15 +783,7 @@ const Profile = () => {
                           color="black"
                         />
                         <Text
-                          className={
-                            isItemEquipped
-                              ? newStats.power < totalStats.power
-                                ? 'text-red-500 text-lg'
-                                : 'text-green text-lg'
-                              : newStats.power > totalStats.power
-                                ? 'text-green text-lg'
-                                : 'text-red-500 text-lg'
-                          }
+                          className={`text-lg ${getStatColor(totalStats.power, newStats.power, isItemEquipped ?? false)}`}
                         >
                           {newStats.power}
                         </Text>
@@ -798,15 +803,7 @@ const Profile = () => {
                           color="black"
                         />
                         <Text
-                          className={
-                            isItemEquipped
-                              ? newStats.speed < totalStats.speed
-                                ? 'text-red-500 text-lg'
-                                : 'text-green text-lg'
-                              : newStats.speed > totalStats.speed
-                                ? 'text-green text-lg'
-                                : 'text-red-500 text-lg'
-                          }
+                          className={`text-lg ${getStatColor(totalStats.speed, newStats.speed, isItemEquipped ?? false)}`}
                         >
                           {newStats.speed}
                         </Text>
@@ -826,15 +823,7 @@ const Profile = () => {
                           color="black"
                         />
                         <Text
-                          className={
-                            isItemEquipped
-                              ? newStats.health < totalStats.health
-                                ? 'text-red-500 text-lg'
-                                : 'text-green text-lg'
-                              : newStats.health > totalStats.health
-                                ? 'text-green text-lg'
-                                : 'text-red-500 text-lg'
-                          }
+                          className={`text-lg ${getStatColor(totalStats.health, newStats.health, isItemEquipped ?? false)}`}
                         >
                           {newStats.health}
                         </Text>
