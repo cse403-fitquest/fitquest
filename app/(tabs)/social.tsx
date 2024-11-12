@@ -6,8 +6,9 @@ import {
   PanResponder,
   Animated,
   Alert,
+  RefreshControl,
 } from 'react-native';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Friend } from '@/types/social';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,25 +50,24 @@ const Social = () => {
   const { userFriend, setFriends, setPendingRequests, setSentRequests } =
     useSocialStore();
 
-  // Fetch user friends
-  useEffect(() => {
-    const fetchUserFriends = async () => {
-      console.log('Fetching user friends');
+  const [refreshing, setRefreshing] = React.useState(false);
 
-      if (!user?.id) {
-        return;
-      }
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    console.log('Refreshing friends list');
+    if (!user?.id) {
+      return;
+    }
 
-      // Fetch user friends
-      const userFriendsResponse = await getUserFriends(user?.id);
-      if (userFriendsResponse.success && userFriendsResponse.data) {
-        setFriends(userFriendsResponse.data.friends);
-        setPendingRequests(userFriendsResponse.data.pendingRequests);
-        setSentRequests(userFriendsResponse.data.sentRequests);
-      }
-    };
+    // Fetch user friends
+    const userFriendsResponse = await getUserFriends(user?.id);
+    if (userFriendsResponse.success && userFriendsResponse.data) {
+      setFriends(userFriendsResponse.data.friends);
+      setPendingRequests(userFriendsResponse.data.pendingRequests);
+      setSentRequests(userFriendsResponse.data.sentRequests);
+    }
 
-    fetchUserFriends();
+    setRefreshing(false);
   }, []);
 
   const modalData: {
@@ -504,6 +504,9 @@ const Social = () => {
         }
         ListFooterComponent={<View className="h-[10px]" />}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
     </SafeAreaView>
   );
