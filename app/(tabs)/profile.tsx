@@ -54,7 +54,7 @@ const ItemCard = ({ item, onPress, isEquipped }: ItemCardProps) => {
           </View>
         )}
       </TouchableOpacity>
-      <Text className="text-lg text-gold mb-5 font-semibold">{item.name}</Text>
+      <Text className="text-md text-black mb-5 font-semibold">{item.name}</Text>
     </View>
   );
 };
