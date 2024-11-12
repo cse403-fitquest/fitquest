@@ -163,22 +163,12 @@ const Social = () => {
 
     setLoading(true);
 
-    const acceptFriendRequestResponse = await acceptFriendRequest(
-      friend.id,
-      user?.id,
-    );
+    const oldPendingRequests = sections.find(
+      (section) => section.key === 'pendingRequests',
+    )?.data as Friend[];
 
-    setLoading(false);
-
-    if (!acceptFriendRequestResponse.success) {
-      // Handle error
-
-      Alert.alert(
-        'Error',
-        acceptFriendRequestResponse.error ?? 'Error accepting friend request',
-      );
-      return;
-    }
+    const oldFriends = sections.find((section) => section.key === 'friends')
+      ?.data as Friend[];
 
     // Accept request
     // Remove user from pendingRequests and add to friends
@@ -194,6 +184,27 @@ const Social = () => {
       ...(sections.find((section) => section.key === 'friends')
         ?.data as Friend[]),
     ]);
+
+    const acceptFriendRequestResponse = await acceptFriendRequest(
+      friend.id,
+      user?.id,
+    );
+
+    setLoading(false);
+
+    if (!acceptFriendRequestResponse.success) {
+      // Handle error
+
+      Alert.alert(
+        'Error',
+        acceptFriendRequestResponse.error ?? 'Error accepting friend request',
+      );
+
+      // Revert changes
+      setPendingRequests(oldPendingRequests);
+      setFriends(oldFriends);
+      return;
+    }
   };
 
   const handleDenyFriendRequest = async (friend: Friend) => {
@@ -204,6 +215,17 @@ const Social = () => {
     }
 
     setLoading(true);
+
+    const oldPendingRequests = sections.find(
+      (section) => section.key === 'pendingRequests',
+    )?.data as Friend[];
+
+    setPendingRequests(
+      (
+        sections.find((section) => section.key === 'pendingRequests')
+          ?.data as Friend[]
+      ).filter((user) => user.id !== friend.id),
+    );
 
     const denyFriendRequestResponse = await denyFriendRequest(
       friend.id,
@@ -219,15 +241,11 @@ const Social = () => {
         'Error',
         denyFriendRequestResponse.error ?? 'Error denying friend request',
       );
+
+      // Revert changes
+      setPendingRequests(oldPendingRequests);
       return;
     }
-
-    setPendingRequests(
-      (
-        sections.find((section) => section.key === 'pendingRequests')
-          ?.data as Friend[]
-      ).filter((user) => user.id !== friend.id),
-    );
   };
 
   const handleCancelFriendRequest = async (email: string) => {
@@ -427,6 +445,12 @@ const Social = () => {
 
       setLoading(true);
 
+      const oldSentRequests = [...sentRequests];
+
+      // Optimistically add email to sent requests
+      setSentRequests([...sentRequests, modalDataOption.email]);
+      setModalVisible(false);
+
       const sendFriendRequestResponse = await sendFriendRequest(
         user?.id,
         emailInput,
@@ -441,11 +465,13 @@ const Social = () => {
           'Error',
           sendFriendRequestResponse.error ?? 'Error sending friend request',
         );
+
+        // Revert changes
+        setSentRequests(oldSentRequests);
         return;
       }
 
       // Add email to sent requests
-      setSentRequests([...sentRequests, modalDataOption.email]);
     } else if (modalDataOption.option === ModalDataOptions.REMOVE_FRIEND) {
       // Remove friend
       // Remove user from friends
@@ -455,6 +481,18 @@ const Social = () => {
       }
 
       setLoading(true);
+
+      const oldFriends = sections.find((section) => section.key === 'friends')
+        ?.data as Friend[];
+
+      setFriends(
+        (
+          sections.find((section) => section.key === 'friends')
+            ?.data as Friend[]
+        ).filter((user) => user.id !== modalDataOption.friend?.id),
+      );
+
+      setModalVisible(false);
 
       const removeFriendResponse = await removeFriend(
         user?.id,
@@ -470,17 +508,12 @@ const Social = () => {
           'Error',
           removeFriendResponse.error ?? 'Error removing friend',
         );
+
+        // Revert changes
+        setFriends(oldFriends);
         return;
       }
-
-      setFriends(
-        (
-          sections.find((section) => section.key === 'friends')
-            ?.data as Friend[]
-        ).filter((user) => user.id !== modalDataOption.friend?.id),
-      );
     }
-    setModalVisible(false);
   };
 
   return (
