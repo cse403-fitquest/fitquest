@@ -15,105 +15,13 @@ import { Item, ItemType } from '@/types/item';
 import { updateUserProfile } from '@/services/user';
 import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
+import { useItemStore } from '@/store/item';
 import { useSocialStore } from '@/store/social';
 //import { BASE_USER } from '@/constants/user';
-import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
+import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import clsx from 'clsx';
-
-// import { fillMissingUserFields } from '@/services/user';
-
-const MOCK_EQUIPPED_ITEMS: Item[] = [
-  {
-    id: '1',
-    name: 'Sword',
-    type: ItemType.WEAPON,
-    cost: 100,
-    description: 'A basic sword',
-    power: 5,
-    speed: -1,
-    health: 0,
-    spriteID: SpriteID.T1_SWORD,
-    createdAt: new Date(Date.now()),
-  },
-  {
-    id: '2',
-    name: 'Shield',
-    type: ItemType.ARMOR,
-    cost: 150,
-    description: 'A basic shield',
-    power: 0,
-    speed: -2,
-    health: 5,
-    spriteID: SpriteID.T1_SHIELD,
-    createdAt: new Date(Date.now()),
-  },
-  {
-    id: '3',
-    name: 'Helmet',
-    type: ItemType.ARMOR,
-    cost: 80,
-    description: 'A sturdy helmet',
-    power: 0,
-    speed: 0,
-    health: 3,
-    spriteID: SpriteID.T1_HELM,
-    createdAt: new Date(Date.now()),
-  },
-  {
-    id: '4',
-    name: 'Chestplate',
-    type: ItemType.ACCESSORY,
-    cost: 60,
-    description: 'Heavy armor',
-    power: 0,
-    speed: 2,
-    health: 0,
-    spriteID: SpriteID.T1_HEAVY_ARMOR,
-    createdAt: new Date(Date.now()),
-  },
-  {
-    id: '5',
-    name: 'Potion',
-    type: ItemType.POTION_SMALL,
-    cost: 30,
-    description: 'A small health potion',
-    power: 0,
-    speed: 0,
-    health: 5,
-    spriteID: SpriteID.HEALTH_POTION_SMALL,
-    createdAt: new Date(Date.now()),
-  },
-];
-
-// Mock user data
-/*const MOCK_USER: User = {
-  ...BASE_USER,
-  id: 'mock-user-1',
-  profileInfo: {
-    email: 'cooldude1@email.com',
-    username: 'CoolDude1',
-    age: 25,
-    height: 5.9,
-    weight: 175,
-  },
-  spriteID: 'default-sprite',
-  attributes: {
-    power: 5,
-    speed: 5,
-    health: 7,
-  },
-  exp: 250,
-  gold: 500,
-  currentQuest: 'Hunt Big Chungus',
-  privacySettings: {
-    isLastWorkoutPublic: true,
-    isCurrentQuestPublic: true,
-  },
-  createdAt: new Date(),
-  attributePoints: 0,
-};*/
 
 interface ItemCardProps {
   item: Item;
@@ -158,6 +66,7 @@ const Profile = () => {
   // }, []);
 
   const { user, setUser } = useUserStore();
+  const { items } = useItemStore();
   const { resetSocialStore } = useSocialStore();
 
   const [isCurrentQuestPublic, setIsCurrentQuestPublic] = useState(
@@ -232,6 +141,17 @@ const Profile = () => {
     return;
   }
 
+  // Get the user's items from the store
+  // const userItemIds = [
+  //   ...user.equipments,
+  //   ...user.consumables,
+  //   ...user.equippedItems,
+  // ];
+
+  // const userItems = items.filter((item: { id: string }) =>
+  //   userItemIds.includes(item.id),
+  // );
+
   return (
     <SafeAreaView className=" bg-offWhite">
       <ScrollView className="w-full h-full px-6 py-8">
@@ -278,7 +198,7 @@ const Profile = () => {
           </Text>
         </View>
 
-        <View className=" mb-6">
+        <View className="mb-6">
           <Text className="font-bold text-xl text-grayDark mb-2">
             ATTRIBUTES
           </Text>
@@ -305,15 +225,21 @@ const Profile = () => {
         </View>
 
         {/* Items Grid */}
-        <View className="">
+        <View className="mt-8">
           <Text className="font-bold mb-2 text-xl text-grayDark">ITEMS</Text>
-          <View className="flex-row flex-wrap gap-y-4">
-            {MOCK_EQUIPPED_ITEMS.map((item) => (
-              <View key={item.id} className="w-1/3 flex items-center">
-                <ItemCard item={item} onPress={() => setSelectedItem(item)} />
-              </View>
-            ))}
-          </View>
+          {items.length > 0 ? (
+            <View className="flex-row flex-wrap gap-y-4">
+              {items.map((item: Item) => (
+                <View key={item.id} className="w-1/3 flex items-center">
+                  <ItemCard item={item} onPress={() => setSelectedItem(item)} />
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text className="text-gray-500">
+              You have no items. Visit the shop!
+            </Text>
+          )}
         </View>
 
         {/* Workouts per Week */}
