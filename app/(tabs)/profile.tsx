@@ -635,44 +635,65 @@ const Profile = () => {
           <View className="space-y-2">
             <View className="flex-row justify-between">
               <Text>Power: {selectedItem?.power}</Text>
+              <Text>--{'>'}</Text>
               <Text
                 className={
-                  selectedItem?.power && selectedItem.power > 0
-                    ? 'text-green-500'
-                    : 'text-red-500'
+                  isItemEquipped
+                    ? totalStats.power - (selectedItem?.power ?? 0) <
+                      totalStats.power
+                      ? 'text-red-500'
+                      : 'text-green'
+                    : totalStats.power + (selectedItem?.power ?? 0) >=
+                      totalStats.power
+                      ? 'text-green'
+                      : 'text-red-500'
                 }
               >
-                {selectedItem?.power && selectedItem.power > 0
-                  ? `+${selectedItem?.power}`
-                  : selectedItem?.power}
+                {isItemEquipped
+                  ? totalStats.power - (selectedItem?.power ?? 0)
+                  : totalStats.power + (selectedItem?.power ?? 0)}
               </Text>
             </View>
             <View className="flex-row justify-between">
               <Text>Speed: {selectedItem?.speed}</Text>
+              <Text>--{'>'}</Text>
               <Text
                 className={
-                  selectedItem?.speed && selectedItem.speed > 0
-                    ? 'text-green-500'
-                    : 'text-red-500'
+                  isItemEquipped
+                    ? totalStats.speed - (selectedItem?.speed ?? 0) <
+                      totalStats.speed
+                      ? 'text-red-500'
+                      : 'text-green'
+                    : totalStats.speed + (selectedItem?.speed ?? 0) >=
+                      totalStats.speed
+                      ? 'text-green'
+                      : 'text-red-500'
                 }
               >
-                {selectedItem?.speed && selectedItem.speed > 0
-                  ? `+${selectedItem?.speed}`
-                  : selectedItem?.speed}
+                {isItemEquipped
+                  ? totalStats.speed - (selectedItem?.speed ?? 0)
+                  : totalStats.speed + (selectedItem?.speed ?? 0)}
               </Text>
             </View>
             <View className="flex-row justify-between">
               <Text>Health: {selectedItem?.health}</Text>
+              <Text>--{'>'}</Text>
               <Text
                 className={
-                  selectedItem?.health && selectedItem.health > 0
-                    ? 'text-green-500'
-                    : 'text-red-500'
+                  isItemEquipped
+                    ? totalStats.health - (selectedItem?.health ?? 0) <
+                      totalStats.health
+                      ? 'text-red-500'
+                      : 'text-green'
+                    : totalStats.health + (selectedItem?.health ?? 0) >=
+                      totalStats.health
+                      ? 'text-green'
+                      : 'text-red-500'
                 }
               >
-                {selectedItem?.health && selectedItem.health > 0
-                  ? `+${selectedItem?.health}`
-                  : selectedItem?.health}
+                {isItemEquipped
+                  ? totalStats.health - (selectedItem?.health ?? 0)
+                  : totalStats.health + (selectedItem?.health ?? 0)}
               </Text>
             </View>
           </View>
@@ -696,13 +717,6 @@ const Profile = () => {
 
         <View className="py-4 w-[220px] relative">
           {getStatBreakdown(selectedStatForBreakdown)}
-
-          {statContributions.filter((c) => c[selectedStatForBreakdown] !== 0)
-            .length === 0 && (
-              <Text className="mt-4 text-center text-gray-500">
-                No items equipped that affect this stat.
-              </Text>
-            )}
         </View>
       </FQModal>
     </SafeAreaView>
