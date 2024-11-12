@@ -6,11 +6,11 @@ import {
   View,
   Modal,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { secondsToMinutes } from '@/utils/workout';
-import updateEXP from '@/services/workout';
+import { updateEXP } from '@/services/workout';
 import { useUserStore } from '@/store/user';
 
 const Workout = () => {
