@@ -74,6 +74,7 @@ export default function RootLayout() {
       <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="fight" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" />
     </Stack>
   );
