@@ -49,9 +49,6 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
       >
         <Sprite id={item.spriteID} width={70} height={70} />
       </TouchableOpacity>
-      <Text className="text-lg text-gold mb-5 font-semibold">
-        {item.cost} Gold
-      </Text>
     </View>
   );
 };
@@ -225,7 +222,7 @@ const Profile = () => {
         </View>
 
         {/* Items Grid */}
-        <View className="mt-8">
+        <View className="mt-2">
           <Text className="font-bold mb-2 text-xl text-grayDark">ITEMS</Text>
           {userItems.length > 0 ? (
             <View className="flex-row flex-wrap gap-y-4">
