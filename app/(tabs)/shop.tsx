@@ -1,4 +1,5 @@
 import {
+  Alert,
   FlatList,
   ScrollView,
   Text,
@@ -10,168 +11,142 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Item, ItemType } from '@/types/item';
 import {
   filterItemsByTypeAndSortByCost,
+  getUserHealthPotionsCountFromItems,
   isItemConsumable,
   itemTypeToString,
 } from '@/utils/item';
 import clsx from 'clsx';
 import FQModal from '@/components/FQModal';
-
-const currentDate = new Date();
-
-const MOCK_ITEMS: Item[] = [
-  {
-    id: 'fesfsgggdes',
-    type: ItemType.WEAPON,
-    name: 'Sword',
-    description: 'Sharp enough to solve most problems, but not all of them.',
-    power: 10,
-    speed: 7,
-    health: 0,
-    cost: 50,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'fsgfargergghs',
-    type: ItemType.WEAPON,
-    name: 'Axe',
-    description: "For when subtlety just isn't in your vocabulary.",
-    power: 15,
-    speed: 5,
-    health: 0,
-    cost: 75,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'y4ejrtasg',
-    type: ItemType.WEAPON,
-    name: 'Short Bow',
-    description: "Ideal for hitting things you don't want to get too close to.",
-    power: 10,
-    speed: 7,
-    health: 3,
-    cost: 75,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'gdsgsdg',
-    type: ItemType.WEAPON,
-    name: 'Long Bow',
-    description: "Turns 'social distancing' into an art form.",
-    power: 20,
-    speed: 1,
-    health: 0,
-    cost: 75,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'hdhthtrjj',
-    type: ItemType.ARMOR,
-    name: 'Leather Armor',
-    description: 'Soft on comfort, light on life-saving durability.',
-    power: 0,
-    speed: 2,
-    health: 10,
-    cost: 50,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'rjrjt',
-    type: ItemType.ARMOR,
-    name: 'Chainmail Armor',
-    description: 'Adds just enough jingle to scare off silent approaches.',
-    power: 0,
-    speed: 10,
-    health: 10,
-    cost: 75,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'gw5ye3he5h',
-    type: ItemType.ARMOR,
-    name: 'Steel Armor',
-    description: 'Feels like a hug… from a very heavy robot.',
-    power: 0,
-    speed: 5,
-    health: 15,
-    cost: 100,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'rherheb',
-    type: ItemType.ACCESSORY,
-    name: 'Rock Pendant',
-    description: 'Solid, dependable, and guaranteed to be hard as a rock.',
-    power: 5,
-    speed: 0,
-    health: 5,
-    cost: 100,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'afea4twegwerg',
-    type: ItemType.ACCESSORY,
-    name: 'Fire Pendant',
-    description: 'Adds a little heat to your style… and maybe your enemies.',
-    power: 5,
-    speed: 5,
-    health: 0,
-    cost: 100,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'gssgsgsgs',
-    type: ItemType.POTION_SMALL,
-    name: 'Small Health Potion',
-    description: 'Heals 10% of max health. A sip-sized fix for small troubles.',
-    power: 0,
-    speed: 0,
-    health: 0,
-    cost: 50,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'gssgsgsgsdsfs',
-    type: ItemType.POTION_MEDIUM,
-    name: 'Medium Health Potion',
-    description:
-      'Heals 15% of max health. For those medium-level problems in life (and death).',
-    power: 0,
-    speed: 0,
-    health: 0,
-    cost: 75,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-  {
-    id: 'gssgfsfsasgsgs',
-    type: ItemType.POTION_LARGE,
-    name: 'Large Health Potion',
-    description: "Heals 20% of max health. A full dose of 'not today, death!'",
-    power: 0,
-    speed: 0,
-    health: 0,
-    cost: 100,
-    spriteID: 'sword',
-    createdAt: currentDate,
-  },
-];
+import { useUserStore } from '@/store/user';
+import purchaseItem from '@/services/item';
+import { useItemStore } from '@/store/item';
+import { BASE_ITEM } from '@/constants/item';
+import { Sprite } from '@/components/Sprite';
 
 const Shop = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
+  const { items } = useItemStore();
+
+  const { user, setUser } = useUserStore();
+
+  const userEquipmentsIDs = user?.equipments || [];
+  const userConsumablesIDs = user?.consumables || [];
+
+  // Turn user equipments ids into actual items
+  const userEquipments = useMemo(() => {
+    return userEquipmentsIDs.map((id) => {
+      const equipment = items.find((item) => item.id === id);
+      if (!equipment) {
+        console.error('User equipment not found:', id);
+        return { ...BASE_ITEM, id: id, name: 'Unknown Equipment' };
+      }
+      return equipment;
+    });
+  }, [user, items]);
+
+  // Turn user consumables ids into actual items
+  const userConsumables = useMemo(() => {
+    return userConsumablesIDs.map((id) => {
+      const consumable = items.find((item) => item.id === id);
+      if (!consumable) {
+        console.error('User consumable not found:', id);
+        return { ...BASE_ITEM, id: id, name: 'Unknown Consumable' };
+      }
+      return consumable;
+    });
+  }, [user, items]);
+
+  const [
+    userSmallHealthPotCount,
+    userMediumHealthPotCount,
+    userLargeHealthPotCount,
+  ] = useMemo(() => {
+    return getUserHealthPotionsCountFromItems(userConsumables);
+  }, [user, userConsumables]);
+
+  const handlePurchaseItem = async () => {
+    if (!user || !selectedItem) return;
+
+    // Handle clicking back button on owned item
+    if (userEquipments.some((i) => i.id === selectedItem.id)) {
+      setModalVisible(false);
+      setSelectedItem(null);
+      return;
+    }
+
+    if (user.gold < selectedItem.cost) {
+      Alert.alert(
+        'Not enough gold',
+        `You need ${selectedItem.cost - user.gold} more gold to buy this.`,
+      );
+      return;
+    }
+
+    if (selectedItem && isItemConsumable(selectedItem)) {
+      // Close modal
+      console.log('Consumable:', selectedItem);
+
+      // Update user data
+      const oldUser = user;
+
+      setUser({
+        ...user,
+        gold: user.gold - selectedItem.cost,
+        consumables: [...userConsumablesIDs, selectedItem.id],
+      });
+
+      setModalVisible(false);
+      setSelectedItem(null);
+
+      const purchaseItemResponse = await purchaseItem(user.id, selectedItem.id);
+
+      if (!purchaseItemResponse.success) {
+        Alert.alert(
+          'Error',
+          purchaseItemResponse.error ?? 'Error purchasing equipment',
+        );
+
+        // Rollback user data
+        setUser(oldUser);
+        return;
+      }
+    } else {
+      // Buy and equip item
+      console.log('Equipment:', selectedItem);
+
+      // Update user data
+      const oldUser = user;
+
+      setUser({
+        ...user,
+        gold: user.gold - selectedItem.cost,
+        equipments: [...userEquipmentsIDs, selectedItem.id],
+      });
+
+      setModalVisible(false);
+      setSelectedItem(null);
+
+      const purchaseItemResponse = await purchaseItem(user.id, selectedItem.id);
+
+      if (!purchaseItemResponse.success) {
+        Alert.alert(
+          'Error',
+          purchaseItemResponse.error ?? 'Error purchasing consumable',
+        );
+
+        // Rollback user data
+        setUser(oldUser);
+        return;
+      }
+    }
+  };
+
   const modalChildren = useMemo(() => {
-    if (!selectedItem) return null;
+    if (!user || !selectedItem) return null;
+
+    const owned = userEquipments.some((i) => i.id === selectedItem.id);
 
     if (
       [ItemType.WEAPON, ItemType.ARMOR, ItemType.ACCESSORY].includes(
@@ -180,8 +155,8 @@ const Shop = () => {
     ) {
       return (
         <View>
-          <View className="justify-center items-center h-24 my-5">
-            <Text>Item Sprite Here</Text>
+          <View className="justify-center items-center h-[120px] mt-3 mb-5">
+            <Sprite id={selectedItem.spriteID} width={120} height={120} />
           </View>
           <Text className="mb-5">{selectedItem.description}</Text>
           <View className="flex-row justify-evenly items-center mb-5">
@@ -191,9 +166,9 @@ const Shop = () => {
               <Text className="font-medium">Health:</Text>
             </View>
             <View className="justify-center items-center">
-              <Text className="font-bold">5</Text>
-              <Text className="font-bold">5</Text>
-              <Text className="font-bold">5</Text>
+              <Text className="font-bold">{user.attributes.power}</Text>
+              <Text className="font-bold">{user.attributes.speed}</Text>
+              <Text className="font-bold">{user.attributes.health}</Text>
             </View>
             <View>
               <Text>{'>>>'}</Text>
@@ -203,24 +178,24 @@ const Shop = () => {
             <View className="justify-center items-center">
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.power > 5, // TODO: Compare to player current item attributes
-                  'text-red-500': selectedItem.power < 5,
+                  'text-green': selectedItem.power > user.attributes.power,
+                  'text-red-500': selectedItem.power < user.attributes.power,
                 })}
               >
                 {selectedItem.power}
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.speed > 5,
-                  'text-red-500': selectedItem.speed < 5,
+                  'text-green': selectedItem.speed > user.attributes.speed,
+                  'text-red-500': selectedItem.speed < user.attributes.speed,
                 })}
               >
                 {selectedItem.speed}
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.health > 5,
-                  'text-red-500': selectedItem.health < 5,
+                  'text-green': selectedItem.health > user.attributes.health,
+                  'text-red-500': selectedItem.health < user.attributes.health,
                 })}
               >
                 {selectedItem.health}
@@ -228,28 +203,53 @@ const Shop = () => {
             </View>
           </View>
           <View className="justify-center items-center">
-            <Text className="text-base text-gold font-bold">
-              - {selectedItem.cost} Gold
-            </Text>
+            {owned ? (
+              <Text className="text-base text-black font-bold">
+                You already own this item
+              </Text>
+            ) : (
+              <Text className="text-base text-gold font-bold">
+                {selectedItem.cost} Gold to purchase
+              </Text>
+            )}
           </View>
         </View>
       );
     }
 
+    // Only non-equipment items left are consumables
+
+    let healthPotionsCount = 0;
+
+    if (selectedItem.type === ItemType.POTION_SMALL) {
+      healthPotionsCount = userSmallHealthPotCount;
+    } else if (selectedItem.type === ItemType.POTION_MEDIUM) {
+      healthPotionsCount = userMediumHealthPotCount;
+    } else if (selectedItem.type === ItemType.POTION_LARGE) {
+      healthPotionsCount = userLargeHealthPotCount;
+    }
+
     return (
       <View>
         <View className="justify-center items-center h-24 my-5">
-          <Text>Item Sprite Here</Text>
+          <View className="justify-center items-center h-[120px] mt-3 mb-5">
+            <Sprite id={selectedItem.spriteID} width={120} height={120} />
+          </View>
         </View>
-        <Text className="mb-5">{selectedItem.description}</Text>
+        <Text className="mb-2">{selectedItem.description}</Text>
+        <Text className="mb-5">
+          You currently own{' '}
+          <Text className="font-bold">{healthPotionsCount}</Text> of this
+          consumable.
+        </Text>
         <View className="justify-center items-center">
           <Text className="text-base text-gold font-bold">
-            - {selectedItem.cost} Gold
+            {selectedItem.cost} Gold to purchase
           </Text>
         </View>
       </View>
     );
-  }, [selectedItem]);
+  }, [selectedItem, user]);
 
   return (
     <SafeAreaView className="relative w-full h-full flex-1 justify-center items-center bg-off-white">
@@ -258,27 +258,16 @@ const Shop = () => {
         setVisible={setModalVisible}
         title={selectedItem ? 'Equip ' + selectedItem.name : ''}
         subtitle={selectedItem ? itemTypeToString(selectedItem.type) : ''}
-        onConfirm={() => {
-          if (selectedItem && isItemConsumable(selectedItem)) {
-            // Close modal
-            console.log('Consumable:', selectedItem);
-          } else {
-            // Equip item
-            console.log('Equipment:', selectedItem);
-          }
-
-          setSelectedItem(null);
-          setModalVisible(false);
-        }}
+        onConfirm={handlePurchaseItem}
         cancelText={
-          selectedItem
-            ? isItemConsumable(selectedItem)
-              ? undefined
-              : 'CANCEL'
-            : undefined
+          selectedItem && userEquipments.some((i) => i.id === selectedItem.id)
+            ? undefined
+            : 'CANCEL'
         }
         confirmText={
-          selectedItem && isItemConsumable(selectedItem) ? 'BACK' : 'BUY ITEM'
+          selectedItem && userEquipments.some((i) => i.id === selectedItem.id)
+            ? 'BACK'
+            : 'BUY ITEM'
         }
       >
         {modalChildren}
@@ -287,7 +276,9 @@ const Shop = () => {
       <ScrollView className="w-full h-full px-6 py-8">
         <View className="flex-row justify-between items-center">
           <Text className="text-2xl text-gray-black mb-5">Shop</Text>
-          <Text className="text-lg text-gold mb-5 font-semibold">500 Gold</Text>
+          <Text className="text-lg text-gold mb-5 font-semibold">
+            {user?.gold ?? 0} Gold
+          </Text>
         </View>
 
         <View className="w-full  mb-5">
@@ -295,7 +286,7 @@ const Shop = () => {
             WEAPONS
           </Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(MOCK_ITEMS, ItemType.WEAPON)}
+            data={filterItemsByTypeAndSortByCost(items, ItemType.WEAPON)}
             renderItem={({ item }) => (
               <ItemCard
                 item={item}
@@ -303,6 +294,7 @@ const Shop = () => {
                   setSelectedItem(item);
                   setModalVisible(true);
                 }}
+                owned={userEquipments.some((i) => i.id === item.id)}
               />
             )}
             ItemSeparatorComponent={() => <View className="w-3" />}
@@ -315,7 +307,7 @@ const Shop = () => {
         <View className="w-full  mb-5">
           <Text className="text-xl text-gray-black font-bold mb-2">ARMORS</Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(MOCK_ITEMS, ItemType.ARMOR)}
+            data={filterItemsByTypeAndSortByCost(items, ItemType.ARMOR)}
             renderItem={({ item }) => (
               <ItemCard
                 item={item}
@@ -323,6 +315,7 @@ const Shop = () => {
                   setSelectedItem(item);
                   setModalVisible(true);
                 }}
+                owned={userEquipments.some((i) => i.id === item.id)}
               />
             )}
             ItemSeparatorComponent={() => <View className="w-3" />}
@@ -336,10 +329,7 @@ const Shop = () => {
             ACCESSORIES
           </Text>
           <FlatList
-            data={filterItemsByTypeAndSortByCost(
-              MOCK_ITEMS,
-              ItemType.ACCESSORY,
-            )}
+            data={filterItemsByTypeAndSortByCost(items, ItemType.ACCESSORY)}
             renderItem={({ item }) => (
               <ItemCard
                 item={item}
@@ -347,6 +337,7 @@ const Shop = () => {
                   setSelectedItem(item);
                   setModalVisible(true);
                 }}
+                owned={userEquipments.some((i) => i.id === item.id)}
               />
             )}
             ItemSeparatorComponent={() => <View className="w-3" />}
@@ -362,7 +353,7 @@ const Shop = () => {
           <View className="flex-row gap-3">
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                MOCK_ITEMS,
+                items,
                 ItemType.POTION_SMALL,
               )}
               renderItem={({ item }) => (
@@ -380,7 +371,7 @@ const Shop = () => {
             />
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                MOCK_ITEMS,
+                items,
                 ItemType.POTION_MEDIUM,
               )}
               renderItem={({ item }) => (
@@ -398,7 +389,7 @@ const Shop = () => {
             />
             <FlatList
               data={filterItemsByTypeAndSortByCost(
-                MOCK_ITEMS,
+                items,
                 ItemType.POTION_LARGE,
               )}
               renderItem={({ item }) => (
@@ -423,16 +414,17 @@ const Shop = () => {
 
 export default Shop;
 
-const ItemCard: React.FC<{ item: Item; onPress: () => void }> = ({
-  item,
-  onPress,
-}) => {
+const ItemCard: React.FC<{
+  item: Item;
+  onPress: () => void;
+  owned?: boolean;
+}> = ({ item, onPress, owned = false }) => {
   return (
     <View className="flex-col justify-center items-center">
       <TouchableOpacity
         onPress={onPress}
         className={clsx(
-          'rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2',
+          'relative rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2 justify-center items-center',
           {
             'bg-red-800': item.type === ItemType.WEAPON,
             'bg-blue': item.type === ItemType.ARMOR,
@@ -444,7 +436,13 @@ const ItemCard: React.FC<{ item: Item; onPress: () => void }> = ({
             ].includes(item.type),
           },
         )}
-      ></TouchableOpacity>
+      >
+        <Sprite id={item.spriteID} width={70} height={70} />
+        {owned && <Text className="absolute font-black z-10">OWNED</Text>}
+        {owned && (
+          <View className="absolute bg-white opacity-50 w-full h-full" />
+        )}
+      </TouchableOpacity>
       <Text className="text-lg text-gold mb-5 font-semibold">
         {item.cost} Gold
       </Text>

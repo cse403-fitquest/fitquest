@@ -28,7 +28,7 @@
 
 - **Avatar/Character Progression System**
 
-   Customizable avatars that level up and gain equipment/abilities based on user activities.
+   Users earn experience points which can be used to level up their character and earn gold to purchase new items in the shop.
 
 - **Dynamic Turn-Based Combat**
 
@@ -36,11 +36,7 @@
 
 - **Social Connection**
 
-  Connect with friends, and see when they last did a workout.
-
-- **Reward System with Badges and Items**
-
-   Earn virtual rewards to enhance the gaming experience.
+  Connect with friends, see when they last did a workout and what quest they have embarked on this week.
 
 
 ## 📋 Setup
@@ -72,19 +68,13 @@ In addition, it is good to have an editor to work with the code such as [VSCode]
 
 4. Setup device for development.
 
-   For now, the easiest and recommended way to view the app is to use your physical device through expo. On the Play Store (Android) or App Store (iOS), download Expo Go. When the app is running after completing step 3, scan the QR code given in the terminal in the Expo Go application.
+   With an android device, the fastest way to use the app is to use your physical device through expo. On the Play Store, download Expo Go. When the app is running after completing step 3, scan the QR code given in the terminal in the Expo Go application.
 
-   But if you want to work with an emulator (android/ios) instead, follow instructions in this site: https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated
-
-### Configure linting
-
-1. Install the ESLint extention on VSCode.
-
-2. Reload VSCode to see changes.
-
-3. For ease of use, make sure to turn enable format-on-save on VSCode settings.
+   With an iOS device, you will need to work with an android emulator. Following the below instructions will take around 15 minutes to setup depending on whether you have installed android studio: https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=expo-go
 
 ### Firebase Setup
+
+Do this setup to use your own set of data that the app can interface with.
 
 1. Access firebase console (https://console.firebase.google.com/)
 
@@ -106,11 +96,111 @@ In addition, it is good to have an editor to work with the code such as [VSCode]
    };
    ```
 
+5. You will need to create a "quests", "items", "users", and "friends" collection in firestore.
+
+      a. For the quests collection, you will need to fill in dummy data in the form:
+
+      ```typescript
+      // An map with key-value pairs like below. '1' is the id of the quest.
+      '1': {
+         name:'Hunt Red Minotaur',
+         questDescription: '',
+         milestones: [
+            50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000
+         ],
+         bossThreshold: 500,
+         duration: 7 * 24 * 60 * 60 * 1000,
+         normalMonsters: [
+            {
+            name: 'Green Slime',
+            maxHealth: 80,
+            health: 80,
+            power: 8,
+            spriteId: 'slime_green',
+            },
+            {
+            name: 'Blue Slime',
+            maxHealth: 85,
+            health: 85,
+            power: 9,
+            spriteId: 'slime_blue',
+            },
+            {
+            name: 'Red Slime',
+            maxHealth: 75,
+            health: 75,
+            power: 7,
+            spriteId: 'slime_red',
+            },
+         ],
+         boss: {
+            name: 'Red Minotaur',
+            maxHealth: 200,
+            health: 200,
+            power: 15,
+            speed: 15,
+            spriteId: AnimatedSpriteID.MINOTAUR_RED,
+         },
+         createdAt: '',
+         expiredAt: '',
+      },
+      ```
+
+   b. For items collection, you will need to fill in data for items for users to purchase in the form:
+
+      ```typescript
+      {
+         id: "t1_dagger",
+         name: "T1 Dagger",
+         type: "WEAPON"
+         description: "Small but mighty! Perfect for poking holes in your enemies' plans."
+         spriteID: "t1_dagger"
+         power: 5,
+         speed: 10,
+         health: 0,
+         cost: 50,
+         createdAt: November 9, 2024 at 6:37:29 PM UTC-8
+      }
+      ```
+
+   c. Users collection can be left empty, as new documents will be created as new users registers an account.
+
+   d. Friends collection can also be left empty, as new documents and relations will be made as users add friends.
+
 5. Start (or restart if already running) the server
 
    ```bash
    npx expo start -c
    ```
+
+### Configure linting
+
+1. Install the ESLint extention on VSCode.
+
+2. Reload VSCode to see changes.
+
+3. For ease of use, make sure to turn enable format-on-save on VSCode settings.
+
+### Testing
+
+1. Tests for the app can be run automatically with the following command:
+
+   ```bash
+   npm run test
+   ```
+
+   or you can run it in watch mode which reruns the tests automatically when saving changes with the following command:
+
+   ```bash
+   npm run test:dev
+   ```
+
+2. Locate app tests under the `tests` folder in the root directory. There are unit tests for three parts of the app: reusable frontend components, services that interface with the firebase backend, and utility functions used throughout the different modules of the app.
+
+3. To start creating a new test, find an existing file module (auth, user, etc) or create a new file for a non-existant module to test for.
+
+4. Write tests in accordance to the existing testing convention. Look into sibling files or tests within the same file module you are testing to see how you should be writing your tests.
+
 
 ## 🚀 Technologies
 
@@ -118,7 +208,7 @@ This app was built with the following technologies:
 
 - Typescript
 - React Native
-- Nativewind
+- Tailwind
 - Zustand
 - Firebase
 
@@ -127,28 +217,28 @@ This app was built with the following technologies:
 - [x] Setup Firebase SDK
 - [x] Implement Sign Up
 - [x] Implement Sign In
-- [ ] Implement Onboarding Wizard
+- [x] Implement Onboarding Wizard
    - [x] Survey
    - [x] Fitness level calculation
-   - [ ] Allocate attribute points
+   - [x] Allocate attribute points
 - [ ] Implement Profile
-   - [ ] Avatar
+   - [x] Avatar
    - [ ] Attributes & inventory
    - [ ] Workouts per week graph
 - [ ] Implement Workout
-   - [ ] Active workout session
+   - [x] Active workout session
    - [ ] Workout templates
    - [ ] Calculate exp gain from workout
-- [ ] Implement Quest
-   - [ ] Active quest
-   - [ ] Available quests this week
-- [ ] Implement Fight
-   - [ ] Speed turn system
-   - [ ] Player and enemy sprite animations
-   - [ ] Player turn actions
-- [ ] Implement Shop
-   - [ ] Consumables and inventory items
-   - [ ] Confirmation on item purchase
+- [x] Implement Quest
+   - [x] Active quest
+   - [x] Available quests this week
+- [x] Implement Fight
+   - [x] Speed turn system
+   - [x] Player and enemy sprite animations
+   - [x] Player turn actions
+- [x] Implement Shop
+   - [x] Consumables and inventory items
+   - [x] Confirmation on item purchase
 - [x] Implement Social
    - [x] Display friends and requests
    - [x] Add friend
@@ -157,7 +247,33 @@ This app was built with the following technologies:
 
 <div align="center">
 
-  <img src="./readme-images/auth-screens.png" width="400"> &nbsp;
+  <img src="./readme-images/auth-sign-in.png" width="150"> &nbsp;
+  <img src="./readme-images/auth-sign-up.png" width="150"> &nbsp;
+
+</div>
+
+<div align="center">
+
+  <img src="./readme-images/onboarding-welcome.png" width="150"> &nbsp;
+  <img src="./readme-images/onboarding-fitness-level.png" width="150"> &nbsp;
+  <img src="./readme-images/onboarding-allocate-points.png" width="150"> &nbsp;
+  <img src="./readme-images/onboarding-choose-avatar.png" width="150"> &nbsp;
+
+</div>
+
+<div align="center">
+
+  <img src="./readme-images/shop-display.png" width="150"> &nbsp;
+  <img src="./readme-images/shop-modal.png" width="150"> &nbsp;
+
+</div>
+
+<div align="center">
+
+  <img src="./readme-images/social-display.png" width="150"> &nbsp;
+  <img src="./readme-images/social-add-friend-modal.png" width="150"> &nbsp;
+  <img src="./readme-images/social-sent-requests.png" width="150"> &nbsp;
+  <img src="./readme-images/social-new-friend.png" width="150"> &nbsp;
 
 </div>
 

@@ -1,0 +1,6 @@
+export enum FitnessLevel {
+  BEGINNER = 'BEGINNER',
+  NOVICE = 'NOVICE',
+  INTERMEDIATE = 'INTERMEDIATE',
+  ADVANCED = 'ADVANCED',
+}

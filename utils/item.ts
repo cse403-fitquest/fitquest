@@ -26,6 +26,20 @@ export const isItemConsumable: (item: Item) => boolean = (item) => {
   );
 };
 
+export const getUserHealthPotionsCountFromItems: (
+  items: Item[],
+) => [number, number, number] = (items) => {
+  const smallHealthPotions = filterItemsByType(items, ItemType.POTION_SMALL);
+  const mediumHealthPotions = filterItemsByType(items, ItemType.POTION_MEDIUM);
+  const largeHealthPotions = filterItemsByType(items, ItemType.POTION_LARGE);
+
+  return [
+    smallHealthPotions.length,
+    mediumHealthPotions.length,
+    largeHealthPotions.length,
+  ];
+};
+
 export const itemTypeToString = (type: ItemType): string => {
   switch (type) {
     case ItemType.WEAPON:
