@@ -14,4 +14,5 @@ const colorScheme = {
 export const Colors = {
   light: { ...colorScheme },
   dark: { ...colorScheme },
+  blue: '#00AEEF',
 };

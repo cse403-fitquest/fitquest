@@ -1,3 +1,4 @@
+import { AnimatedSpriteID } from '@/constants/sprite';
 import { APIResponse } from './general';
 
 export type CreateUserResponse = APIResponse & {};
@@ -17,15 +18,19 @@ export type User = {
     height: number;
     weight: number;
   };
-  spriteID: string;
+  spriteID: AnimatedSpriteID;
   attributes: { power: number; speed: number; health: number };
   exp: number;
   gold: number;
   attributePoints: number;
   currentQuest: string;
+  equippedItems: string[]; // Array of equipped equipment IDs
+  equipments: string[]; // Array of all user's equipment IDs
+  consumables: string[]; // Array of all user's consumables IDs
   privacySettings: {
     isLastWorkoutPublic: boolean;
     isCurrentQuestPublic: boolean;
   };
   createdAt: Date;
+  isOnboardingCompleted: boolean;
 };

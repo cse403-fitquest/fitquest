@@ -3,109 +3,25 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Image,
   Alert,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import FQModal from '@/components/FQModal';
-import { User } from '@/types/user';
-import clsx from 'clsx';
+//import { User } from '@/types/user';
 import { Item, ItemType } from '@/types/item';
+import { updateUserProfile } from '@/services/user';
 import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
+import { useItemStore } from '@/store/item';
 import { useSocialStore } from '@/store/social';
-
-const MOCK_EQUIPPED_ITEMS: Item[] = [
-  {
-    id: '1',
-    name: 'Sword',
-    type: ItemType.WEAPON,
-    cost: 100,
-    description: 'A basic sword',
-    power: 5,
-    speed: -1,
-    health: 0,
-    spriteID: 'sword-sprite',
-    createdAt: new Date(Date.now()),
-  },
-  {
-    id: '2',
-    name: 'Shield',
-    type: ItemType.ARMOR,
-    cost: 150,
-    description: 'A basic shield',
-    power: 0,
-    speed: -2,
-    health: 5,
-    spriteID: 'shield-sprite',
-    createdAt: new Date(Date.now()),
-  },
-  {
-    id: '3',
-    name: 'Helmet',
-    type: ItemType.ARMOR,
-    cost: 80,
-    description: 'A sturdy helmet',
-    power: 0,
-    speed: 0,
-    health: 3,
-    spriteID: 'helmet-sprite',
-    createdAt: new Date(Date.now()),
-  },
-  {
-    id: '4',
-    name: 'Boots',
-    type: ItemType.ACCESSORY,
-    cost: 60,
-    description: 'Speedy boots',
-    power: 0,
-    speed: 2,
-    health: 0,
-    spriteID: 'boots-sprite',
-    createdAt: new Date(Date.now()),
-  },
-  {
-    id: '5',
-    name: 'Potion',
-    type: ItemType.POTION_SMALL,
-    cost: 30,
-    description: 'A small health potion',
-    power: 0,
-    speed: 0,
-    health: 5,
-    spriteID: 'potion-sprite',
-    createdAt: new Date(Date.now()),
-  },
-];
-
-// Mock user data
-const MOCK_USER: User = {
-  id: 'mock-user-1',
-  profileInfo: {
-    email: 'cooldude1@email.com',
-    username: 'CoolDude1',
-    age: 25,
-    height: 5.9,
-    weight: 175,
-  },
-  spriteID: 'default-sprite',
-  attributes: {
-    power: 5,
-    speed: 5,
-    health: 7,
-  },
-  exp: 250,
-  gold: 500,
-  currentQuest: 'Hunt Big Chungus',
-  privacySettings: {
-    isLastWorkoutPublic: true,
-    isCurrentQuestPublic: true,
-  },
-  createdAt: new Date(),
-  attributePoints: 0,
-};
+//import { BASE_USER } from '@/constants/user';
+import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
+import { Sprite } from '@/components/Sprite';
+import { AnimatedSprite } from '@/components/AnimatedSprite';
+import clsx from 'clsx';
 
 interface ItemCardProps {
   item: Item;
@@ -118,7 +34,7 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
       <TouchableOpacity
         onPress={onPress}
         className={clsx(
-          'rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2',
+          'relative rounded w-24 h-24 border border-gray bg-white shadow-lg shadow-black mb-2 justify-center items-center',
           {
             'bg-red-800': item.type === ItemType.WEAPON,
             'bg-blue': item.type === ItemType.ARMOR,
@@ -130,7 +46,9 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
             ].includes(item.type),
           },
         )}
-      ></TouchableOpacity>
+      >
+        <Sprite id={item.spriteID} width={70} height={70} />
+      </TouchableOpacity>
       <Text className="text-lg text-gold mb-5 font-semibold">
         {item.cost} Gold
       </Text>
@@ -141,15 +59,31 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
 const Profile = () => {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+
+  // Helper function to fill missing user fields in DB
+  // useEffect(() => {
+  //   void fillMissingUserFields();
+  // }, []);
+
+  const { user, setUser } = useUserStore();
+  const { items } = useItemStore();
+  const { resetSocialStore } = useSocialStore();
+
   const [isCurrentQuestPublic, setIsCurrentQuestPublic] = useState(
-    MOCK_USER.privacySettings.isCurrentQuestPublic,
+    user?.privacySettings.isCurrentQuestPublic,
   );
   const [isLastWorkoutPublic, setIsLastWorkoutPublic] = useState(
-    MOCK_USER.privacySettings.isLastWorkoutPublic,
+    user?.privacySettings.isLastWorkoutPublic,
   );
 
-  const { user } = useUserStore();
-  const { resetSocialStore } = useSocialStore();
+  const [username, setUsername] = useState(user?.profileInfo.username || '');
+
+  const [height, setHeight] = useState(
+    user?.profileInfo.height?.toString() || '',
+  );
+  const [weight, setWeight] = useState(
+    user?.profileInfo.weight?.toString() || '',
+  );
 
   const handleEquipItem = (item: Item) => {
     // TODO: Implement actual equipping logic
@@ -158,15 +92,65 @@ const Profile = () => {
   };
 
   const handleSignOut = async () => {
+    console.log('Signing out...');
     const signOutResponse = await signOut();
 
+    console.log('Sign out response:', signOutResponse);
     if (signOutResponse.error) {
       Alert.alert('Error signing out', signOutResponse.error);
     }
 
+    setUser(null);
     resetSocialStore();
-    return;
   };
+
+  const handleUpdateProfile = async () => {
+    if (!user) return;
+
+    const updates = {
+      profileInfo: {
+        ...user.profileInfo,
+        username: username.trim(),
+        height: parseFloat(height),
+        weight: parseFloat(weight),
+      },
+      privacySettings: {
+        isCurrentQuestPublic: isCurrentQuestPublic ?? false,
+        isLastWorkoutPublic: isLastWorkoutPublic ?? false,
+      },
+    };
+
+    const response = await updateUserProfile(user.id, updates);
+
+    if (response.success) {
+      // Update the user in the store
+      setUser({
+        ...user,
+        profileInfo: updates.profileInfo,
+        privacySettings: updates.privacySettings,
+      });
+      Alert.alert('Profile updated successfully');
+    } else {
+      Alert.alert('Error updating profile', response.error || '');
+    }
+
+    setIsSettingsVisible(false);
+  };
+
+  if (!user) {
+    return;
+  }
+
+  // Get the user's items from the store
+  const userItemIds = [
+    ...user.equipments,
+    ...user.consumables,
+    ...user.equippedItems,
+  ];
+
+  const userItems = items.filter((item: { id: string }) =>
+    userItemIds.includes(item.id),
+  );
 
   return (
     <SafeAreaView className=" bg-offWhite">
@@ -178,6 +162,9 @@ const Profile = () => {
             <Text className="text-2xl font-bold">
               {user?.profileInfo.username || '-'}
             </Text>
+            <Text className="text-xl text-gold font-semibold">
+              Gold: {user?.gold}
+            </Text>
           </View>
           <TouchableOpacity
             onPress={() => setIsSettingsVisible(true)}
@@ -187,11 +174,15 @@ const Profile = () => {
           </TouchableOpacity>
         </View>
 
-        <View className="h-48 items-center justify-center">
-          <Image
-            source={require('../../assets/images/react-logo.png')} // TODO: Replace with actual sprite, just used a placeholder image from assets for now
-            className="w-32 h-32"
-          />
+        <View className="items-center justify-center h-[160px] overflow-hidden mb-10">
+          <View className="absolute bottom-0">
+            <AnimatedSprite
+              id={user?.spriteID || AnimatedSpriteID.HERO_20}
+              state={SpriteState.IDLE}
+              width={200}
+              height={200}
+            />
+          </View>
         </View>
 
         {/* Experience Bar */}
@@ -207,26 +198,26 @@ const Profile = () => {
           </Text>
         </View>
 
-        <View className=" mb-6">
+        <View className="mb-6">
           <Text className="font-bold text-xl text-grayDark mb-2">
             ATTRIBUTES
           </Text>
           <View className="space-y-2">
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-500">
-                Power: {MOCK_USER.attributes.power}
+                Power: {user?.attributes.power}
               </Text>
               <Ionicons name="information-circle-outline" size={16} />
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-500">
-                Speed: {MOCK_USER.attributes.speed}
+                Speed: {user?.attributes.speed}
               </Text>
               <Ionicons name="information-circle-outline" size={16} />
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-500">
-                Health: {MOCK_USER.attributes.health}
+                Health: {user?.attributes.health}
               </Text>
               <Ionicons name="information-circle-outline" size={16} />
             </View>
@@ -234,15 +225,21 @@ const Profile = () => {
         </View>
 
         {/* Items Grid */}
-        <View className="">
+        <View className="mt-8">
           <Text className="font-bold mb-2 text-xl text-grayDark">ITEMS</Text>
-          <View className="flex-row flex-wrap gap-y-4">
-            {MOCK_EQUIPPED_ITEMS.map((item) => (
-              <View key={item.id} className="w-1/3 flex items-center">
-                <ItemCard item={item} onPress={() => setSelectedItem(item)} />
-              </View>
-            ))}
-          </View>
+          {userItems.length > 0 ? (
+            <View className="flex-row flex-wrap gap-y-4">
+              {userItems.map((item: Item) => (
+                <View key={item.id} className="w-1/3 flex items-center">
+                  <ItemCard item={item} onPress={() => setSelectedItem(item)} />
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text className="text-gray-500">
+              You have no items. Visit the shop!
+            </Text>
+          )}
         </View>
 
         {/* Workouts per Week */}
@@ -286,30 +283,48 @@ const Profile = () => {
         visible={isSettingsVisible}
         setVisible={setIsSettingsVisible}
         title="Profile Settings"
-        onConfirm={() => setIsSettingsVisible(false)}
-        cancelText="CLOSE"
+        onConfirm={handleUpdateProfile}
       >
-        <View className="py-4 w-[220px]">
-          <View className="space-y-4">
+        <View className="py-4 w-[220px] relative">
+          {/* Close Button */}
+          <TouchableOpacity
+            onPress={() => setIsSettingsVisible(false)}
+            style={{ position: 'absolute', top: 2, right: 2 }}
+          >
+            <Ionicons name="close" size={24} color="#000" />
+          </TouchableOpacity>
+
+          <View className="space-y-4 mt-4">
             <View>
               <Text className="text-gray-500 mb-1">Username</Text>
-              <Text className="p-2 border border-gray-300 rounded">
-                {MOCK_USER.profileInfo.username}
-              </Text>
+              <TextInput
+                className="p-2 border border-gray-300 rounded"
+                value={username}
+                onChangeText={setUsername}
+                placeholder="Enter username"
+              />
             </View>
 
             <View>
               <Text className="text-gray-500 mb-1">Height (ft)</Text>
-              <Text className="p-2 border border-gray-300 rounded">
-                {MOCK_USER.profileInfo.height}
-              </Text>
+              <TextInput
+                className="p-2 border border-gray-300 rounded"
+                value={height}
+                onChangeText={setHeight}
+                keyboardType="decimal-pad"
+                placeholder="Enter height"
+              />
             </View>
 
             <View>
               <Text className="text-gray-500 mb-1">Weight (lbs)</Text>
-              <Text className="p-2 border border-gray-300 rounded">
-                {MOCK_USER.profileInfo.weight}
-              </Text>
+              <TextInput
+                className="p-2 border border-gray-300 rounded"
+                value={weight}
+                onChangeText={setWeight}
+                keyboardType="decimal-pad"
+                placeholder="Enter weight"
+              />
             </View>
 
             <View className="flex-row items-center justify-between">
@@ -318,18 +333,10 @@ const Profile = () => {
                 onPress={() => setIsCurrentQuestPublic(!isCurrentQuestPublic)}
               >
                 <Ionicons
-                  name="square-outline"
+                  name={isCurrentQuestPublic ? 'checkbox' : 'square-outline'}
                   size={24}
-                  color={isCurrentQuestPublic ? '#007AFF' : '#000000'}
+                  color="#007AFF"
                 />
-                {isCurrentQuestPublic && (
-                  <Ionicons
-                    name="checkmark"
-                    size={20}
-                    color="#007AFF"
-                    style={{ position: 'absolute', left: 2, top: 2 }}
-                  />
-                )}
               </TouchableOpacity>
             </View>
 
@@ -339,18 +346,10 @@ const Profile = () => {
                 onPress={() => setIsLastWorkoutPublic(!isLastWorkoutPublic)}
               >
                 <Ionicons
-                  name="square-outline"
+                  name={isLastWorkoutPublic ? 'checkbox' : 'square-outline'}
                   size={24}
-                  color={isLastWorkoutPublic ? '#007AFF' : '#000000'}
+                  color="#007AFF"
                 />
-                {isLastWorkoutPublic && (
-                  <Ionicons
-                    name="checkmark"
-                    size={20}
-                    color="#007AFF"
-                    style={{ position: 'absolute', left: 2, top: 2 }}
-                  />
-                )}
               </TouchableOpacity>
             </View>
 
@@ -376,76 +375,68 @@ const Profile = () => {
         visible={selectedItem !== null}
         setVisible={(visible) => !visible && setSelectedItem(null)}
         title={`Equip ${selectedItem?.name}`}
+        cancelText={'CANCEL'}
+        confirmText="EQUIP ITEM"
         onConfirm={() => handleEquipItem(selectedItem!)}
+        onCancel={() => setSelectedItem(null)}
+        subtitle={selectedItem?.type}
       >
-        <View className="p-4">
-          <Text className="text-xl font-bold mb-2">
-            Equip {selectedItem?.name}?
-          </Text>
-          <Text className="text-gray-500 mb-2">{selectedItem?.type}</Text>
-
-          <View className="mb-4">
-            <Text className="mb-2">{selectedItem?.description}</Text>
-
-            <View className="space-y-2">
-              <View className="flex-row justify-between">
-                <Text>Power: {selectedItem?.power}</Text>
-                <Text
-                  className={
-                    selectedItem?.power && selectedItem.power > 0
-                      ? 'text-green-500'
-                      : 'text-red-500'
-                  }
-                >
-                  {selectedItem?.power && selectedItem.power > 0
-                    ? `+${selectedItem?.power}`
-                    : selectedItem?.power}
-                </Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text>Speed: {selectedItem?.speed}</Text>
-                <Text
-                  className={
-                    selectedItem?.speed && selectedItem.speed > 0
-                      ? 'text-green-500'
-                      : 'text-red-500'
-                  }
-                >
-                  {selectedItem?.speed && selectedItem.speed > 0
-                    ? `+${selectedItem?.speed}`
-                    : selectedItem?.speed}
-                </Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text>Health: {selectedItem?.health}</Text>
-                <Text
-                  className={
-                    selectedItem?.health && selectedItem.health > 0
-                      ? 'text-green-500'
-                      : 'text-red-500'
-                  }
-                >
-                  {selectedItem?.health && selectedItem.health > 0
-                    ? `+${selectedItem?.health}`
-                    : selectedItem?.health}
-                </Text>
-              </View>
-            </View>
+        <View className="py-4 ">
+          <View className="w-full items-center mb-5">
+            <Sprite
+              id={selectedItem?.spriteID ?? SpriteID.T1_DAGGER}
+              width={70}
+              height={70}
+            />
           </View>
 
-          <View className="flex-row justify-between">
-            <TouchableOpacity
-              onPress={() => setSelectedItem(null)}
-              className="px-4 py-2"
-            >
-              <Text className="text-red-500">CANCEL</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleEquipItem(selectedItem!)}
-              className="px-4 py-2"
-            >
-              <Text className="text-blue-500">EQUIP ITEM</Text>
-            </TouchableOpacity>
+          <View className="w-full items-center mb-5">
+            <Text className="mb-2">{selectedItem?.description}</Text>
+          </View>
+
+          <View className="space-y-2">
+            <View className="flex-row justify-between">
+              <Text>Power: {selectedItem?.power}</Text>
+              <Text
+                className={
+                  selectedItem?.power && selectedItem.power > 0
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                }
+              >
+                {selectedItem?.power && selectedItem.power > 0
+                  ? `+${selectedItem?.power}`
+                  : selectedItem?.power}
+              </Text>
+            </View>
+            <View className="flex-row justify-between">
+              <Text>Speed: {selectedItem?.speed}</Text>
+              <Text
+                className={
+                  selectedItem?.speed && selectedItem.speed > 0
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                }
+              >
+                {selectedItem?.speed && selectedItem.speed > 0
+                  ? `+${selectedItem?.speed}`
+                  : selectedItem?.speed}
+              </Text>
+            </View>
+            <View className="flex-row justify-between">
+              <Text>Health: {selectedItem?.health}</Text>
+              <Text
+                className={
+                  selectedItem?.health && selectedItem.health > 0
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                }
+              >
+                {selectedItem?.health && selectedItem.health > 0
+                  ? `+${selectedItem?.health}`
+                  : selectedItem?.health}
+              </Text>
+            </View>
           </View>
         </View>
       </FQModal>

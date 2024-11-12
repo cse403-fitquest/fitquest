@@ -6,8 +6,11 @@ interface IFQModal {
   subtitle?: string;
   children: React.ReactNode;
   visible: boolean;
+  width?: number;
+
   setVisible: (visible: boolean) => void;
   onConfirm: () => void;
+  onCancel?: () => void;
 
   cancelText?: string;
   confirmText?: string;
@@ -18,14 +21,23 @@ const FQModal: FC<IFQModal> = ({
   subtitle,
   children,
   visible,
+  width,
   setVisible,
   onConfirm,
+  onCancel,
   cancelText,
   confirmText,
 }) => {
   if (!visible) {
     return null;
   }
+
+  const handleCancel = () => {
+    setVisible(false);
+    if (onCancel) {
+      onCancel();
+    }
+  };
 
   return (
     <Modal
@@ -37,8 +49,13 @@ const FQModal: FC<IFQModal> = ({
       }}
       testID="FQButton"
     >
-      <View className="relative w-full h-full justify-center items-center">
-        <View className="relative border border-gray shadow-lg rounded p-7 bg-white min-w-[200px] max-w-[90%]">
+      <View className="relative h-full justify-center items-center w-full">
+        <View
+          className={
+            'relative border border-gray shadow-lg rounded p-7 bg-white min-w-[200px] max-w-[90%]'
+          }
+          style={{ width: width }}
+        >
           <View>
             <Text
               className="text-xl text-black font-bold"
@@ -59,7 +76,7 @@ const FQModal: FC<IFQModal> = ({
           <View className="flex-row justify-between mt-5">
             <View>
               {cancelText && (
-                <TouchableOpacity onPress={() => setVisible(false)}>
+                <TouchableOpacity onPress={handleCancel}>
                   <Text
                     className="text-red-500 font-semibold"
                     testID="FQButton-cancel"

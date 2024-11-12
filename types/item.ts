@@ -1,3 +1,5 @@
+import { SpriteID } from '@/constants/sprite';
+
 export enum ItemType {
   WEAPON = 'WEAPON',
   ARMOR = 'ARMOR',
@@ -15,7 +17,7 @@ export type Item = {
   power: number;
   speed: number;
   health: number;
-  spriteID: string;
+  spriteID: SpriteID;
   cost: number;
   createdAt: Date;
 };

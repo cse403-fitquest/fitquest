@@ -484,7 +484,7 @@ const Social = () => {
   };
 
   return (
-    <SafeAreaView className="relative w-full h-full flex-col justify-start items-start bg-offWhite px-6">
+    <SafeAreaView className="relative w-full h-full flex-col justify-start items-start bg-offWhite px-6 py-8">
       <FQModal
         visible={modalVisible}
         setVisible={setModalVisible}
@@ -500,7 +500,7 @@ const Social = () => {
         keyExtractor={(section) => section.key}
         renderItem={({ item }) => renderSection(item)}
         ListHeaderComponent={
-          <Text className="text-2xl text-black mb-5 w-full pt-6">Social</Text>
+          <Text className="text-2xl text-black mb-5 w-full">Social</Text>
         }
         ListFooterComponent={<View className="h-[10px]" />}
         showsVerticalScrollIndicator={false}
