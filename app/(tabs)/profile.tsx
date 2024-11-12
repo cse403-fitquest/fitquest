@@ -149,6 +149,50 @@ const Profile = () => {
     setStatContributions(contributions);
   }, [user, items]);
 
+  const calculateNewStats = (
+    item: Item | null,
+    action: 'equip' | 'unequip',
+  ): { power: number; speed: number; health: number } => {
+    if (!user) return { power: 0, speed: 0, health: 0 };
+
+    // Start with base attributes
+    let newPower = user.attributes.power;
+    let newSpeed = user.attributes.speed;
+    let newHealth = user.attributes.health;
+
+    // Determine new equipped items after action
+    let newEquippedItems: string[] = [...user.equippedItems];
+
+    if (item) {
+      if (action === 'equip') {
+        // Remove any equipped items of the same type
+        const itemsToRemove = user.equippedItems.filter((id) => {
+          const equippedItem = items.find((i) => i.id === id);
+          return equippedItem?.type === item.type;
+        });
+        newEquippedItems = newEquippedItems.filter(
+          (id) => !itemsToRemove.includes(id),
+        );
+        // Add the new item
+        newEquippedItems.push(item.id);
+      } else if (action === 'unequip') {
+        newEquippedItems = newEquippedItems.filter((id) => id !== item.id);
+      }
+    }
+
+    // Sum up the stats based on new equipped items
+    newEquippedItems.forEach((id) => {
+      const eqItem = items.find((i) => i.id === id);
+      if (eqItem) {
+        newPower += eqItem.power;
+        newSpeed += eqItem.speed;
+        newHealth += eqItem.health;
+      }
+    });
+
+    return { power: newPower, speed: newSpeed, health: newHealth };
+  };
+
   // Function to handle equipping an item
   const handleEquipItem = async (item: Item) => {
     if (!user) return;
@@ -164,23 +208,32 @@ const Profile = () => {
     }
 
     try {
-      // Determine the item's type
       const itemType = item.type;
 
-      // Create a new array for equipped items
+      // Find if there's an already equipped item of the same type
+      const existingEquippedItemId = user.equippedItems.find(
+        (equippedItemId) => {
+          const equippedItem = items.find((i) => i.id === equippedItemId);
+          return equippedItem?.type === itemType;
+        },
+      );
+
       const newEquippedItems = [...user.equippedItems];
+      let swappedItem: Item | null = null;
 
-      // Check if an item of the same type is already equipped
-      const existingItemIndex = newEquippedItems.findIndex((equippedItemId) => {
-        const equippedItem = items.find((i) => i.id === equippedItemId);
-        return equippedItem?.type === itemType;
-      });
+      if (existingEquippedItemId) {
+        // If an item of the same type is already equipped, swap it
+        const existingItemIndex = newEquippedItems.findIndex(
+          (id) => id === existingEquippedItemId,
+        );
 
-      if (existingItemIndex !== -1) {
-        // Replace the existing item with the new one
-        newEquippedItems[existingItemIndex] = item.id;
+        if (existingItemIndex !== -1) {
+          swappedItem =
+            items.find((i) => i.id === existingEquippedItemId) || null;
+          newEquippedItems[existingItemIndex] = item.id;
+        }
       } else {
-        // Add the new item
+        // No existing item of the same type, simply add the new item
         newEquippedItems.push(item.id);
       }
 
@@ -195,8 +248,17 @@ const Profile = () => {
           ...user,
           equippedItems: newEquippedItems,
         });
-        Alert.alert('Item equipped successfully');
-        console.log('after equip, newEquippedItems: ', newEquippedItems);
+
+        if (swappedItem) {
+          Alert.alert(
+            'Item Swapped',
+            `Swapped ${swappedItem.name} with ${item.name}.`,
+          );
+        } else {
+          Alert.alert('Item Equipped', `${item.name} has been equipped.`);
+        }
+
+        console.log('After equip, newEquippedItems: ', newEquippedItems);
       } else {
         Alert.alert('Error equipping item', response.error || '');
       }
@@ -666,13 +728,17 @@ const Profile = () => {
               ? 'UNEQUIP'
               : 'EQUIP'
         }
-        onCancel={() => setSelectedItem(null)}
+        onCancel={
+          selectedItem?.type.startsWith('POTION')
+            ? undefined
+            : () => setSelectedItem(null)
+        }
         subtitle={selectedItem?.type}
       >
-        <View className="py-4 ">
+        <View className="py-4">
           <View className="w-full items-center mb-5">
             <Sprite
-              id={selectedItem?.spriteID ?? SpriteID.T1_DAGGER}
+              id={selectedItem?.spriteID ?? 'T1_DAGGER'}
               width={70}
               height={70}
             />
@@ -682,71 +748,101 @@ const Profile = () => {
             <Text className="mb-2">{selectedItem?.description}</Text>
           </View>
 
-          {!selectedItem?.type.startsWith('POTION') && (
-            <View className="space-y-2">
-              <View className="flex-row justify-between">
-                <Text>Power: {selectedItem?.power}</Text>
-                <Text>--{'>'}</Text>
-                <Text
-                  className={
-                    isItemEquipped
-                      ? totalStats.power - (selectedItem?.power ?? 0) <
-                        totalStats.power
-                        ? 'text-red-500'
-                        : 'text-green'
-                      : totalStats.power + (selectedItem?.power ?? 0) >=
-                        totalStats.power
-                        ? 'text-green'
-                        : 'text-red-500'
-                  }
-                >
-                  {isItemEquipped
-                    ? totalStats.power - (selectedItem?.power ?? 0)
-                    : totalStats.power + (selectedItem?.power ?? 0)}
-                </Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text>Speed: {selectedItem?.speed}</Text>
-                <Text>--{'>'}</Text>
-                <Text
-                  className={
-                    isItemEquipped
-                      ? totalStats.speed - (selectedItem?.speed ?? 0) <
-                        totalStats.speed
-                        ? 'text-red-500'
-                        : 'text-green'
-                      : totalStats.speed + (selectedItem?.speed ?? 0) >=
-                        totalStats.speed
-                        ? 'text-green'
-                        : 'text-red-500'
-                  }
-                >
-                  {isItemEquipped
-                    ? totalStats.speed - (selectedItem?.speed ?? 0)
-                    : totalStats.speed + (selectedItem?.speed ?? 0)}
-                </Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text>Health: {selectedItem?.health}</Text>
-                <Text>--{'>'}</Text>
-                <Text
-                  className={
-                    isItemEquipped
-                      ? totalStats.health - (selectedItem?.health ?? 0) <
-                        totalStats.health
-                        ? 'text-red-500'
-                        : 'text-green'
-                      : totalStats.health + (selectedItem?.health ?? 0) >=
-                        totalStats.health
-                        ? 'text-green'
-                        : 'text-red-500'
-                  }
-                >
-                  {isItemEquipped
-                    ? totalStats.health - (selectedItem?.health ?? 0)
-                    : totalStats.health + (selectedItem?.health ?? 0)}
-                </Text>
-              </View>
+          {!selectedItem?.type.startsWith('POTION') && selectedItem && (
+            <View className="space-y-4">
+              {/* Compute new stats once */}
+              {(() => {
+                const newStats = isItemEquipped
+                  ? calculateNewStats(selectedItem, 'unequip')
+                  : calculateNewStats(selectedItem, 'equip');
+                return (
+                  <>
+                    {/* Power */}
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-base font-semibold">
+                        Power: {selectedItem.power}
+                      </Text>
+                      <View className="flex-row items-center">
+                        <Text className="text-lg">{totalStats.power}</Text>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={16}
+                          color="black"
+                        />
+                        <Text
+                          className={
+                            isItemEquipped
+                              ? newStats.power < totalStats.power
+                                ? 'text-red-500 text-lg'
+                                : 'text-green text-lg'
+                              : newStats.power > totalStats.power
+                                ? 'text-green text-lg'
+                                : 'text-red-500 text-lg'
+                          }
+                        >
+                          {newStats.power}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Speed */}
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-base font-semibold">
+                        Speed: {selectedItem.speed}
+                      </Text>
+                      <View className="flex-row items-center">
+                        <Text className="text-lg">{totalStats.speed}</Text>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={16}
+                          color="black"
+                        />
+                        <Text
+                          className={
+                            isItemEquipped
+                              ? newStats.speed < totalStats.speed
+                                ? 'text-red-500 text-lg'
+                                : 'text-green text-lg'
+                              : newStats.speed > totalStats.speed
+                                ? 'text-green text-lg'
+                                : 'text-red-500 text-lg'
+                          }
+                        >
+                          {newStats.speed}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Health */}
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-base font-semibold">
+                        Health: {selectedItem.health}
+                      </Text>
+                      <View className="flex-row items-center">
+                        <Text className="text-lg">{totalStats.health}</Text>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={16}
+                          color="black"
+                        />
+                        <Text
+                          className={
+                            isItemEquipped
+                              ? newStats.health < totalStats.health
+                                ? 'text-red-500 text-lg'
+                                : 'text-green text-lg'
+                              : newStats.health > totalStats.health
+                                ? 'text-green text-lg'
+                                : 'text-red-500 text-lg'
+                          }
+                        >
+                          {newStats.health}
+                        </Text>
+                      </View>
+                    </View>
+                  </>
+                );
+              })()}
             </View>
           )}
         </View>
