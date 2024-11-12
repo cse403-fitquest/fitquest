@@ -16,7 +16,7 @@ import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useItemStore } from '@/store/item';
 import { useSocialStore } from '@/store/social';
-import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
 import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import clsx from 'clsx';
@@ -738,7 +738,7 @@ const Profile = () => {
         <View className="py-4">
           <View className="w-full items-center mb-5">
             <Sprite
-              id={selectedItem?.spriteID ?? 'T1_DAGGER'}
+              id={selectedItem?.spriteID ?? SpriteID.T1_DAGGER}
               width={70}
               height={70}
             />
