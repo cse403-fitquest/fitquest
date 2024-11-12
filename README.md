@@ -100,7 +100,51 @@ Do this setup to use your own set of data that the app can interface with.
 
       a. For the quests collection, you will need to fill in dummy data in the form:
 
-         // TODO: PLACEHOLDER FOR QUEST DOCUMENT IN FIRESTORE
+      ```typescript
+      // An map with key-value pairs like below. '1' is the id of the quest.
+      '1': {
+         name:'Hunt Red Minotaur',
+         questDescription: '',
+         milestones: [
+            50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000
+         ],
+         bossThreshold: 500,
+         duration: 7 * 24 * 60 * 60 * 1000,
+         normalMonsters: [
+            {
+            name: 'Green Slime',
+            maxHealth: 80,
+            health: 80,
+            power: 8,
+            spriteId: 'slime_green',
+            },
+            {
+            name: 'Blue Slime',
+            maxHealth: 85,
+            health: 85,
+            power: 9,
+            spriteId: 'slime_blue',
+            },
+            {
+            name: 'Red Slime',
+            maxHealth: 75,
+            health: 75,
+            power: 7,
+            spriteId: 'slime_red',
+            },
+         ],
+         boss: {
+            name: 'Red Minotaur',
+            maxHealth: 200,
+            health: 200,
+            power: 15,
+            speed: 15,
+            spriteId: AnimatedSpriteID.MINOTAUR_RED,
+         },
+         createdAt: '',
+         expiredAt: '',
+      },
+      ```
 
    b. For items collection, you will need to fill in data for items for users to purchase in the form:
 

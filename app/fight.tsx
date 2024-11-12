@@ -3,35 +3,35 @@ import { SafeAreaView, View, Text, Pressable, Modal } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
+import { StatusBar } from 'expo-status-bar';
 
 const initialPlayer = {
   id: '',
   name: 'Player',
-  health: 100,
-  power: 10000,
+  health: 120,
+  power: 15,
+  speed: 15,
 };
 
 const questThemes = {
   '1': {
-    backgroundColor: '#FFE4E1',
-    bossBackground: '#FF6B6B',
     normalMonsters: [
       {
-        name: 'Baby Chungus',
+        name: 'Green Slime',
         maxHealth: 80,
         health: 80,
         power: 8,
         spriteId: AnimatedSpriteID.SLIME_GREEN,
       },
       {
-        name: 'Chungus Jr.',
+        name: 'Blue Slime',
         maxHealth: 85,
         health: 85,
         power: 9,
         spriteId: AnimatedSpriteID.SLIME_BLUE,
       },
       {
-        name: 'Chungling',
+        name: 'Red Slime',
         maxHealth: 75,
         health: 75,
         power: 7,
@@ -39,16 +39,15 @@ const questThemes = {
       },
     ],
     boss: {
-      name: 'Big Chungus',
+      name: 'Red Minotaur',
       maxHealth: 200,
       health: 200,
       power: 15,
+      speed: 15,
       spriteId: AnimatedSpriteID.MINOTAUR_RED,
     },
   },
   '2': {
-    backgroundColor: '#E6E6FA',
-    bossBackground: '#9370DB',
     normalMonsters: [
       {
         name: 'Flaming Skull',
@@ -58,7 +57,7 @@ const questThemes = {
         spriteId: AnimatedSpriteID.FIRE_SKULL_RED,
       },
       {
-        name: 'Firey Skull',
+        name: 'Blue Flaming Skull',
         maxHealth: 85,
         health: 85,
         power: 7,
@@ -66,7 +65,7 @@ const questThemes = {
       },
     ],
     boss: {
-      name: 'Jimmy Two-Toes',
+      name: 'Green Chompbug',
       maxHealth: 180,
       health: 180,
       power: 14,
@@ -78,6 +77,15 @@ const questThemes = {
 const Combat = () => {
   const { isBoss, questId, questName, uniqueKey } = useLocalSearchParams();
   const currentQuest = questThemes[questId as keyof typeof questThemes];
+
+  // Fetch current quest from Firebase
+  useEffect(() => {
+    const fetchCurrentQuest = async () => {
+      // const questData = await getCurrentQuest(); // Fetch from Firebase
+      // Update state or perform actions based on questData
+    };
+    fetchCurrentQuest();
+  }, []);
 
   const getNewMonster = () => {
     if (isBoss === 'true') {
@@ -248,7 +256,7 @@ const Combat = () => {
     setIsAnimating(false);
   };
 
-  const handleVictory = () => {
+  const handleVictory = async () => {
     const exp = Math.floor(Math.random() * 20) + 30;
     setExpGained(exp);
     setModalType('victory');
@@ -261,15 +269,15 @@ const Combat = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 p-4 pb-20">
+    <SafeAreaView className="flex-1 p-4 pb-20 px-6">
       <View className="h-2 bg-gray-200 rounded-full mb-8">
         <View className="h-full bg-blue-500 rounded-full w-1/2" />
       </View>
 
       <Text className="text-2xl font-bold text-center mb-6">{questName}</Text>
       <View className="flex-1">
-        <View className="flex-row justify-between items-start mb-8">
-          <View className="w-1/2 pr-4 border border-gray p-5 rounded">
+        <View className="flex-row justify-between items-start mb-12">
+          <View className="w-1/2 pr-4">
             <Text className="text-lg font-bold mb-1">{monster.name}</Text>
             <View className="w-full h-4 bg-gray rounded-full overflow-hidden b-black border border-black border-2">
               <View
@@ -295,8 +303,8 @@ const Combat = () => {
           </View>
         </View>
 
-        <View className="flex-row justify-between items-end mt-auto mb-8">
-          <View className="w-1/2">
+        <View className="flex-row justify-between items-center mb-8">
+          <View className="w-1/2 items-start">
             <AnimatedSprite
               id={AnimatedSpriteID.HERO_20}
               width={120}
@@ -305,7 +313,7 @@ const Combat = () => {
             />
           </View>
 
-          <View className="w-1/2 pl-4 border border-gray p-5 rounded">
+          <View className="w-1/2 pl-4">
             <Text className="text-lg font-bold mb-1">{player.name}</Text>
             <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
               <View
@@ -402,14 +410,33 @@ const Combat = () => {
           <View className="bg-white m-5 p-6 rounded-2xl w-[85%] items-center">
             {modalType === 'victory' ? (
               <>
-                <Text className="text-2xl font-bold mb-6">
+                <Text className="text-2xl font-bold">
                   You have defeated {isBossFight ? 'Boss' : 'the monster'}!
                 </Text>
 
-                <View className="h-32 w-full items-center justify-center mb-6 border-2 border-dashed border-gray-200 rounded-lg">
-                  <Text className="text-gray-400 italic">
-                    Victory Animation Here
-                  </Text>
+                <View className="w-full relative items-center justify-center h-[160px] overflow-hidden mb-10">
+                  <View className="absolute bottom-0 flex-row justify-center items-end">
+                    <View className="relative left-[25px]">
+                      <AnimatedSprite
+                        id={AnimatedSpriteID.HERO_20}
+                        state={SpriteState.ATTACK_1}
+                        width={120}
+                        height={120}
+                        duration={600}
+                      />
+                    </View>
+                    <View className="relative right-[25px]">
+                      <AnimatedSprite
+                        id={AnimatedSpriteID.SLIME_GREEN}
+                        state={SpriteState.DAMAGED}
+                        direction="left"
+                        width={150}
+                        height={150}
+                        duration={600}
+                        delay={200}
+                      />
+                    </View>
+                  </View>
                 </View>
 
                 <View className="mb-8">
@@ -423,14 +450,33 @@ const Combat = () => {
               </>
             ) : (
               <>
-                <Text className="text-2xl font-bold mb-6 text-red-500">
+                <Text className="text-2xl mb-6 font-bold text-red-500">
                   Defeated by {monster.name}!
                 </Text>
 
-                <View className="h-32 w-full items-center justify-center mb-6 border-2 border-dashed border-gray-200 rounded-lg">
-                  <Text className="text-gray-400 italic">
-                    Defeat Animation Here
-                  </Text>
+                <View className="w-full relative items-center justify-center h-[160px] overflow-hidden mb-10">
+                  <View className="absolute bottom-0 flex-row justify-center items-end">
+                    <View className="relative left-[15px]">
+                      <AnimatedSprite
+                        id={AnimatedSpriteID.HERO_20}
+                        state={SpriteState.DEATH}
+                        width={120}
+                        height={120}
+                        duration={600}
+                      />
+                    </View>
+                    <View className="relative right-[15px] z-10">
+                      <AnimatedSprite
+                        id={AnimatedSpriteID.SLIME_RED}
+                        state={SpriteState.ATTACK_1}
+                        direction="left"
+                        width={150}
+                        height={150}
+                        duration={600}
+                        delay={200}
+                      />
+                    </View>
+                  </View>
                 </View>
 
                 <View className="mb-8">
@@ -452,6 +498,8 @@ const Combat = () => {
           </View>
         </View>
       </Modal>
+
+      <StatusBar backgroundColor="#161622" style="light" />
     </SafeAreaView>
   );
 };

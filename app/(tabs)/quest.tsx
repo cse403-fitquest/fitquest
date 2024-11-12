@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Text, View, TouchableOpacity, Alert, FlatList } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +17,7 @@ interface Quest {
   duration: number;
   createdAt?: '';
   expiredAt?: '';
+  bossDefeated: boolean; // New flag for boss defeat status
 }
 
 interface ActiveQuest {
@@ -27,12 +28,13 @@ interface ActiveQuest {
   timer: number;
   bossThreshold: number;
   spriteId: AnimatedSpriteID;
+  bossDefeated: boolean;
 }
 
 export const quests = [
   {
     questId: '1',
-    name: 'Hunt Big Chungus',
+    name: 'Hunt Red Minotaur',
     questDescription: '',
     spriteId: AnimatedSpriteID.MINOTAUR_RED,
     milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),
@@ -43,7 +45,7 @@ export const quests = [
   },
   {
     questId: '2',
-    name: 'Hunt Jimmy Two-Toes',
+    name: 'Hunt Green Chompbug',
     questDescription: '',
     spriteId: AnimatedSpriteID.CHOMPBUG_GREEN,
     milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),
@@ -77,6 +79,7 @@ const startQuest = async (
       timer: Date.now(),
       bossThreshold: selectedQuest.bossThreshold,
       spriteId: selectedQuest.spriteId,
+      bossDefeated: false,
     };
     await AsyncStorage.setItem(
       'activeQuest',
@@ -175,11 +178,11 @@ const Quest = () => {
 
       if (nextMilestone) {
         const updatedQuest = { ...activeQuest, progress: nextMilestone };
-        const isBoss = nextMilestone >= activeQuest.bossThreshold;
+        const isBoss = nextMilestone === activeQuest.bossThreshold;
         const uniqueKey = Date.now();
 
         router.replace({
-          pathname: '/Fight',
+          pathname: '/fight',
           params: {
             isBoss: isBoss ? 'true' : 'false',
             questId: activeQuest.questID,
@@ -215,20 +218,13 @@ const Quest = () => {
         spriteId: quest.spriteId,
         createdAt: '',
         expiredAt: '',
+        bossDefeated: false,
       },
       progress,
     );
 
     // Add the "start" node as the first milestone visually
     const visualMilestones = [startingPoint, ...nextMilestones];
-
-    // const isBossNearby = visualMilestones.some(
-    //   (milestone) =>
-    //     milestone !== 'start' &&
-    //     typeof milestone === 'number' &&
-    //     milestone >= quest.bossThreshold &&
-    //     milestone <= quest.bossThreshold + 300,
-    // );
 
     const percentage = calculateQuestPercentage(quest, progress);
 
@@ -258,7 +254,7 @@ const Quest = () => {
                     borderColor: '#404040',
                   }}
                 />
-              ) : milestone === quest.bossThreshold ? (
+              ) : milestone === quest.bossThreshold && !quest.bossDefeated ? (
                 <View style={{ width: 48, height: 48 }}>
                   <AnimatedSprite
                     id={
@@ -272,6 +268,7 @@ const Quest = () => {
                   />
                 </View>
               ) : (
+                // Display normal fight sprite for all other nodes
                 <View style={{ width: 32, height: 32 }}>
                   <AnimatedSprite
                     id={
@@ -290,7 +287,9 @@ const Quest = () => {
                   Start
                 </Text>
               ) : milestone === quest.bossThreshold ? (
-                <Text className="text-sm text-red-500 mt-2 font-bold"></Text>
+                <Text className="text-sm text-red-500 mt-2 font-bold">
+                  Boss
+                </Text>
               ) : null}
             </View>
           ))}
@@ -300,76 +299,95 @@ const Quest = () => {
   };
 
   return (
-    <SafeAreaView className={`flex-1 bg-offWhite px-6 pt-8`}>
-      <View className="flex-1">
-        <View className="mb-8">
-          <Text className="text-2xl text-gray-black mb-5">Quest</Text>
+    <SafeAreaView className={`flex-1 bg-offWhite `}>
+      <FlatList
+        data={[]}
+        renderItem={() => null}
+        ListHeaderComponent={
+          <View className="flex-1 px-6 pt-8">
+            <View className="mb-8">
+              <Text className="text-2xl text-gray-black mb-5">Quest</Text>
 
-          <Text className="text-xl mb-4 font-bold text-grayDark">
-            ACTIVE QUEST
-          </Text>
-
-          {activeQuest ? (
-            <View className="bg-white p-6 rounded-xl border border-gray relative shadow-black shadow-lg min-h-[150px] max-h-[225px]">
-              <Text className="text-lg font-semibold mb-2">
-                {activeQuest.questName}
+              <Text className="text-xl mb-4 font-bold text-grayDark">
+                ACTIVE QUEST
               </Text>
-              {renderMilestoneNodes(activeQuest, activeQuest.progress)}
-              <TouchableOpacity
-                className="absolute right-[40px] p-2"
-                onPress={handleAdvance}
-              >
-                <Ionicons
-                  name="arrow-forward-circle-outline"
-                  size={30}
-                  color="lightblue"
-                />
-              </TouchableOpacity>
 
-              <TouchableOpacity
-                className="absolute right-0 p-2"
-                onPress={handleAbandon}
-              >
-                <Ionicons name="trash-outline" size={30} color="lightgray" />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View className="bg-gray-200 p-6 rounded-xl flex items-center justify-center min-h-[180px]">
-              <Text className="text-lg mb-2">No Active Quest</Text>
-              <Text className="text-gray-600">
-                Start a quest from the quest board below
-              </Text>
-            </View>
-          )}
-        </View>
+              {activeQuest ? (
+                <View className="bg-white p-6 rounded-xl border border-gray relative shadow-black shadow-lg min-h-[150px] max-h-[225px]">
+                  <Text className="text-lg font-semibold mb-2">
+                    {activeQuest.questName}
+                  </Text>
+                  {renderMilestoneNodes(activeQuest, activeQuest.progress)}
+                  <TouchableOpacity
+                    className="absolute right-[40px] p-2"
+                    onPress={handleAdvance}
+                  >
+                    <Ionicons
+                      name="arrow-forward-circle-outline"
+                      size={30}
+                      color="lightblue"
+                    />
+                  </TouchableOpacity>
 
-        <Text className="text-xl mb-4 font-bold text-grayDark">
-          QUEST BOARD
-        </Text>
-        <ScrollView className="flex-1">
-          {quests.map((quest, index) => (
-            <TouchableOpacity
-              key={index}
-              className="bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between"
-              onPress={() =>
-                confirmAction('Start', quest as Quest, userID, setActiveQuest)
-              }
-            >
-              <View className="flex-row items-center justify-between">
-                <Text className="text-lg font-semibold">{quest.name}</Text>
-                <View style={{ width: 85, height: 165 }}>
-                  <AnimatedSprite
-                    id={quest.spriteId}
-                    width={120}
-                    height={120}
-                    state={SpriteState.IDLE}
-                  />
+                  <TouchableOpacity
+                    className="absolute right-0 p-2"
+                    onPress={handleAbandon}
+                  >
+                    <Ionicons
+                      name="trash-outline"
+                      size={30}
+                      color="lightgray"
+                    />
+                  </TouchableOpacity>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+              ) : (
+                <View className="bg-gray-200 p-6 rounded-xl flex items-center justify-center min-h-[180px]">
+                  <Text className="text-lg mb-2">No Active Quest</Text>
+                  <Text className="text-gray-600">
+                    Start a quest from the quest board below
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <Text className="text-xl mb-4 font-bold text-grayDark">
+              QUEST BOARD
+            </Text>
+            <FlatList
+              data={quests}
+              renderItem={({ item, index }) => (
+                <TouchableOpacity
+                  key={index}
+                  className="bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between"
+                  onPress={() =>
+                    confirmAction(
+                      'Start',
+                      item as Quest,
+                      userID,
+                      setActiveQuest,
+                    )
+                  }
+                >
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-lg font-semibold">{item.name}</Text>
+                    <View style={{ width: 85, height: 165 }}>
+                      <AnimatedSprite
+                        id={item.spriteId}
+                        width={120}
+                        height={120}
+                        state={SpriteState.IDLE}
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              )}
+              ListHeaderComponent={null}
+              ListFooterComponent={null}
+              keyExtractor={(_, index) => index.toString()}
+            />
+          </View>
+        }
+      />
     </SafeAreaView>
   );
 };
