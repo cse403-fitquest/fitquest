@@ -399,6 +399,14 @@ const Workout = () => {
                 <Text className="text-xl text-grayDark font-bold mb-2">
                   SAVED TEMPLATES
                 </Text>
+                  <FlatList
+                      data={savedTemplates}
+                      keyExtractor={(item, index) => item + '' + index}
+                      renderItem={({ item }) => (
+                        <Text style={templatestyles.dropdownItem}>{Template('New workout 1',item)}</Text>
+                      )}
+                      nestedScrollEnabled={true}
+                    />
                 {Template('doms push', fillerworkout)}
               </View>
 
@@ -407,14 +415,6 @@ const Workout = () => {
                 <Text className="text-xl text-grayDark font-bold mb-2">
                   SUGGESTED TEMPLATES
                 </Text>
-                  <FlatList
-                    data={savedTemplates}
-                    keyExtractor={(item, index) => item + '' + index}
-                    renderItem={({ item }) => (
-                      <Text style={templatestyles.dropdownItem}>{Template('New workout 1',item)}</Text>
-                    )}
-                    nestedScrollEnabled={true}
-                  />
                 {Template('doms push2', fillerworkoutsuggest)}
               </View>
             </View>
