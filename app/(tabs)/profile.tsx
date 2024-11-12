@@ -54,7 +54,7 @@ const ItemCard = ({ item, onPress, isEquipped }: ItemCardProps) => {
           </View>
         )}
       </TouchableOpacity>
-      <Text className="text-lg text-gold mb-5 font-semibold">{item.name}</Text>
+      <Text className="text-md text-black mb-5 font-semibold">{item.name}</Text>
     </View>
   );
 };
@@ -615,7 +615,7 @@ const Profile = () => {
             ? handleUnequipItem(selectedItem)
             : handleEquipItem(selectedItem))
         }
-        confirmText={isItemEquipped ? 'Unequip' : 'Equip'}
+        confirmText={isItemEquipped ? 'UNEQUIP' : 'EQUIP'}
         onCancel={() => setSelectedItem(null)}
         subtitle={selectedItem?.type}
       >
@@ -644,7 +644,7 @@ const Profile = () => {
                       ? 'text-red-500'
                       : 'text-green'
                     : totalStats.power + (selectedItem?.power ?? 0) >=
-                      totalStats.power
+                        totalStats.power
                       ? 'text-green'
                       : 'text-red-500'
                 }
@@ -665,7 +665,7 @@ const Profile = () => {
                       ? 'text-red-500'
                       : 'text-green'
                     : totalStats.speed + (selectedItem?.speed ?? 0) >=
-                      totalStats.speed
+                        totalStats.speed
                       ? 'text-green'
                       : 'text-red-500'
                 }
@@ -686,7 +686,7 @@ const Profile = () => {
                       ? 'text-red-500'
                       : 'text-green'
                     : totalStats.health + (selectedItem?.health ?? 0) >=
-                      totalStats.health
+                        totalStats.health
                       ? 'text-green'
                       : 'text-red-500'
                 }
