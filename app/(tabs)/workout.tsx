@@ -4,25 +4,21 @@ import {
   TouchableOpacity,
   StyleSheet,
   View,
-  Modal
+  Modal,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 
 import { secondsToMinutes } from '@/utils/workout';
-import updateEXP from "@/services/workout"
-import { useUserStore } from '@/store/user'
-
-
-
+import updateEXP from '@/services/workout';
+import { useUserStore } from '@/store/user';
 
 const Workout = () => {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [secondsElapsed, setSecondsElapsed] = useState(0);
   const { user } = useUserStore();
 
-  if(!user){
+  if (!user) {
     throw new Error('User data not found.');
   }
   const userID = user.id;
@@ -34,17 +30,58 @@ const Workout = () => {
 
   const fillerex: Exercise = { name: 'Bench', weight: 135, reps: 20, sets: 4 };
 
-  const fillerexbench: Exercise = { name: 'Bench Press', weight: 135, reps: 20, sets: 4 };
-  const fillerexsquat: Exercise = { name: 'Squat', weight: 135, reps: 20, sets: 4 };
-  const fillerexlandmine: Exercise = { name: 'Landmine Press', weight: 135, reps: 20, sets: 4 };
-  const fillerexdeadlift: Exercise = { name: 'Deadlift', weight: 135, reps: 20, sets: 4 };
-  const fillerexpushup: Exercise = { name: 'Push Up', weight: 135, reps: 20, sets: 4 };
-  const fillerexpulldown: Exercise = { name: 'Lat Pulldown', weight: 135, reps: 20, sets: 4 };
-  const fillerexbicep: Exercise = { name: 'Bicep Curl', weight: 135, reps: 20, sets: 4 };
-  const fillerexercises: Exercise[] = [fillerexbench, fillerexbicep, fillerexdeadlift, fillerexlandmine, fillerexpulldown, fillerexpushup, fillerexsquat];
+  const fillerexbench: Exercise = {
+    name: 'Bench Press',
+    weight: 135,
+    reps: 20,
+    sets: 4,
+  };
+  const fillerexsquat: Exercise = {
+    name: 'Squat',
+    weight: 135,
+    reps: 20,
+    sets: 4,
+  };
+  const fillerexlandmine: Exercise = {
+    name: 'Landmine Press',
+    weight: 135,
+    reps: 20,
+    sets: 4,
+  };
+  const fillerexdeadlift: Exercise = {
+    name: 'Deadlift',
+    weight: 135,
+    reps: 20,
+    sets: 4,
+  };
+  const fillerexpushup: Exercise = {
+    name: 'Push Up',
+    weight: 135,
+    reps: 20,
+    sets: 4,
+  };
+  const fillerexpulldown: Exercise = {
+    name: 'Lat Pulldown',
+    weight: 135,
+    reps: 20,
+    sets: 4,
+  };
+  const fillerexbicep: Exercise = {
+    name: 'Bicep Curl',
+    weight: 135,
+    reps: 20,
+    sets: 4,
+  };
+  const fillerexercises: Exercise[] = [
+    fillerexbench,
+    fillerexbicep,
+    fillerexdeadlift,
+    fillerexlandmine,
+    fillerexpulldown,
+    fillerexpushup,
+    fillerexsquat,
+  ];
 
-
-  
   const fillerworkout = [fillerex, fillerex, fillerex, fillerex];
   const fillerworkoutsuggest = [fillerex, fillerex, fillerex];
 
@@ -53,7 +90,7 @@ const Workout = () => {
 
   // adds to selected
   const addExercise = (exercise: Exercise) => {
-    console.log("Added "+exercise+" to selected exercises")
+    console.log('Added ' + exercise + ' to selected exercises');
     if (!selectedExercises.includes(exercise)) {
       setSelectedExercises([...selectedExercises, exercise]);
     }
@@ -61,32 +98,36 @@ const Workout = () => {
 
   // removes from selected
   const removeExercise = (name: string) => {
-    console.log("Removed "+name+" from selected exercises")
-    setSelectedExercises(selectedExercises.filter((item) => item.name !== name));  
+    console.log('Removed ' + name + ' from selected exercises');
+    setSelectedExercises(
+      selectedExercises.filter((item) => item.name !== name),
+    );
   };
 
   //finds exercise in exercises with name name
-  const findExercise  = (name: string, exercises: Exercise[]) => {
-    if(!exercises.map(exercise => exercise.name).includes(name)){
-      throw new Error("Exercise with name "+name+ " not found");
+  const findExercise = (name: string, exercises: Exercise[]) => {
+    if (!exercises.map((exercise) => exercise.name).includes(name)) {
+      throw new Error('Exercise with name ' + name + ' not found');
     }
     // Find the exercise by name in the exercises array
-    const exercise = exercises.find(exercise => exercise.name === name);
+    const exercise = exercises.find((exercise) => exercise.name === name);
 
     // If exercise is not found, throw an error
     if (!exercise) {
-      throw new Error("Exercise with name " + name + " not found in exercises list");
+      throw new Error(
+        'Exercise with name ' + name + ' not found in exercises list',
+      );
     }
 
     // Return the found exercise
-    return exercise;   
-  }
+    return exercise;
+  };
 
   const closeTemplateCreator = () => {
-    console.log("template creator closed");
-    setSelectedExercises([]);  
+    console.log('template creator closed');
+    setSelectedExercises([]);
     setModalVisible(false);
-  }
+  };
 
   const exerciseToString = (exercise: Exercise) => {
     return (
@@ -210,46 +251,54 @@ const Workout = () => {
 
   ///////////////////////// for template creation ///////////////////////////////
 
-  const CreateTemplateScreen = () => {    
+  const CreateTemplateScreen = () => {
     return (
       <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => setModalVisible(false)} // Allow modal to close on hardware back button on Android
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)} // Allow modal to close on hardware back button on Android
       >
-      <View style={templatestyles.modalOverlay}>
-        <View style={[templatestyles.modalCreatorContent, { flex: 1 }]}>
-          <Text style={templatestyles.modalCreatorHeader}>Template Creator</Text>
-    
-          {/* List of Exercises */}
-          <View style={{ flex: 1, marginBottom: 10 }}> 
-          <Text style={templatestyles.sectionTitle}>Available Exercises</Text>
+        <View style={templatestyles.modalOverlay}>
+          <View style={[templatestyles.modalCreatorContent, { flex: 1 }]}>
+            <Text style={templatestyles.modalCreatorHeader}>
+              Template Creator
+            </Text>
 
-            {/*names of each of the exercises*/}
-            <FlatList
-              data={fillerexercises.map(exercise => exercise.name)}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <View style={templatestyles.exerciseItem}>
-                  <TouchableOpacity
-                    style={templatestyles.addButton}
-                    onPress={() => addExercise(findExercise(item,fillerexercises))}
-                  >
-                    <Text style={templatestyles.addButtonText}>+</Text>
-                  </TouchableOpacity>
-                  <Text>  {item}</Text>
-                </View>
-              )}
-              contentContainerStyle={{ paddingBottom: 20 }} // Padding to avoid cutoff at bottom
-            />
-          </View>
-    
-          {/* Selected Exercises Section (initially empty) */}
-          <Text style={templatestyles.sectionTitle}>Selected Exercises</Text>
-            <View style={{ flex: 1, marginBottom: 10, alignItems: 'flex-start'}}> 
+            {/* List of Exercises */}
+            <View style={{ flex: 1, marginBottom: 10 }}>
+              <Text style={templatestyles.sectionTitle}>
+                Available Exercises
+              </Text>
+
+              {/*names of each of the exercises*/}
               <FlatList
-                data={selectedExercises.map(exercise => exercise.name)}
+                data={fillerexercises.map((exercise) => exercise.name)}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <View style={templatestyles.exerciseItem}>
+                    <TouchableOpacity
+                      style={templatestyles.addButton}
+                      onPress={() =>
+                        addExercise(findExercise(item, fillerexercises))
+                      }
+                    >
+                      <Text style={templatestyles.addButtonText}>+</Text>
+                    </TouchableOpacity>
+                    <Text> {item}</Text>
+                  </View>
+                )}
+                contentContainerStyle={{ paddingBottom: 20 }} // Padding to avoid cutoff at bottom
+              />
+            </View>
+
+            {/* Selected Exercises Section (initially empty) */}
+            <Text style={templatestyles.sectionTitle}>Selected Exercises</Text>
+            <View
+              style={{ flex: 1, marginBottom: 10, alignItems: 'flex-start' }}
+            >
+              <FlatList
+                data={selectedExercises.map((exercise) => exercise.name)}
                 keyExtractor={(item) => item}
                 renderItem={({ item }) => (
                   <View style={templatestyles.exerciseItem}>
@@ -259,30 +308,35 @@ const Workout = () => {
                     >
                       <Text style={templatestyles.addButtonText}>-</Text>
                     </TouchableOpacity>
-                    <Text>  {item}</Text>
+                    <Text> {item}</Text>
                   </View>
                 )}
                 contentContainerStyle={{ paddingBottom: 20 }} // Padding to avoid cutoff at bottom
               />
             </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
-            <TouchableOpacity
-              style={templatestyles.closeButton}
-              onPress={() => closeTemplateCreator()} // Close modal
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                width: '100%',
+              }}
             >
-              <Text style={templatestyles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={templatestyles.saveButton}
-              onPress={() => setModalVisible(false)} // Close modal
-            >
-              <Text style={templatestyles.closeButtonText}>Save</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={templatestyles.closeButton}
+                onPress={() => closeTemplateCreator()} // Close modal
+              >
+                <Text style={templatestyles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={templatestyles.saveButton}
+                onPress={() => setModalVisible(false)} // Close modal
+              >
+                <Text style={templatestyles.closeButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </Modal>
-    
+      </Modal>
     );
   };
 
@@ -403,8 +457,7 @@ const templatestyles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom:60,
-    
+    marginBottom: 60,
   },
   dropdownContainer: {
     marginTop: 5,
