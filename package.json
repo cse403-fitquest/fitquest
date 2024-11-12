@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "test": "jest",
     "test:dev": "jest --watchAll",
-    "lint": "npx eslint app/ components/ utils/ store/ constants/ hooks/"
+    "lint": "npx eslint app/ components/ utils/ services/ store/ constants/ hooks/"
   },
   "jest": {
     "preset": "jest-expo",
