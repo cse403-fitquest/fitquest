@@ -176,6 +176,8 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
           return 2;
         case SpriteState.DAMAGED:
           return 8;
+        case SpriteState.DEATH:
+          return 9;
         default:
           return 0;
       }
