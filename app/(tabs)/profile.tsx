@@ -648,7 +648,7 @@ const Profile = () => {
               : `Equip ${selectedItem?.name}`
         }
         cancelText={
-          selectedItem?.type.startsWith('POTION') ? 'CLOSE' : 'CANCEL'
+          selectedItem?.type.startsWith('POTION') ? undefined : 'CANCEL'
         }
         onConfirm={() =>
           selectedItem
@@ -758,6 +758,7 @@ const Profile = () => {
         visible={statBreakdownModalVisible}
         setVisible={setStatBreakdownModalVisible}
         onConfirm={() => setStatBreakdownModalVisible(false)}
+        confirmText="OK"
       >
         {/* Close Button */}
         <TouchableOpacity
