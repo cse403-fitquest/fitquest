@@ -16,7 +16,7 @@ import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useItemStore } from '@/store/item';
 import { useSocialStore } from '@/store/social';
-import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
+import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import clsx from 'clsx';
