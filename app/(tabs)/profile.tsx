@@ -663,8 +663,8 @@ const Profile = () => {
           selectedItem?.type.startsWith('POTION')
             ? 'OK'
             : isItemEquipped
-              ? 'Unequip'
-              : 'Equip'
+              ? 'UNEQUIP'
+              : 'EQUIP'
         }
         onCancel={() => setSelectedItem(null)}
         subtitle={selectedItem?.type}
