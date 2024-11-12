@@ -273,7 +273,7 @@ const Social = () => {
     if (item.key === 'sentRequests') {
       return (
         <View className="mb-5">
-          <Text className="text-xl text-gray-dark font-bold mb-2">
+          <Text className="text-xl text-grayDark font-bold mb-2">
             {item.title}
           </Text>
           <FlatList
@@ -299,7 +299,7 @@ const Social = () => {
     } else if (item.key === 'pendingRequests') {
       return (
         <View className="mb-5">
-          <Text className="text-xl text-gray-dark font-bold mb-2">
+          <Text className="text-xl text-grayDark font-bold mb-2">
             {item.title}
           </Text>
           <FlatList
@@ -323,7 +323,7 @@ const Social = () => {
       return (
         <View className="mb-5">
           <View className="w-full flex-row justify-between items-center">
-            <Text className="text-xl text-gray-dark font-bold mb-2">
+            <Text className="text-xl text-grayDark font-bold mb-2">
               {item.title}
             </Text>
             <TouchableOpacity
