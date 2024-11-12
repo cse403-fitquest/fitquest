@@ -6,8 +6,9 @@ import {
   PanResponder,
   Animated,
   Alert,
+  RefreshControl,
 } from 'react-native';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Friend } from '@/types/social';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,25 +50,24 @@ const Social = () => {
   const { userFriend, setFriends, setPendingRequests, setSentRequests } =
     useSocialStore();
 
-  // Fetch user friends
-  useEffect(() => {
-    const fetchUserFriends = async () => {
-      console.log('Fetching user friends');
+  const [refreshing, setRefreshing] = React.useState(false);
 
-      if (!user?.id) {
-        return;
-      }
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    console.log('Refreshing friends list');
+    if (!user?.id) {
+      return;
+    }
 
-      // Fetch user friends
-      const userFriendsResponse = await getUserFriends(user?.id);
-      if (userFriendsResponse.success && userFriendsResponse.data) {
-        setFriends(userFriendsResponse.data.friends);
-        setPendingRequests(userFriendsResponse.data.pendingRequests);
-        setSentRequests(userFriendsResponse.data.sentRequests);
-      }
-    };
+    // Fetch user friends
+    const userFriendsResponse = await getUserFriends(user?.id);
+    if (userFriendsResponse.success && userFriendsResponse.data) {
+      setFriends(userFriendsResponse.data.friends);
+      setPendingRequests(userFriendsResponse.data.pendingRequests);
+      setSentRequests(userFriendsResponse.data.sentRequests);
+    }
 
-    fetchUserFriends();
+    setRefreshing(false);
   }, []);
 
   const modalData: {
@@ -163,22 +163,12 @@ const Social = () => {
 
     setLoading(true);
 
-    const acceptFriendRequestResponse = await acceptFriendRequest(
-      friend.id,
-      user?.id,
-    );
+    const oldPendingRequests = sections.find(
+      (section) => section.key === 'pendingRequests',
+    )?.data as Friend[];
 
-    setLoading(false);
-
-    if (!acceptFriendRequestResponse.success) {
-      // Handle error
-
-      Alert.alert(
-        'Error',
-        acceptFriendRequestResponse.error ?? 'Error accepting friend request',
-      );
-      return;
-    }
+    const oldFriends = sections.find((section) => section.key === 'friends')
+      ?.data as Friend[];
 
     // Accept request
     // Remove user from pendingRequests and add to friends
@@ -194,6 +184,27 @@ const Social = () => {
       ...(sections.find((section) => section.key === 'friends')
         ?.data as Friend[]),
     ]);
+
+    const acceptFriendRequestResponse = await acceptFriendRequest(
+      friend.id,
+      user?.id,
+    );
+
+    setLoading(false);
+
+    if (!acceptFriendRequestResponse.success) {
+      // Handle error
+
+      Alert.alert(
+        'Error',
+        acceptFriendRequestResponse.error ?? 'Error accepting friend request',
+      );
+
+      // Revert changes
+      setPendingRequests(oldPendingRequests);
+      setFriends(oldFriends);
+      return;
+    }
   };
 
   const handleDenyFriendRequest = async (friend: Friend) => {
@@ -204,6 +215,17 @@ const Social = () => {
     }
 
     setLoading(true);
+
+    const oldPendingRequests = sections.find(
+      (section) => section.key === 'pendingRequests',
+    )?.data as Friend[];
+
+    setPendingRequests(
+      (
+        sections.find((section) => section.key === 'pendingRequests')
+          ?.data as Friend[]
+      ).filter((user) => user.id !== friend.id),
+    );
 
     const denyFriendRequestResponse = await denyFriendRequest(
       friend.id,
@@ -219,15 +241,11 @@ const Social = () => {
         'Error',
         denyFriendRequestResponse.error ?? 'Error denying friend request',
       );
+
+      // Revert changes
+      setPendingRequests(oldPendingRequests);
       return;
     }
-
-    setPendingRequests(
-      (
-        sections.find((section) => section.key === 'pendingRequests')
-          ?.data as Friend[]
-      ).filter((user) => user.id !== friend.id),
-    );
   };
 
   const handleCancelFriendRequest = async (email: string) => {
@@ -273,7 +291,7 @@ const Social = () => {
     if (item.key === 'sentRequests') {
       return (
         <View className="mb-5">
-          <Text className="text-xl text-gray-dark font-bold mb-2">
+          <Text className="text-xl text-grayDark font-bold mb-2">
             {item.title}
           </Text>
           <FlatList
@@ -299,7 +317,7 @@ const Social = () => {
     } else if (item.key === 'pendingRequests') {
       return (
         <View className="mb-5">
-          <Text className="text-xl text-gray-dark font-bold mb-2">
+          <Text className="text-xl text-grayDark font-bold mb-2">
             {item.title}
           </Text>
           <FlatList
@@ -323,7 +341,7 @@ const Social = () => {
       return (
         <View className="mb-5">
           <View className="w-full flex-row justify-between items-center">
-            <Text className="text-xl text-gray-dark font-bold mb-2">
+            <Text className="text-xl text-grayDark font-bold mb-2">
               {item.title}
             </Text>
             <TouchableOpacity
@@ -427,6 +445,12 @@ const Social = () => {
 
       setLoading(true);
 
+      const oldSentRequests = [...sentRequests];
+
+      // Optimistically add email to sent requests
+      setSentRequests([...sentRequests, modalDataOption.email]);
+      setModalVisible(false);
+
       const sendFriendRequestResponse = await sendFriendRequest(
         user?.id,
         emailInput,
@@ -441,11 +465,13 @@ const Social = () => {
           'Error',
           sendFriendRequestResponse.error ?? 'Error sending friend request',
         );
+
+        // Revert changes
+        setSentRequests(oldSentRequests);
         return;
       }
 
       // Add email to sent requests
-      setSentRequests([...sentRequests, modalDataOption.email]);
     } else if (modalDataOption.option === ModalDataOptions.REMOVE_FRIEND) {
       // Remove friend
       // Remove user from friends
@@ -455,6 +481,18 @@ const Social = () => {
       }
 
       setLoading(true);
+
+      const oldFriends = sections.find((section) => section.key === 'friends')
+        ?.data as Friend[];
+
+      setFriends(
+        (
+          sections.find((section) => section.key === 'friends')
+            ?.data as Friend[]
+        ).filter((user) => user.id !== modalDataOption.friend?.id),
+      );
+
+      setModalVisible(false);
 
       const removeFriendResponse = await removeFriend(
         user?.id,
@@ -470,17 +508,12 @@ const Social = () => {
           'Error',
           removeFriendResponse.error ?? 'Error removing friend',
         );
+
+        // Revert changes
+        setFriends(oldFriends);
         return;
       }
-
-      setFriends(
-        (
-          sections.find((section) => section.key === 'friends')
-            ?.data as Friend[]
-        ).filter((user) => user.id !== modalDataOption.friend?.id),
-      );
     }
-    setModalVisible(false);
   };
 
   return (
@@ -504,6 +537,9 @@ const Social = () => {
         }
         ListFooterComponent={<View className="h-[10px]" />}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
     </SafeAreaView>
   );

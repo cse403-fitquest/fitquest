@@ -282,9 +282,7 @@ const Shop = () => {
         </View>
 
         <View className="w-full  mb-5">
-          <Text className="text-xl text-gray-black font-bold mb-2">
-            WEAPONS
-          </Text>
+          <Text className="text-xl text-grayDark font-bold mb-2">WEAPONS</Text>
           <FlatList
             data={filterItemsByTypeAndSortByCost(items, ItemType.WEAPON)}
             renderItem={({ item }) => (
@@ -305,7 +303,7 @@ const Shop = () => {
         </View>
 
         <View className="w-full  mb-5">
-          <Text className="text-xl text-gray-black font-bold mb-2">ARMORS</Text>
+          <Text className="text-xl text-grayDark font-bold mb-2">ARMORS</Text>
           <FlatList
             data={filterItemsByTypeAndSortByCost(items, ItemType.ARMOR)}
             renderItem={({ item }) => (
@@ -325,7 +323,7 @@ const Shop = () => {
         </View>
 
         <View className="w-full  mb-5">
-          <Text className="text-xl text-gray-black font-bold mb-2">
+          <Text className="text-xl text-grayDark font-bold mb-2">
             ACCESSORIES
           </Text>
           <FlatList
@@ -347,9 +345,7 @@ const Shop = () => {
         </View>
 
         <View className="w-full  mb-5">
-          <Text className="text-xl text-gray-black font-bold mb-2">
-            POTIONS
-          </Text>
+          <Text className="text-xl text-grayDark font-bold mb-2">POTIONS</Text>
           <View className="flex-row gap-3">
             <FlatList
               data={filterItemsByTypeAndSortByCost(

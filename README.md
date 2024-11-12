@@ -26,13 +26,17 @@
 
    Users complete workouts by logging physical activities to gain progression on quests they embarked on.
 
-- **Avatar/Character Progression System**
+- **Character Progression System**
 
-   Users earn experience points which can be used to level up their character and earn gold to purchase new items in the shop.
+   Users earn experience points to level up their character which gives them attribute points to spend on customizing how their character grows.
 
 - **Dynamic Turn-Based Combat**
 
-   As users progress through quests, they will have the opportunity to fight against monsters and bosses to claim their hard-earned rewards.
+   As users progress through quests, they will have the opportunity to fight against monsters and bosses in a dynamic turn-based combat encounter.
+
+- **Virtual Rewards**
+
+   As users defeat monsters, they earn gold which can be used to purchase cooler and stronger items.
 
 - **Social Connection**
 

@@ -9,12 +9,15 @@ import { fetchItems, setItemsInDB } from '@/services/item';
 import { useItemStore } from '@/store/item';
 import { Alert } from 'react-native';
 import { MOCK_ITEMS } from '@/constants/item';
+import { useSocialStore } from '@/store/social';
+import { getUserFriends } from '@/services/social';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   const { user } = useUserStore();
   const { setItems } = useItemStore();
+  const { setFriends, setPendingRequests, setSentRequests } = useSocialStore();
 
   if (!user) return <Redirect href={'/sign-in' as Href} />;
 
@@ -46,8 +49,25 @@ export default function TabLayout() {
       }
     };
 
+    const fetchUserFriends = async () => {
+      console.log('Fetching user friends');
+
+      if (!user?.id) {
+        return;
+      }
+
+      // Fetch user friends
+      const userFriendsResponse = await getUserFriends(user?.id);
+      if (userFriendsResponse.success && userFriendsResponse.data) {
+        setFriends(userFriendsResponse.data.friends);
+        setPendingRequests(userFriendsResponse.data.pendingRequests);
+        setSentRequests(userFriendsResponse.data.sentRequests);
+      }
+    };
+
     // _setItemsData();
     fetchItemsData();
+    fetchUserFriends();
   }, []);
 
   return (
