@@ -18,7 +18,7 @@ import { useUserStore } from '@/store/user';
 import { useItemStore } from '@/store/item';
 import { useSocialStore } from '@/store/social';
 //import { BASE_USER } from '@/constants/user';
-import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
 import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import clsx from 'clsx';
@@ -375,76 +375,68 @@ const Profile = () => {
         visible={selectedItem !== null}
         setVisible={(visible) => !visible && setSelectedItem(null)}
         title={`Equip ${selectedItem?.name}`}
+        cancelText={'CANCEL'}
+        confirmText="EQUIP ITEM"
         onConfirm={() => handleEquipItem(selectedItem!)}
+        onCancel={() => setSelectedItem(null)}
+        subtitle={selectedItem?.type}
       >
-        <View className="p-4">
-          <Text className="text-xl font-bold mb-2">
-            Equip {selectedItem?.name}?
-          </Text>
-          <Text className="text-gray-500 mb-2">{selectedItem?.type}</Text>
-
-          <View className="mb-4">
-            <Text className="mb-2">{selectedItem?.description}</Text>
-
-            <View className="space-y-2">
-              <View className="flex-row justify-between">
-                <Text>Power: {selectedItem?.power}</Text>
-                <Text
-                  className={
-                    selectedItem?.power && selectedItem.power > 0
-                      ? 'text-green-500'
-                      : 'text-red-500'
-                  }
-                >
-                  {selectedItem?.power && selectedItem.power > 0
-                    ? `+${selectedItem?.power}`
-                    : selectedItem?.power}
-                </Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text>Speed: {selectedItem?.speed}</Text>
-                <Text
-                  className={
-                    selectedItem?.speed && selectedItem.speed > 0
-                      ? 'text-green-500'
-                      : 'text-red-500'
-                  }
-                >
-                  {selectedItem?.speed && selectedItem.speed > 0
-                    ? `+${selectedItem?.speed}`
-                    : selectedItem?.speed}
-                </Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text>Health: {selectedItem?.health}</Text>
-                <Text
-                  className={
-                    selectedItem?.health && selectedItem.health > 0
-                      ? 'text-green-500'
-                      : 'text-red-500'
-                  }
-                >
-                  {selectedItem?.health && selectedItem.health > 0
-                    ? `+${selectedItem?.health}`
-                    : selectedItem?.health}
-                </Text>
-              </View>
-            </View>
+        <View className="py-4 ">
+          <View className="w-full items-center mb-5">
+            <Sprite
+              id={selectedItem?.spriteID ?? SpriteID.T1_DAGGER}
+              width={70}
+              height={70}
+            />
           </View>
 
-          <View className="flex-row justify-between">
-            <TouchableOpacity
-              onPress={() => setSelectedItem(null)}
-              className="px-4 py-2"
-            >
-              <Text className="text-red-500">CANCEL</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleEquipItem(selectedItem!)}
-              className="px-4 py-2"
-            >
-              <Text className="text-blue-500">EQUIP ITEM</Text>
-            </TouchableOpacity>
+          <View className="w-full items-center mb-5">
+            <Text className="mb-2">{selectedItem?.description}</Text>
+          </View>
+
+          <View className="space-y-2">
+            <View className="flex-row justify-between">
+              <Text>Power: {selectedItem?.power}</Text>
+              <Text
+                className={
+                  selectedItem?.power && selectedItem.power > 0
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                }
+              >
+                {selectedItem?.power && selectedItem.power > 0
+                  ? `+${selectedItem?.power}`
+                  : selectedItem?.power}
+              </Text>
+            </View>
+            <View className="flex-row justify-between">
+              <Text>Speed: {selectedItem?.speed}</Text>
+              <Text
+                className={
+                  selectedItem?.speed && selectedItem.speed > 0
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                }
+              >
+                {selectedItem?.speed && selectedItem.speed > 0
+                  ? `+${selectedItem?.speed}`
+                  : selectedItem?.speed}
+              </Text>
+            </View>
+            <View className="flex-row justify-between">
+              <Text>Health: {selectedItem?.health}</Text>
+              <Text
+                className={
+                  selectedItem?.health && selectedItem.health > 0
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                }
+              >
+                {selectedItem?.health && selectedItem.health > 0
+                  ? `+${selectedItem?.health}`
+                  : selectedItem?.health}
+              </Text>
+            </View>
           </View>
         </View>
       </FQModal>
