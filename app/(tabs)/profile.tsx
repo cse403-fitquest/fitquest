@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import FQModal from '@/components/FQModal';
 import { Item, ItemType } from '@/types/item';
 import { updateUserProfile } from '@/services/user';
@@ -59,9 +59,33 @@ const ItemCard = ({ item, onPress, isEquipped }: ItemCardProps) => {
   );
 };
 
+interface StatContributions {
+  name: string;
+  power: number;
+  health: number;
+  speed: number;
+}
+
 const Profile = () => {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const [statBreakdownModalVisible, setStatBreakdownModalVisible] =
+    useState(false);
+  const [selectedStatForBreakdown, setSelectedStatForBreakdown] = useState<
+    'power' | 'health' | 'speed'
+  >('power');
+  const [statContributions, setStatContributions] = useState<
+    StatContributions[]
+  >([]);
+  const [totalStats, setTotalStats] = useState<{
+    power: number;
+    health: number;
+    speed: number;
+  }>({
+    power: 0,
+    health: 0,
+    speed: 0,
+  });
 
   const { user, setUser } = useUserStore();
   const { items } = useItemStore();
@@ -86,6 +110,44 @@ const Profile = () => {
   const isItemEquipped = selectedItem
     ? user?.equippedItems.includes(selectedItem.id)
     : false;
+
+  // Calculate total stats based on user profile and equipped items
+  useEffect(() => {
+    if (!user) return;
+
+    // Base stats from user profile
+    let computedPower = user.attributes.power;
+    let computedHealth = user.attributes.health;
+    let computedSpeed = user.attributes.speed;
+
+    const contributions: StatContributions[] = [];
+
+    // Fetch equipped items
+    const equipped = items.filter((item) =>
+      user.equippedItems.includes(item.id),
+    );
+
+    equipped.forEach((item) => {
+      computedPower += item.power;
+      computedHealth += item.health;
+      computedSpeed += item.speed;
+
+      contributions.push({
+        name: item.name,
+        power: item.power,
+        health: item.health,
+        speed: item.speed,
+      });
+    });
+
+    setTotalStats({
+      power: computedPower,
+      health: computedHealth,
+      speed: computedSpeed,
+    });
+
+    setStatContributions(contributions);
+  }, [user, items]);
 
   // Function to handle equipping an item
   const handleEquipItem = async (item: Item) => {
@@ -212,6 +274,73 @@ const Profile = () => {
     setIsSettingsVisible(false);
   };
 
+  const openStatBreakdownModal = (stat: 'power' | 'health' | 'speed') => {
+    setSelectedStatForBreakdown(stat);
+    setStatBreakdownModalVisible(true);
+  };
+
+  const getStatBreakdown = (stat: 'power' | 'health' | 'speed') => {
+    const baseStat = user?.attributes[stat] ?? 0;
+    const totalContribution = statContributions.reduce(
+      (total, contribution) => total + contribution[stat],
+      0,
+    );
+    const totalStat = baseStat + totalContribution;
+
+    return (
+      <>
+        {/* Base Stat */}
+        <View className="flex-row justify-between mb-3">
+          <Text className="text-lg">
+            Base {stat.charAt(0).toUpperCase() + stat.slice(1)}
+          </Text>
+          <Text className="text-lg">{baseStat}</Text>
+        </View>
+
+        {/* Contributions */}
+        {statContributions
+          .filter((contribution) => contribution[stat] !== 0)
+          .map((contribution, index) => (
+            <View key={index} className="flex-row justify-between mb-3">
+              <Text className="text-lg">{contribution.name}</Text>
+              <Text
+                className={`${'text-lg'}
+                totalStat > baseStat
+                  ? 'text-green-500'
+                  : totalStat < baseStat
+                    ? 'text-red-500'
+                    : 'text-gray-500'`}
+              >
+                {contribution[stat] > 0
+                  ? `+${contribution[stat]}`
+                  : `${contribution[stat]}`}
+              </Text>
+            </View>
+          ))}
+
+        {/* Separator Line */}
+        <View className="my-4 border-t border-gray-300" />
+
+        {/* Total Stat */}
+        <View className="flex-row justify-between">
+          <Text className="font-bold text-xl">
+            Total {stat.charAt(0).toUpperCase() + stat.slice(1)}
+          </Text>
+          <Text
+            className={`${'font-bold text-xl'}
+              totalStat > baseStat
+                ? 'text-green-500'
+                : totalStat < baseStat
+                  ? 'text-red-500'
+                  : 'text-gray-500'`}
+          >
+            {totalStat > baseStat ? `+${totalStat}` : `${totalStat}`}
+          </Text>
+        </View>
+      </>
+    );
+  };
+
   if (!user) {
     return;
   }
@@ -226,6 +355,13 @@ const Profile = () => {
   const userItems = items.filter((item: { id: string }) =>
     userItemIds.includes(item.id),
   );
+
+  function capitalize(selectedStatForBreakdown: string) {
+    return (
+      selectedStatForBreakdown.charAt(0).toUpperCase() +
+      selectedStatForBreakdown.slice(1)
+    );
+  }
 
   return (
     <SafeAreaView className=" bg-offWhite">
@@ -260,7 +396,7 @@ const Profile = () => {
           </View>
         </View>
 
-        {/* Experience Bar */}
+        {/*
         <View className="mb-4">
           <View className="border border-gray rounded">
             <View className="w-full h-2 bg-gray-200 rounded">
@@ -272,29 +408,39 @@ const Profile = () => {
             300 EXP TILL LEVEL 10
           </Text>
         </View>
+        */}
 
-        <View className="mb-6">
+        {/* Attributes Section */}
+        <View className="text-lg mb-6">
           <Text className="font-bold text-xl text-grayDark mb-2">
             ATTRIBUTES
           </Text>
           <View className="space-y-2">
             <View className="flex-row justify-between items-center">
-              <Text className="text-gray-500">
-                Power: {user?.attributes.power}
+              <Text className="text-lg text-gray-500">
+                Power: {totalStats.power}
               </Text>
-              <Ionicons name="information-circle-outline" size={24} />
+              <TouchableOpacity onPress={() => openStatBreakdownModal('power')}>
+                <Ionicons name="information-circle-outline" size={24} />
+              </TouchableOpacity>
             </View>
             <View className="flex-row justify-between items-center">
-              <Text className="text-gray-500">
-                Speed: {user?.attributes.speed}
+              <Text className="text-lg text-gray-500">
+                Speed: {totalStats.speed}
               </Text>
-              <Ionicons name="information-circle-outline" size={24} />
+              <TouchableOpacity onPress={() => openStatBreakdownModal('speed')}>
+                <Ionicons name="information-circle-outline" size={24} />
+              </TouchableOpacity>
             </View>
             <View className="flex-row justify-between items-center">
-              <Text className="text-gray-500">
-                Health: {user?.attributes.health}
+              <Text className="text-lg text-gray-500">
+                Health: {totalStats.health}
               </Text>
-              <Ionicons name="information-circle-outline" size={24} />
+              <TouchableOpacity
+                onPress={() => openStatBreakdownModal('health')}
+              >
+                <Ionicons name="information-circle-outline" size={24} />
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -333,7 +479,7 @@ const Profile = () => {
 
           <View className="mt-4">
             <View className="h-[250px] flex-row items-end justify-between mb-2">
-              {[5, 2, 3, 1, 0].map((value) => (
+              {[5, 2, 3, 1, 4].map((value) => (
                 <View key={value} className="w-16">
                   {[...Array(value)].map((_, blockIndex) => (
                     <View
@@ -530,6 +676,33 @@ const Profile = () => {
               </Text>
             </View>
           </View>
+        </View>
+      </FQModal>
+
+      {/* Stat Breakdown Modal */}
+      <FQModal
+        title={`${capitalize(selectedStatForBreakdown)} Breakdown`}
+        visible={statBreakdownModalVisible}
+        setVisible={setStatBreakdownModalVisible}
+        onConfirm={() => setStatBreakdownModalVisible(false)}
+      >
+        {/* Close Button */}
+        <TouchableOpacity
+          onPress={() => setStatBreakdownModalVisible(false)}
+          style={{ position: 'absolute', top: 10, right: 10 }}
+        >
+          <Ionicons name="close" size={24} color="#000" />
+        </TouchableOpacity>
+
+        <View className="py-4 w-[220px] relative">
+          {getStatBreakdown(selectedStatForBreakdown)}
+
+          {statContributions.filter((c) => c[selectedStatForBreakdown] !== 0)
+            .length === 0 && (
+              <Text className="mt-4 text-center text-gray-500">
+                No items equipped that affect this stat.
+              </Text>
+            )}
         </View>
       </FQModal>
     </SafeAreaView>
