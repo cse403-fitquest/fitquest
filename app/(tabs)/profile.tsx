@@ -153,6 +153,16 @@ const Profile = () => {
   const handleEquipItem = async (item: Item) => {
     if (!user) return;
 
+    if (
+      !user ||
+      item.type === ItemType.POTION_SMALL ||
+      item.type === ItemType.POTION_MEDIUM ||
+      item.type === ItemType.POTION_LARGE
+    ) {
+      Alert.alert('Cannot equip potions');
+      return;
+    }
+
     try {
       // Determine the item's type
       const itemType = item.type;
@@ -200,6 +210,16 @@ const Profile = () => {
 
   const handleUnequipItem = async (item: Item) => {
     if (!user) return;
+
+    if (
+      !user ||
+      item.type === ItemType.POTION_SMALL ||
+      item.type === ItemType.POTION_MEDIUM ||
+      item.type === ItemType.POTION_LARGE
+    ) {
+      Alert.alert('Cannot unequip potions');
+      return;
+    }
 
     try {
       const newEquippedItems = user.equippedItems.filter(
@@ -306,7 +326,7 @@ const Profile = () => {
               <Text
                 className={`${'text-lg'}
                 totalStat > baseStat
-                  ? 'text-green-500'
+                  ? 'text-green'
                   : totalStat < baseStat
                     ? 'text-red-500'
                     : 'text-gray-500'`}
@@ -329,10 +349,10 @@ const Profile = () => {
           <Text
             className={`${'font-bold text-xl'}
               totalStat > baseStat
-                ? 'text-green-500'
+                ? 'text-green'
                 : totalStat < baseStat
                   ? 'text-red-500'
-                  : 'text-gray-500'`}
+                  : 'text-gray'`}
           >
             {totalStat > baseStat ? `+${totalStat}` : `${totalStat}`}
           </Text>
@@ -345,6 +365,16 @@ const Profile = () => {
     return;
   }
 
+  // Type priority for item sorting
+  const typePriority: { [key in ItemType]: number } = {
+    [ItemType.WEAPON]: 1,
+    [ItemType.ARMOR]: 2,
+    [ItemType.ACCESSORY]: 3,
+    [ItemType.POTION_SMALL]: 4,
+    [ItemType.POTION_MEDIUM]: 4,
+    [ItemType.POTION_LARGE]: 4,
+  };
+
   // Get the user's items from the store
   const userItemIds = [
     ...user.equipments,
@@ -352,9 +382,16 @@ const Profile = () => {
     ...user.equippedItems,
   ];
 
-  const userItems = items.filter((item: { id: string }) =>
-    userItemIds.includes(item.id),
-  );
+  const userItems = items
+    .filter((item: { id: string }) => userItemIds.includes(item.id))
+    .sort((a, b) => {
+      const aPriority = typePriority[a.type] || 99;
+      const bPriority = typePriority[b.type] || 99;
+
+      if (aPriority < bPriority) return -1;
+      if (aPriority > bPriority) return 1;
+      return 0;
+    });
 
   function capitalize(selectedStatForBreakdown: string) {
     return (
@@ -484,7 +521,7 @@ const Profile = () => {
                   {[...Array(value)].map((_, blockIndex) => (
                     <View
                       key={blockIndex}
-                      className="h-12 w-full bg-green-500 border-t border-green-600"
+                      className="h-12 w-full bg-green border-t border-green-600"
                       style={{
                         backgroundColor: '#22C55E',
                       }}
@@ -604,18 +641,31 @@ const Profile = () => {
         visible={selectedItem !== null}
         setVisible={(visible) => !visible && setSelectedItem(null)}
         title={
-          isItemEquipped
-            ? `Unequip ${selectedItem?.name}`
-            : `Equip ${selectedItem?.name}`
+          selectedItem?.type.startsWith('POTION')
+            ? selectedItem?.name
+            : isItemEquipped
+              ? `Unequip ${selectedItem?.name}`
+              : `Equip ${selectedItem?.name}`
         }
-        cancelText={'CANCEL'}
+        cancelText={
+          selectedItem?.type.startsWith('POTION') ? 'CLOSE' : 'CANCEL'
+        }
         onConfirm={() =>
-          selectedItem &&
-          (isItemEquipped
-            ? handleUnequipItem(selectedItem)
-            : handleEquipItem(selectedItem))
+          selectedItem
+            ? selectedItem.type.startsWith('POTION')
+              ? setSelectedItem(null)
+              : isItemEquipped
+                ? handleUnequipItem(selectedItem)
+                : handleEquipItem(selectedItem)
+            : null
         }
-        confirmText={isItemEquipped ? 'Unequip' : 'Equip'}
+        confirmText={
+          selectedItem?.type.startsWith('POTION')
+            ? 'OK'
+            : isItemEquipped
+              ? 'Unequip'
+              : 'Equip'
+        }
         onCancel={() => setSelectedItem(null)}
         subtitle={selectedItem?.type}
       >
@@ -632,71 +682,73 @@ const Profile = () => {
             <Text className="mb-2">{selectedItem?.description}</Text>
           </View>
 
-          <View className="space-y-2">
-            <View className="flex-row justify-between">
-              <Text>Power: {selectedItem?.power}</Text>
-              <Text>--{'>'}</Text>
-              <Text
-                className={
-                  isItemEquipped
-                    ? totalStats.power - (selectedItem?.power ?? 0) <
-                      totalStats.power
-                      ? 'text-red-500'
-                      : 'text-green'
-                    : totalStats.power + (selectedItem?.power ?? 0) >=
-                      totalStats.power
-                      ? 'text-green'
-                      : 'text-red-500'
-                }
-              >
-                {isItemEquipped
-                  ? totalStats.power - (selectedItem?.power ?? 0)
-                  : totalStats.power + (selectedItem?.power ?? 0)}
-              </Text>
+          {!selectedItem?.type.startsWith('POTION') && (
+            <View className="space-y-2">
+              <View className="flex-row justify-between">
+                <Text>Power: {selectedItem?.power}</Text>
+                <Text>--{'>'}</Text>
+                <Text
+                  className={
+                    isItemEquipped
+                      ? totalStats.power - (selectedItem?.power ?? 0) <
+                        totalStats.power
+                        ? 'text-red-500'
+                        : 'text-green'
+                      : totalStats.power + (selectedItem?.power ?? 0) >=
+                        totalStats.power
+                        ? 'text-green'
+                        : 'text-red-500'
+                  }
+                >
+                  {isItemEquipped
+                    ? totalStats.power - (selectedItem?.power ?? 0)
+                    : totalStats.power + (selectedItem?.power ?? 0)}
+                </Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text>Speed: {selectedItem?.speed}</Text>
+                <Text>--{'>'}</Text>
+                <Text
+                  className={
+                    isItemEquipped
+                      ? totalStats.speed - (selectedItem?.speed ?? 0) <
+                        totalStats.speed
+                        ? 'text-red-500'
+                        : 'text-green'
+                      : totalStats.speed + (selectedItem?.speed ?? 0) >=
+                        totalStats.speed
+                        ? 'text-green'
+                        : 'text-red-500'
+                  }
+                >
+                  {isItemEquipped
+                    ? totalStats.speed - (selectedItem?.speed ?? 0)
+                    : totalStats.speed + (selectedItem?.speed ?? 0)}
+                </Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text>Health: {selectedItem?.health}</Text>
+                <Text>--{'>'}</Text>
+                <Text
+                  className={
+                    isItemEquipped
+                      ? totalStats.health - (selectedItem?.health ?? 0) <
+                        totalStats.health
+                        ? 'text-red-500'
+                        : 'text-green'
+                      : totalStats.health + (selectedItem?.health ?? 0) >=
+                        totalStats.health
+                        ? 'text-green'
+                        : 'text-red-500'
+                  }
+                >
+                  {isItemEquipped
+                    ? totalStats.health - (selectedItem?.health ?? 0)
+                    : totalStats.health + (selectedItem?.health ?? 0)}
+                </Text>
+              </View>
             </View>
-            <View className="flex-row justify-between">
-              <Text>Speed: {selectedItem?.speed}</Text>
-              <Text>--{'>'}</Text>
-              <Text
-                className={
-                  isItemEquipped
-                    ? totalStats.speed - (selectedItem?.speed ?? 0) <
-                      totalStats.speed
-                      ? 'text-red-500'
-                      : 'text-green'
-                    : totalStats.speed + (selectedItem?.speed ?? 0) >=
-                      totalStats.speed
-                      ? 'text-green'
-                      : 'text-red-500'
-                }
-              >
-                {isItemEquipped
-                  ? totalStats.speed - (selectedItem?.speed ?? 0)
-                  : totalStats.speed + (selectedItem?.speed ?? 0)}
-              </Text>
-            </View>
-            <View className="flex-row justify-between">
-              <Text>Health: {selectedItem?.health}</Text>
-              <Text>--{'>'}</Text>
-              <Text
-                className={
-                  isItemEquipped
-                    ? totalStats.health - (selectedItem?.health ?? 0) <
-                      totalStats.health
-                      ? 'text-red-500'
-                      : 'text-green'
-                    : totalStats.health + (selectedItem?.health ?? 0) >=
-                      totalStats.health
-                      ? 'text-green'
-                      : 'text-red-500'
-                }
-              >
-                {isItemEquipped
-                  ? totalStats.health - (selectedItem?.health ?? 0)
-                  : totalStats.health + (selectedItem?.health ?? 0)}
-              </Text>
-            </View>
-          </View>
+          )}
         </View>
       </FQModal>
 
