@@ -26,9 +26,10 @@ import clsx from 'clsx';
 interface ItemCardProps {
   item: Item;
   onPress: () => void;
+  isEquipped: boolean;
 }
 
-const ItemCard = ({ item, onPress }: ItemCardProps) => {
+const ItemCard = ({ item, onPress, isEquipped }: ItemCardProps) => {
   return (
     <View className="flex-col justify-center items-center">
       <TouchableOpacity
@@ -44,11 +45,19 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
               ItemType.POTION_MEDIUM,
               ItemType.POTION_LARGE,
             ].includes(item.type),
+            'border-yellow-800 border-10': isEquipped, // Change border color if equipped
+            'border-4': isEquipped, // Optional: Increase border width if equipped
           },
         )}
       >
         <Sprite id={item.spriteID} width={70} height={70} />
+        {isEquipped && (
+          <View className="absolute top-0 right-0 bg-yellow-500 rounded-full p-1">
+            <Ionicons name="checkmark-circle" size={24} color="white" />
+          </View>
+        )}
       </TouchableOpacity>
+      <Text className="text-lg text-gold mb-5 font-semibold">{item.name}</Text>
     </View>
   );
 };
@@ -56,11 +65,6 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
 const Profile = () => {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
-
-  // Helper function to fill missing user fields in DB
-  // useEffect(() => {
-  //   void fillMissingUserFields();
-  // }, []);
 
   const { user, setUser } = useUserStore();
   const { items } = useItemStore();
@@ -309,11 +313,19 @@ const Profile = () => {
           <Text className="font-bold mb-2 text-xl text-grayDark">ITEMS</Text>
           {userItems.length > 0 ? (
             <View className="flex-row flex-wrap gap-y-4">
-              {userItems.map((item: Item) => (
-                <View key={item.id} className="w-1/3 flex items-center">
-                  <ItemCard item={item} onPress={() => setSelectedItem(item)} />
-                </View>
-              ))}
+              {userItems.map((item: Item) => {
+                const isEquipped = user.equippedItems.includes(item.id); // Determine if the item is equipped
+
+                return (
+                  <View key={item.id} className="w-1/3 flex items-center">
+                    <ItemCard
+                      item={item}
+                      onPress={() => setSelectedItem(item)}
+                      isEquipped={isEquipped} // Pass the equipped status to ItemCard
+                    />
+                  </View>
+                );
+              })}
             </View>
           ) : (
             <Text className="text-gray-500">
