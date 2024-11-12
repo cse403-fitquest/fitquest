@@ -182,7 +182,7 @@ const Quest = () => {
         const uniqueKey = Date.now();
 
         router.replace({
-          pathname: '/Fight',
+          pathname: '/fight',
           params: {
             isBoss: isBoss ? 'true' : 'false',
             questId: activeQuest.questID,

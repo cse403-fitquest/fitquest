@@ -3,6 +3,7 @@ import { SafeAreaView, View, Text, Pressable, Modal } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
+import { StatusBar } from 'expo-status-bar';
 
 const initialPlayer = {
   id: '',
@@ -268,15 +269,15 @@ const Combat = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 p-4 pb-20">
+    <SafeAreaView className="flex-1 p-4 pb-20 px-6">
       <View className="h-2 bg-gray-200 rounded-full mb-8">
         <View className="h-full bg-blue-500 rounded-full w-1/2" />
       </View>
 
       <Text className="text-2xl font-bold text-center mb-6">{questName}</Text>
       <View className="flex-1">
-        <View className="flex-row justify-between items-start mb-8">
-          <View className="w-1/2 pr-4 border border-gray p-5 rounded">
+        <View className="flex-row justify-between items-start mb-12">
+          <View className="w-1/2 pr-4">
             <Text className="text-lg font-bold mb-1">{monster.name}</Text>
             <View className="w-full h-4 bg-gray rounded-full overflow-hidden b-black border border-black border-2">
               <View
@@ -302,8 +303,8 @@ const Combat = () => {
           </View>
         </View>
 
-        <View className="flex-row justify-between items-end mt-auto mb-8">
-          <View className="w-1/2">
+        <View className="flex-row justify-between items-center mb-8">
+          <View className="w-1/2 items-start">
             <AnimatedSprite
               id={AnimatedSpriteID.HERO_20}
               width={120}
@@ -312,7 +313,7 @@ const Combat = () => {
             />
           </View>
 
-          <View className="w-1/2 pl-4 border border-gray p-5 rounded">
+          <View className="w-1/2 pl-4">
             <Text className="text-lg font-bold mb-1">{player.name}</Text>
             <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
               <View
@@ -459,6 +460,8 @@ const Combat = () => {
           </View>
         </View>
       </Modal>
+
+      <StatusBar backgroundColor="#161622" style="light" />
     </SafeAreaView>
   );
 };
