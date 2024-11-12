@@ -190,7 +190,7 @@ const Profile = () => {
             </View>
           </View>
 
-          <Text className="text-xs text-center text-gray-500 mt-1">
+          <Text className="text-xs text-center text-gray-500 mt-1 mb-4">
             300 EXP TILL LEVEL
           </Text>
         </View>
