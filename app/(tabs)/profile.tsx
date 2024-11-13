@@ -223,7 +223,7 @@ const Profile = () => {
 
         {/* Items Grid */}
         <View className="mt-2">
-          <Text className="font-bold mb-2 text-xl text-grayDarak">ITEMS</Text>
+          <Text className="font-bold mb-2 text-xl text-grayDark">ITEMS</Text>
           {userItems.length > 0 ? (
             <View className="flex-row flex-wrap gap-y-4">
               {userItems.map((item: Item) => (
