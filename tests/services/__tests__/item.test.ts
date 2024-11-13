@@ -137,7 +137,7 @@ describe('Item Service Functions', () => {
     };
     const userId = 'user123';
 
-    it('should complete purchase successfully', async () => {
+    it('should complete purchase successfully #1', async () => {
       // Mock getDoc to return item data for the item and user data for the user
       mockGetDoc.mockImplementation((ref) => {
         if (ref.path.includes('items')) return { data: () => item };
@@ -154,10 +154,58 @@ describe('Item Service Functions', () => {
         data: null,
         error: null,
       });
+
+      // Check if user's gold has been deducted and that the item has been added to the user's equipments
+      expect(mockUpdateDoc).toHaveBeenCalledWith(expect.objectContaining({}), {
+        gold: userData.gold - item.cost,
+        equipments: [item.id],
+      });
     });
 
-    it('should fail purchase if user has insufficient balance', async () => {
+    it('should complete purchase successfully #2', async () => {
+      const user2 = {
+        ...userData,
+        gold: 50,
+      };
+
+      // Mock getDoc to return item data for the item and user data for the user
+      mockGetDoc.mockImplementation((ref) => {
+        if (ref.path.includes('items')) return { data: () => item };
+        if (ref.path.includes('users')) return { data: () => user2 };
+      });
+
+      // Mock updateDoc to resolve without returning any data
+      mockUpdateDoc.mockResolvedValue(undefined);
+
+      const response: APIResponse = await purchaseItem(userId, itemId);
+
+      expect(response).toEqual({
+        success: true,
+        data: null,
+        error: null,
+      });
+
+      // Check if user's gold has been deducted and that the item has been added to the user's equipments
+      expect(mockUpdateDoc).toHaveBeenCalledWith(expect.objectContaining({}), {
+        gold: user2.gold - item.cost,
+        equipments: [item.id],
+      });
+    });
+
+    it('should fail purchase if user has insufficient balance #1', async () => {
       const userWithLowBalance = { ...userData, gold: 20 };
+      mockGetDoc.mockImplementation((ref) => {
+        if (ref.path.includes('items')) return { data: () => item };
+        if (ref.path.includes('users'))
+          return { data: () => userWithLowBalance };
+      });
+
+      const response: APIResponse = await purchaseItem(userId, item.id);
+      expect(response.success).toEqual(false);
+    });
+
+    it('should fail purchase if user has insufficient balance #2', async () => {
+      const userWithLowBalance = { ...userData, gold: 49 };
       mockGetDoc.mockImplementation((ref) => {
         if (ref.path.includes('items')) return { data: () => item };
         if (ref.path.includes('users'))
