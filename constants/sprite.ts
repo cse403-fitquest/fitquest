@@ -9,8 +9,6 @@ export enum SpriteID {
 
   T2_DAGGER = 't2_dagger',
   T2_SWORD = 't2_sword',
-  T2_HELM = 't2_helm',
-  T2_SHIELD = 't2_shield',
   T2_HEAVY_ARMOR = 't2_heavy_armor',
 
   T3_DAGGER = 't3_dagger',
@@ -22,9 +20,9 @@ export enum SpriteID {
   T4_HEAVY_ARMOR = 't4_heavy_armor',
 
   //  Consumables
-  HEALTH_POTION_SMALL = 'health_potion_small',
-  HEALTH_POTION_MEDIUM = 'health_potion_medium',
-  HEALTH_POTION_LARGE = 'health_potion_large',
+  HEALTH_POTION_SMALL = 't1_hp_potion',
+  HEALTH_POTION_MEDIUM = 't2_hp_potion',
+  HEALTH_POTION_LARGE = 't3_hp_potion',
 }
 
 export enum SpriteState {
