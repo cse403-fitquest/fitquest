@@ -76,7 +76,7 @@ export const Sprite: FC<ISprite> = ({ id, width, height }) => {
       break;
 
     default:
-      spriteSource = require('@/assets/sprites/t1_shield.png');
+      spriteSource = require('@/assets/sprites/t1_ring512.png');
       break;
   }
 
