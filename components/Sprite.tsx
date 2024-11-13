@@ -39,12 +39,6 @@ export const Sprite: FC<ISprite> = ({ id, width, height }) => {
     case SpriteID.T2_SWORD:
       spriteSource = require('@/assets/sprites/t2_sword512.png');
       break;
-    case SpriteID.T2_HELM:
-      spriteSource = require('@/assets/sprites/t1_shield.png');
-      break;
-    case SpriteID.T2_SHIELD:
-      spriteSource = require('@/assets/sprites/t1_shield.png');
-      break;
     case SpriteID.T2_HEAVY_ARMOR:
       spriteSource = require('@/assets/sprites/t2_heavy_armor512.png');
       break;
@@ -72,22 +66,23 @@ export const Sprite: FC<ISprite> = ({ id, width, height }) => {
       break;
 
     case SpriteID.HEALTH_POTION_SMALL:
-      spriteSource = require('@/assets/sprites/t1_hp_potion512.png');
+      spriteSource = require('@/assets/sprites/health_potion_small512.png');
       break;
     case SpriteID.HEALTH_POTION_MEDIUM:
-      spriteSource = require('@/assets/sprites/t2_hp_potion512.png');
+      spriteSource = require('@/assets/sprites/health_potion_medium512.png');
       break;
     case SpriteID.HEALTH_POTION_LARGE:
-      spriteSource = require('@/assets/sprites/t3_hp_potion512.png');
+      spriteSource = require('@/assets/sprites/health_potion_large512.png');
       break;
 
     default:
-      spriteSource = require('@/assets/sprites/t1_shield.png');
+      spriteSource = require('@/assets/sprites/t1_ring512.png');
       break;
   }
 
   return (
     <Image
+      testID="Sprite"
       source={spriteSource}
       style={{ width: width ?? 120, height: height ?? 120 }}
     />
