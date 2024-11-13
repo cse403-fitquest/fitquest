@@ -333,7 +333,7 @@ const Combat = () => {
         <View className="flex-row justify-between items-center">
           <View className="w-10 items-start ml-[-35px] ">
             <AnimatedSprite
-              id={user?.spriteID || AnimatedSpriteID.DEFAULT_SPRITE}
+              id={user?.spriteID}
               width={256}
               height={256}
               state={playerSpriteState}
@@ -445,7 +445,7 @@ const Combat = () => {
                   <View className="absolute bottom-0 flex-row justify-center items-end">
                     <View className="relative left-[25px]">
                       <AnimatedSprite
-                        id={user?.spriteID || AnimatedSpriteID.DEFAULT_SPRITE}
+                        id={user?.spriteID}
                         state={SpriteState.ATTACK_1}
                         width={120}
                         height={120}
@@ -485,7 +485,7 @@ const Combat = () => {
                   <View className="absolute bottom-0 flex-row justify-center items-end">
                     <View className="relative left-[15px]">
                       <AnimatedSprite
-                        id={user?.spriteID || AnimatedSpriteID.DEFAULT_SPRITE}
+                        id={user?.spriteID}
                         state={SpriteState.DEATH}
                         width={120}
                         height={120}
