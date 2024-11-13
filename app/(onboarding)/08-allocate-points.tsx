@@ -1,5 +1,5 @@
 import FQButton from '@/components/FQButton';
-import { Colors } from '@/constants/Colors';
+import { Colors } from '@/constants/colors';
 import { BASE_ATTRIBUTES } from '@/constants/onboarding';
 import { useOnboardingStore } from '@/store/onboarding';
 import { Ionicons } from '@expo/vector-icons';

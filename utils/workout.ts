@@ -1,20 +1,3 @@
-/*const updateExp: (userID: string) => Promise<APIResponse> = async (userID) => {
-  try {
-    const itemCollection = collection(FIREBASE_DB, 'items').withConverter(
-      itemConverter,
-    );
-
-  } catch (error) {
-    console.error('Error updating exp:', error);
-
-    return {
-      data: null,
-      success: false,
-      error: 'Error updating Exp.',
-    };
-  }
-}*/
-
 /* converts seconds to xminutes xseconds so for display purposes*/
 export const secondsToMinutes = (seconds: number) => {
   return Math.floor(seconds / 60) + 'm' + (seconds % 60) + 's';
