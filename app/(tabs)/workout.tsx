@@ -5,6 +5,7 @@ import {
   StyleSheet,
   View,
   Modal,
+  TextInput,
 } from 'react-native';
 import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,6 +28,8 @@ const Workout = () => {
   );
 
   type Exercise = { name: string; weight: number; reps: number; sets: number };
+
+  type Template = { title: string, exercises: Exercise[]};
 
   const fillerex: Exercise = { name: 'Bench', weight: 135, reps: 20, sets: 4 };
 
@@ -87,7 +90,10 @@ const Workout = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
-  const [savedTemplates, setSavedTemplates] = useState<Exercise[][]>([]);
+  const [savedTemplates, setSavedTemplates] = useState<Template[]>([]);
+
+  const [title, setTitle] = useState('New Workout'); 
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
 
 
   // adds to selected
@@ -104,6 +110,20 @@ const Workout = () => {
     setSelectedExercises(
       selectedExercises.filter((item) => item.name !== name),
     );
+  };
+  const updateExercise = (index: number, key: string, value: number) => {
+    // Update the specific property (weight, reps, sets) of the exercise
+    const updatedExercises: Exercise[] = [...selectedExercises];
+    if(key==="weight"){
+      updatedExercises[index].weight = value;
+    }
+    if(key==="reps"){
+      updatedExercises[index].reps = value;
+    }
+    if(key==="sets"){
+      updatedExercises[index].sets = value;
+    }
+    setSelectedExercises(updatedExercises);
   };
 
   //finds exercise in exercises with name name
@@ -134,11 +154,11 @@ const Workout = () => {
   const exerciseToString = (exercise: Exercise) => {
     return (
       exercise.name +
-      '                     ' +
+      '                ' +
       exercise.weight +
-      '               ' +
+      '                ' +
       exercise.reps +
-      '               ' +
+      '                ' +
       exercise.sets +
       '  '
     );
@@ -151,12 +171,16 @@ const Workout = () => {
     return str;
   };
 
-  const saveWorkout = (workout: Exercise[]) => {
-    setSavedTemplates([...savedTemplates, workout])
+  const saveWorkout = (workout: Template) => {
+
+    setSavedTemplates([...savedTemplates, workout]);
+    setSelectedExercises([]);
+    setModalVisible(false);
+    console.log("Successfully added "+workout+"to saved templates");
   }
 
   //constructor for a Template
-  const Template = (title: string, exercises: Exercise[]) => {
+  const Template = ({ title, exercises }: { title: string; exercises: Exercise[] }) => {
     const [isSelected, setIsSelected] = useState(false);
     const [isDropdownVisible, setDropdownVisible] = useState(false);
 
@@ -189,7 +213,7 @@ const Workout = () => {
           <View style={templatestyles.dropdownContainer}>
             <Text style={templatestyles.dropdownItem}>
               {' '}
-              Name | Weight | Reps | Sets{' '}
+                 Name     |     Weight     |     Reps     |      Sets{' '}
             </Text>
             <FlatList
               data={exercisesToString(exercises)}
@@ -270,6 +294,22 @@ const Workout = () => {
             <Text style={templatestyles.modalCreatorHeader}>
               Template Creator
             </Text>
+            {/* Editable Title */}
+            <View style={templatestyles.titleContainer}>
+                {isEditingTitle ? (
+                  <TextInput
+                    style={templatestyles.titleInput}
+                    value={title}
+                    onChangeText={(text) => setTitle(text)}
+                    onBlur={() => setIsEditingTitle(false)} // Exit edit mode on blur
+                    autoFocus
+                  />
+                ) : (
+                  <TouchableOpacity onPress={() => setIsEditingTitle(true)}>
+                    <Text style={templatestyles.titleText}>{title}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
             {/* List of Exercises */}
             <View style={{ flex: 1, marginBottom: 10 }}>
@@ -303,18 +343,47 @@ const Workout = () => {
             <View
               style={{ flex: 1, marginBottom: 10, alignItems: 'flex-start' }}
             >
+
+              <Text style={templatestyles.templateCreatorTableHeader}>        |    Name    |  Weight  |  Reps  |   Sets  |</Text>
+
               <FlatList
-                data={selectedExercises.map((exercise) => exercise.name)}
-                keyExtractor={(item) => item}
-                renderItem={({ item }) => (
+                data={selectedExercises}
+                keyExtractor={(item) => item.name}
+                renderItem={({ item, index }) => (
                   <View style={templatestyles.exerciseItem}>
                     <TouchableOpacity
                       style={templatestyles.removeButton}
-                      onPress={() => removeExercise(item)}
+                      onPress={() => removeExercise(item.name)}
                     >
                       <Text style={templatestyles.addButtonText}>-</Text>
                     </TouchableOpacity>
-                    <Text> {item}</Text>
+                    <Text> {item.name}</Text>
+                    {/* Weight input */}
+                    <TextInput
+                      style={templatestyles.input}
+                      placeholder="Weight"
+                      value={item.weight.toString()}
+                      keyboardType="numeric"
+                      onChangeText={(value) => updateExercise(index, 'weight', +value)}
+                    />
+
+                    {/* Reps input */}
+                    <TextInput
+                      style={templatestyles.input}
+                      placeholder="Reps"
+                      value={item.reps.toString()}
+                      keyboardType="numeric"
+                      onChangeText={(value) => updateExercise(index, 'reps', +value)}
+                    />
+
+                    {/* Sets input */}
+                    <TextInput
+                      style={templatestyles.input}
+                      placeholder="Sets"
+                      value={item.sets.toString()}
+                      keyboardType="numeric"
+                      onChangeText={(value) => updateExercise(index, 'sets', +value)}
+                    />
                   </View>
                 )}
                 contentContainerStyle={{ paddingBottom: 20 }} // Padding to avoid cutoff at bottom
@@ -335,7 +404,7 @@ const Workout = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={templatestyles.saveButton}
-                onPress={() => setModalVisible(false)} // Close modal
+                onPress={() => saveWorkout({title: title, exercises: selectedExercises})} // Close modal
               >
                 <Text style={templatestyles.closeButtonText}>Save</Text>
               </TouchableOpacity>
@@ -400,14 +469,14 @@ const Workout = () => {
                   SAVED TEMPLATES
                 </Text>
                   <FlatList
-                      data={savedTemplates}
-                      keyExtractor={(item, index) => item + '' + index}
-                      renderItem={({ item }) => (
-                        <Text style={templatestyles.dropdownItem}>{Template('New workout 1',item)}</Text>
-                      )}
-                      nestedScrollEnabled={true}
-                    />
-                {Template('doms push', fillerworkout)}
+                    data={savedTemplates}
+                    keyExtractor={(_, index) => `template-${index}`}
+                    renderItem={({ item }) =>  (
+                      <Template title={item.title} exercises={item.exercises} />
+                    )}
+                    nestedScrollEnabled={true}
+                  />
+               
               </View>
 
               {/* Suggested Templates Section */}
@@ -415,7 +484,7 @@ const Workout = () => {
                 <Text className="text-xl text-grayDark font-bold mb-2">
                   SUGGESTED TEMPLATES
                 </Text>
-                {Template('doms push2', fillerworkoutsuggest)}
+                <Template title="Push Day" exercises={fillerworkoutsuggest} />
               </View>
             </View>
           </View>
@@ -530,6 +599,11 @@ const templatestyles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  templateCreatorTableHeader: {
+    fontSize: 16,
     marginBottom: 10,
   },
   exerciseItem: {
@@ -584,6 +658,36 @@ const templatestyles = StyleSheet.create({
   closeButtonText: {
     color: 'white',
     fontSize: 16,
+  },
+  titleContainer: {
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  titleText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  titleInput: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    textAlign: 'center',
+    padding: 5,
+  },
+  input: {
+    height: 25,                 
+    width: 45,                  
+    marginLeft: 8,             
+    marginRight: 7,
+    paddingHorizontal: 10,      
+    borderColor: '#cccccc',     
+    borderWidth: 1,            
+    borderRadius: 5,            
+    textAlign: 'center',        
+    backgroundColor: '#f9f9f9', 
   },
 });
 
