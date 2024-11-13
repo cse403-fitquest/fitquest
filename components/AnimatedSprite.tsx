@@ -5,7 +5,7 @@ import { Animated, View } from 'react-native';
 import { Easing } from 'react-native-reanimated';
 
 interface IAnimatedSprite {
-  id: AnimatedSpriteID;
+  id: AnimatedSpriteID | undefined;
   state: SpriteState;
   width?: number;
   height?: number;
@@ -16,7 +16,7 @@ interface IAnimatedSprite {
 }
 
 export const AnimatedSprite: FC<IAnimatedSprite> = ({
-  id,
+  id = AnimatedSpriteID.HERO_01,
   state = SpriteState.IDLE,
   width = 96,
   height = 96,

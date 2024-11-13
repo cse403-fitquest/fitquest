@@ -154,6 +154,8 @@ const Quest = () => {
     userID: string,
     setActiveQuest: (quest: ActiveQuest | null) => void,
   ) {
+    if (activeQuest?.questID === quest.questId) return; // Prevent starting the same quest
+
     Alert.alert(
       `${action} Quest: ${quest.name}?`,
       `Are you sure you want to ${action.toLowerCase()} this quest?`,
@@ -283,13 +285,9 @@ const Quest = () => {
                 </View>
               )}
               {milestone === 'start' ? (
-                <Text className="text-sm text-gray-500 mt-2 font-bold">
-                  Start
-                </Text>
+                <Text className="text-sm text-gray-500 mt-2 font-bold"></Text>
               ) : milestone === quest.bossThreshold ? (
-                <Text className="text-sm text-red-500 mt-2 font-bold">
-                  Boss
-                </Text>
+                <Text className="text-sm text-red-500 mt-2 font-bold"></Text>
               ) : null}
             </View>
           ))}
@@ -358,7 +356,9 @@ const Quest = () => {
               renderItem={({ item, index }) => (
                 <TouchableOpacity
                   key={index}
-                  className="bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between"
+                  className={`bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between ${
+                    activeQuest?.questID === item.questId ? 'opacity-50' : ''
+                  }`}
                   onPress={() =>
                     confirmAction(
                       'Start',
@@ -367,9 +367,18 @@ const Quest = () => {
                       setActiveQuest,
                     )
                   }
+                  disabled={activeQuest?.questID === item.questId}
                 >
                   <View className="flex-row items-center justify-between">
-                    <Text className="text-lg font-semibold">{item.name}</Text>
+                    <Text
+                      className={`text-lg font-semibold ${
+                        activeQuest?.questID === item.questId
+                          ? 'text-gray-500'
+                          : ''
+                      }`}
+                    >
+                      {item.name}
+                    </Text>
                     <View style={{ width: 85, height: 165 }}>
                       <AnimatedSprite
                         id={item.spriteId}

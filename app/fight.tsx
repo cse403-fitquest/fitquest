@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { StatusBar } from 'expo-status-bar';
+import { useUserStore } from '@/store/user';
 
 const initialPlayer = {
   id: '',
@@ -172,6 +173,11 @@ const Combat = () => {
     resetCombat();
   }, [isBoss, questId, uniqueKey]);
 
+  const [playerSpriteState, setPlayerSpriteState] = useState(SpriteState.IDLE);
+  const [monsterSpriteState, setMonsterSpriteState] = useState(
+    SpriteState.IDLE,
+  );
+
   const handleAttack = async (isStrong = false) => {
     if (!isPlayerTurn || isAnimating) return;
 
@@ -183,6 +189,9 @@ const Combat = () => {
     }
 
     setIsAnimating(true);
+    setPlayerSpriteState(
+      isStrong ? SpriteState.ATTACK_1 : SpriteState.ATTACK_2,
+    );
 
     const newMonsterHealth = Math.max(0, monster.health - damage);
     setMonster((prev) => ({ ...prev, health: newMonsterHealth }));
@@ -210,6 +219,13 @@ const Combat = () => {
       `${monster.name} dealt ${monsterDamage} damage!`,
     ]);
 
+    setMonsterSpriteState(SpriteState.DAMAGED);
+    setTimeout(() => {
+      setMonsterSpriteState(SpriteState.IDLE);
+    }, 300);
+
+    setMonsterSpriteState(SpriteState.IDLE);
+
     if (player.health - monsterDamage <= 0) {
       setIsAnimating(false);
       handleDefeat();
@@ -221,6 +237,11 @@ const Combat = () => {
     }
 
     setIsAnimating(false);
+
+    setPlayerSpriteState(SpriteState.ATTACK_1);
+    setTimeout(() => {
+      setPlayerSpriteState(SpriteState.IDLE);
+    }, 300);
   };
 
   const handlePotion = async (type: 'small' | 'large') => {
@@ -249,6 +270,11 @@ const Combat = () => {
       `${monster.name} dealt ${monsterDamage} damage!`,
     ]);
 
+    setMonsterSpriteState(SpriteState.DAMAGED);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    setMonsterSpriteState(SpriteState.IDLE);
+
     if (strongAttackCooldown > 0) {
       setStrongAttackCooldown((prev) => prev - 1);
     }
@@ -268,18 +294,20 @@ const Combat = () => {
     setShowVictoryModal(true);
   };
 
+  const { user } = useUserStore();
+
   return (
     <SafeAreaView className="flex-1 p-4 pb-20 px-6">
       <View className="h-2 bg-gray-200 rounded-full mb-8">
         <View className="h-full bg-blue-500 rounded-full w-1/2" />
       </View>
 
-      <Text className="text-2xl font-bold text-center mb-6">{questName}</Text>
+      <Text className="text-2xl font-bold text-center ">{questName}</Text>
       <View className="flex-1">
-        <View className="flex-row justify-between items-start mb-12">
-          <View className="w-1/2 pr-4">
+        <View className="flex-row justify-between items-start mb-15">
+          <View className="w-1/2 pl-4 mt-20 ml-[-20]">
             <Text className="text-lg font-bold mb-1">{monster.name}</Text>
-            <View className="w-full h-4 bg-gray rounded-full overflow-hidden b-black border border-black border-2">
+            <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
               <View
                 className="h-full bg-green"
                 style={{
@@ -293,23 +321,22 @@ const Combat = () => {
             </Text>
           </View>
 
-          <View className="w-1/2 items-end">
+          <View className="w-1/2 items-center">
             <AnimatedSprite
               id={monster.spriteId}
-              width={120}
-              height={120}
-              state={SpriteState.IDLE}
+              width={256}
+              height={256}
+              state={monsterSpriteState}
             />
           </View>
         </View>
-
-        <View className="flex-row justify-between items-center mb-8">
-          <View className="w-1/2 items-start">
+        <View className="flex-row justify-between items-center">
+          <View className="w-10 items-start ml-[-35px] ">
             <AnimatedSprite
-              id={AnimatedSpriteID.HERO_20}
-              width={120}
-              height={120}
-              state={SpriteState.IDLE}
+              id={user?.spriteID}
+              width={256}
+              height={256}
+              state={playerSpriteState}
             />
           </View>
 
@@ -418,7 +445,7 @@ const Combat = () => {
                   <View className="absolute bottom-0 flex-row justify-center items-end">
                     <View className="relative left-[25px]">
                       <AnimatedSprite
-                        id={AnimatedSpriteID.HERO_20}
+                        id={user?.spriteID}
                         state={SpriteState.ATTACK_1}
                         width={120}
                         height={120}
@@ -458,7 +485,7 @@ const Combat = () => {
                   <View className="absolute bottom-0 flex-row justify-center items-end">
                     <View className="relative left-[15px]">
                       <AnimatedSprite
-                        id={AnimatedSpriteID.HERO_20}
+                        id={user?.spriteID}
                         state={SpriteState.DEATH}
                         width={120}
                         height={120}
