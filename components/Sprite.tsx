@@ -66,13 +66,13 @@ export const Sprite: FC<ISprite> = ({ id, width, height }) => {
       break;
 
     case SpriteID.HEALTH_POTION_SMALL:
-      spriteSource = require('@/assets/sprites/t1_hp_potion512.png');
+      spriteSource = require('@/assets/sprites/health_potion_small512.png');
       break;
     case SpriteID.HEALTH_POTION_MEDIUM:
-      spriteSource = require('@/assets/sprites/t2_hp_potion512.png');
+      spriteSource = require('@/assets/sprites/health_potion_medium512.png');
       break;
     case SpriteID.HEALTH_POTION_LARGE:
-      spriteSource = require('@/assets/sprites/t3_hp_potion512.png');
+      spriteSource = require('@/assets/sprites/health_potion_large512.png');
       break;
 
     default:
