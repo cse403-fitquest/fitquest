@@ -174,7 +174,9 @@ const Combat = () => {
   }, [isBoss, questId, uniqueKey]);
 
   const [playerSpriteState, setPlayerSpriteState] = useState(SpriteState.IDLE);
-  const [monsterSpriteState, setMonsterSpriteState] = useState(SpriteState.IDLE);
+  const [monsterSpriteState, setMonsterSpriteState] = useState(
+    SpriteState.IDLE,
+  );
 
   const handleAttack = async (isStrong = false) => {
     if (!isPlayerTurn || isAnimating) return;
@@ -187,7 +189,9 @@ const Combat = () => {
     }
 
     setIsAnimating(true);
-    setPlayerSpriteState(isStrong ? SpriteState.ATTACK_1 : SpriteState.ATTACK_2);
+    setPlayerSpriteState(
+      isStrong ? SpriteState.ATTACK_1 : SpriteState.ATTACK_2,
+    );
 
     const newMonsterHealth = Math.max(0, monster.health - damage);
     setMonster((prev) => ({ ...prev, health: newMonsterHealth }));
@@ -237,7 +241,7 @@ const Combat = () => {
     setPlayerSpriteState(SpriteState.ATTACK_1);
     setTimeout(() => {
       setPlayerSpriteState(SpriteState.IDLE);
-    }, 300); 
+    }, 300);
   };
 
   const handlePotion = async (type: 'small' | 'large') => {
