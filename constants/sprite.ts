@@ -89,4 +89,6 @@ export enum AnimatedSpriteID {
   CHOMPBUG_GREEN = 'chompbug_green',
   CHOMPBUG_RED = 'chompbug_red',
   CHOMPBUG_BLACK = 'chompbug_black',
+  AnimatedSpriteID = 'AnimatedSpriteID',
+  DEFAULT_SPRITE = 'DEFAULT_SPRITE',
 }
