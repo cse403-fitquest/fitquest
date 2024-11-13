@@ -35,10 +35,14 @@ export const getUserFriends: (
   userID: string,
 ) => Promise<GetUserFriendsResponse> = async (userID) => {
   try {
+    // Get user friend collection reference
+    const userFriendCollection = collection(
+      FIREBASE_DB,
+      'friends',
+    ).withConverter(userFriendConverter);
+
     // Get user friend reference
-    const userFriendRef = doc(FIREBASE_DB, 'friends', userID).withConverter(
-      userFriendConverter,
-    );
+    const userFriendRef = doc(userFriendCollection, userID);
 
     // Get user data
     const userFriendSnap = await getDoc(userFriendRef);
@@ -58,7 +62,7 @@ export const getUserFriends: (
 
     return {
       success: false,
-      error: 'Error getting user friends.',
+      error: error ? error + '' : 'Error getting user friends.',
       data: null,
     };
   }
@@ -217,7 +221,7 @@ export const cancelFriendRequest: (
     return {
       data: null,
       success: false,
-      error: 'Error cancelling sent friend request.',
+      error: error ? error + '' : 'Error cancelling sent friend request.',
     };
   }
 };
@@ -552,7 +556,7 @@ export const sendFriendRequest: (
     return {
       data: null,
       success: false,
-      error: 'Error sending friend request.',
+      error: error ? error + '' : 'Error sending friend request.',
     };
   }
 };
@@ -826,7 +830,7 @@ export const removeFriend: (
 
 // HELPER SERVICE FUNCTIONS ===============================
 
-const getUserByEmail: (
+export const getUserByEmail: (
   email: string,
 ) => Promise<GetUserByEmailResponse> = async (email) => {
   const userRef = collection(FIREBASE_DB, 'users').withConverter(userConverter);
