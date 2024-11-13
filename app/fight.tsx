@@ -205,7 +205,6 @@ const Combat = () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Monster attacks back
     const monsterDamage = monster.power;
     setPlayer((prev) => ({
       ...prev,
@@ -216,13 +215,11 @@ const Combat = () => {
       `${monster.name} dealt ${monsterDamage} damage!`,
     ]);
 
-    // Set monster sprite state to DAMAGED for one frame
     setMonsterSpriteState(SpriteState.DAMAGED);
     setTimeout(() => {
       setMonsterSpriteState(SpriteState.IDLE);
-    }, 300); // Adjust the duration as needed
+    }, 300);
 
-    // Revert monster sprite state back to IDLE
     setMonsterSpriteState(SpriteState.IDLE);
 
     if (player.health - monsterDamage <= 0) {
@@ -237,11 +234,10 @@ const Combat = () => {
 
     setIsAnimating(false);
 
-    // Set the player's sprite state to ATTACK for a brief period
     setPlayerSpriteState(SpriteState.ATTACK_1);
     setTimeout(() => {
       setPlayerSpriteState(SpriteState.IDLE);
-    }, 300); // Adjust the duration as needed
+    }, 300); 
   };
 
   const handlePotion = async (type: 'small' | 'large') => {
@@ -260,7 +256,6 @@ const Combat = () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Monster attacks back
     const monsterDamage = monster.power;
     setPlayer((prev) => ({
       ...prev,
@@ -271,11 +266,9 @@ const Combat = () => {
       `${monster.name} dealt ${monsterDamage} damage!`,
     ]);
 
-    // Set monster sprite state to DAMAGED for one frame
     setMonsterSpriteState(SpriteState.DAMAGED);
-    await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for a brief moment
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-    // Revert monster sprite state back to IDLE
     setMonsterSpriteState(SpriteState.IDLE);
 
     if (strongAttackCooldown > 0) {
