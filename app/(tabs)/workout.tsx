@@ -177,6 +177,14 @@ const Workout = () => {
     console.log('Successfully added ' + workout + 'to saved templates');
   };
 
+  // takes name of workout and removes it from the saved templates
+  const removeWorkout = (title: string) => {
+    console.log('Removed ' + title + ' from saved templates');
+    setSavedTemplates(
+      savedTemplates.filter((item) => item.title !== title),
+    );
+  }
+
   //constructor for a Template
   const Template = ({
     title,
@@ -478,11 +486,15 @@ const Workout = () => {
               </TouchableOpacity>
 
               {/* Saved Templates Section */}
-              <View className="w-full mt-5">
+              <View className="w-full mt-5 flex-row justify-between items-center">
                 <Text className="text-xl text-grayDark font-bold mb-2">
-                  SAVED TEMPLATES
+                  MY TEMPLATES
                 </Text>
-                <FlatList
+                <TouchableOpacity onPress={()=> {console.log("sdoifnsodinfoidsn")}}>
+                  <Text style={templatestyles.addtemplatebutton} className="text-xl text-blue-1000">+</Text>
+                </TouchableOpacity>
+              </View>
+              <FlatList
                   data={savedTemplates}
                   keyExtractor={(_, index) => `template-${index}`}
                   renderItem={({ item }) => (
@@ -490,7 +502,7 @@ const Workout = () => {
                   )}
                   nestedScrollEnabled={true}
                 />
-              </View>
+                
 
               {/* Suggested Templates Section */}
               <View className="w-full mt-5">
@@ -651,6 +663,11 @@ const templatestyles = StyleSheet.create({
   selectedExercise: {
     fontSize: 16,
     marginBottom: 5,
+  },
+  addtemplatebutton: {
+    fontSize: 28,
+    marginBottom: 5,
+    marginRight: 65
   },
   noExercisesText: {
     fontSize: 16,
