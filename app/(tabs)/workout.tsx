@@ -94,6 +94,7 @@ const Workout = () => {
 
   const [title, setTitle] = useState('New Workout');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
 
   // adds to selected
   const addExercise = (exercise: Exercise) => {
@@ -170,6 +171,10 @@ const Workout = () => {
     return str;
   };
 
+  const toggleSelection = (index: number) => {
+    setSelectedTemplate((prevSelected) => (prevSelected === index ? null : index));
+  };
+
   const saveWorkout = (workout: Template) => {
     setSavedTemplates([...savedTemplates, workout]);
     setSelectedExercises([]);
@@ -189,19 +194,20 @@ const Workout = () => {
   const Template = ({
     title,
     exercises,
+    isSelected,
+    toggleSelection,
   }: {
     title: string;
     exercises: Exercise[];
+    isSelected: boolean;
+    toggleSelection: () => void;
   }) => {
-    const [isSelected, setIsSelected] = useState(false);
     const [isDropdownVisible, setDropdownVisible] = useState(false);
 
-    const toggleSelection = () => {
-      setIsSelected(!isSelected);
-    };
     const toggleDropdown = () => {
       setDropdownVisible(!isDropdownVisible);
     };
+    
     return (
       <View>
         <View style={templatestyles.box}>
@@ -468,37 +474,26 @@ const Workout = () => {
                 Time Elapsed: {secondsToMinutes(secondsElapsed)}
               </Text>
 
-              {/* Create Template Button */}
-              <TouchableOpacity
-                style={{
-                  backgroundColor: 'purple',
-                  width: 165,
-                  padding: 15,
-                  marginTop: 15,
-                  borderRadius: 40,
-                }}
-                onPress={() => setModalVisible(true)}
-              >
-                {CreateTemplateScreen()}
-                <Text style={{ color: 'white', fontSize: 18 }}>
-                  Create Template
-                </Text>
-              </TouchableOpacity>
-
               {/* Saved Templates Section */}
               <View className="w-full mt-5 flex-row justify-between items-center">
                 <Text className="text-xl text-grayDark font-bold mb-2">
                   MY TEMPLATES
                 </Text>
-                <TouchableOpacity onPress={()=> {console.log("sdoifnsodinfoidsn")}}>
+                <TouchableOpacity onPress={() => setModalVisible(true)}>
+                  {CreateTemplateScreen()}
                   <Text style={templatestyles.addtemplatebutton} className="text-xl text-blue-1000">+</Text>
                 </TouchableOpacity>
               </View>
               <FlatList
                   data={savedTemplates}
                   keyExtractor={(_, index) => `template-${index}`}
-                  renderItem={({ item }) => (
-                    <Template title={item.title} exercises={item.exercises} />
+                  renderItem={({ item, index }) => (
+                    <Template title={item.title} 
+                              exercises={item.exercises} 
+                              isSelected={selectedTemplate === index}
+                              toggleSelection={() => toggleSelection(index)}
+
+                    />
                   )}
                   nestedScrollEnabled={true}
                 />
@@ -509,7 +504,7 @@ const Workout = () => {
                 <Text className="text-xl text-grayDark font-bold mb-2">
                   SUGGESTED TEMPLATES
                 </Text>
-                <Template title="Push Day" exercises={fillerworkoutsuggest} />
+                <Template title="Push Day" exercises={fillerworkoutsuggest} isSelected={false} toggleSelection={() => toggleSelection(13)} />
               </View>
             </View>
           </View>
