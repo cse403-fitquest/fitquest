@@ -8,16 +8,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import FQModal from '@/components/FQModal';
-//import { User } from '@/types/user';
 import { Item, ItemType } from '@/types/item';
 import { updateUserProfile } from '@/services/user';
 import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useItemStore } from '@/store/item';
 import { useSocialStore } from '@/store/social';
-//import { BASE_USER } from '@/constants/user';
 import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
 import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
@@ -26,9 +24,10 @@ import clsx from 'clsx';
 interface ItemCardProps {
   item: Item;
   onPress: () => void;
+  isEquipped: boolean;
 }
 
-const ItemCard = ({ item, onPress }: ItemCardProps) => {
+const ItemCard = ({ item, onPress, isEquipped }: ItemCardProps) => {
   return (
     <View className="flex-col justify-center items-center">
       <TouchableOpacity
@@ -44,26 +43,49 @@ const ItemCard = ({ item, onPress }: ItemCardProps) => {
               ItemType.POTION_MEDIUM,
               ItemType.POTION_LARGE,
             ].includes(item.type),
+            'border-4': isEquipped, // Increase border width if equipped
           },
         )}
       >
         <Sprite id={item.spriteID} width={70} height={70} />
+        {isEquipped && (
+          <View className="absolute top-0 right-0 bg-yellow-500 rounded-full p-1">
+            <Ionicons name="checkmark-circle" size={24} color="white" />
+          </View>
+        )}
       </TouchableOpacity>
-      <Text className="text-lg text-gold mb-5 font-semibold">
-        {item.cost} Gold
-      </Text>
+      <Text className="text-md text-black mb-5 font-semibold">{item.name}</Text>
     </View>
   );
 };
 
+interface StatContributions {
+  name: string;
+  power: number;
+  health: number;
+  speed: number;
+}
+
 const Profile = () => {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
-
-  // Helper function to fill missing user fields in DB
-  // useEffect(() => {
-  //   void fillMissingUserFields();
-  // }, []);
+  const [statBreakdownModalVisible, setStatBreakdownModalVisible] =
+    useState(false);
+  const [selectedStatForBreakdown, setSelectedStatForBreakdown] = useState<
+    'power' | 'health' | 'speed'
+  >('power');
+  const [statContributions, setStatContributions] = useState<
+    StatContributions[]
+  >([]);
+  const [totalStats, setTotalStats] = useState<{
+    power: number;
+    health: number;
+    speed: number;
+  }>({
+    power: 0,
+    health: 0,
+    speed: 0,
+  });
 
   const { user, setUser } = useUserStore();
   const { items } = useItemStore();
@@ -85,9 +107,206 @@ const Profile = () => {
     user?.profileInfo.weight?.toString() || '',
   );
 
-  const handleEquipItem = (item: Item) => {
-    // TODO: Implement actual equipping logic
-    console.log('Equipping item:', item);
+  const isItemEquipped = selectedItem
+    ? user?.equippedItems.includes(selectedItem.id)
+    : false;
+
+  // Calculate total stats based on user profile and equipped items
+  useEffect(() => {
+    if (!user) return;
+
+    // Base stats from user profile
+    let computedPower = user.attributes.power;
+    let computedHealth = user.attributes.health;
+    let computedSpeed = user.attributes.speed;
+
+    const contributions: StatContributions[] = [];
+
+    // Fetch equipped items
+    const equipped = items.filter((item) =>
+      user.equippedItems.includes(item.id),
+    );
+
+    equipped.forEach((item) => {
+      computedPower += item.power;
+      computedHealth += item.health;
+      computedSpeed += item.speed;
+
+      contributions.push({
+        name: item.name,
+        power: item.power,
+        health: item.health,
+        speed: item.speed,
+      });
+    });
+
+    setTotalStats({
+      power: computedPower,
+      health: computedHealth,
+      speed: computedSpeed,
+    });
+
+    setStatContributions(contributions);
+  }, [user, items]);
+
+  const calculateNewStats = (
+    item: Item | null,
+    action: 'equip' | 'unequip',
+  ): { power: number; speed: number; health: number } => {
+    if (!user) return { power: 0, speed: 0, health: 0 };
+
+    // Start with base attributes
+    let newPower = user.attributes.power;
+    let newSpeed = user.attributes.speed;
+    let newHealth = user.attributes.health;
+
+    // Determine new equipped items after action
+    let newEquippedItems: string[] = [...user.equippedItems];
+
+    if (item) {
+      if (action === 'equip') {
+        // Remove any equipped items of the same type
+        const itemsToRemove = user.equippedItems.filter((id) => {
+          const equippedItem = items.find((i) => i.id === id);
+          return equippedItem?.type === item.type;
+        });
+        newEquippedItems = newEquippedItems.filter(
+          (id) => !itemsToRemove.includes(id),
+        );
+        // Add the new item
+        newEquippedItems.push(item.id);
+      } else if (action === 'unequip') {
+        newEquippedItems = newEquippedItems.filter((id) => id !== item.id);
+      }
+    }
+
+    // Sum up the stats based on new equipped items
+    newEquippedItems.forEach((id) => {
+      const eqItem = items.find((i) => i.id === id);
+      if (eqItem) {
+        newPower += eqItem.power;
+        newSpeed += eqItem.speed;
+        newHealth += eqItem.health;
+      }
+    });
+
+    return { power: newPower, speed: newSpeed, health: newHealth };
+  };
+
+  // Function to handle equipping an item
+  const handleEquipItem = async (item: Item) => {
+    if (!user) return;
+
+    if (
+      !user ||
+      item.type === ItemType.POTION_SMALL ||
+      item.type === ItemType.POTION_MEDIUM ||
+      item.type === ItemType.POTION_LARGE
+    ) {
+      Alert.alert('Cannot equip potions');
+      return;
+    }
+
+    try {
+      const itemType = item.type;
+
+      // Find if there's an already equipped item of the same type
+      const existingEquippedItemId = user.equippedItems.find(
+        (equippedItemId) => {
+          const equippedItem = items.find((i) => i.id === equippedItemId);
+          return equippedItem?.type === itemType;
+        },
+      );
+
+      const newEquippedItems = [...user.equippedItems];
+      let swappedItem: Item | null = null;
+
+      if (existingEquippedItemId) {
+        // If an item of the same type is already equipped, swap it
+        const existingItemIndex = newEquippedItems.findIndex(
+          (id) => id === existingEquippedItemId,
+        );
+
+        if (existingItemIndex !== -1) {
+          swappedItem =
+            items.find((i) => i.id === existingEquippedItemId) || null;
+          newEquippedItems[existingItemIndex] = item.id;
+        }
+      } else {
+        // No existing item of the same type, simply add the new item
+        newEquippedItems.push(item.id);
+      }
+
+      // Update the user's equipped items in Firestore
+      const response = await updateUserProfile(user.id, {
+        equippedItems: newEquippedItems,
+      });
+
+      if (response.success) {
+        // Update the user in the store
+        setUser({
+          ...user,
+          equippedItems: newEquippedItems,
+        });
+
+        if (swappedItem) {
+          Alert.alert(
+            'Item Swapped',
+            `Swapped ${swappedItem.name} with ${item.name}.`,
+          );
+        } else {
+          Alert.alert('Item Equipped', `${item.name} has been equipped.`);
+        }
+
+        console.log('After equip, newEquippedItems: ', newEquippedItems);
+      } else {
+        Alert.alert('Error equipping item', response.error || '');
+      }
+    } catch (error) {
+      console.error('Error equipping item:', error);
+      Alert.alert('Error', 'An error occurred while equipping the item.');
+    }
+
+    setSelectedItem(null);
+  };
+
+  const handleUnequipItem = async (item: Item) => {
+    if (!user) return;
+
+    if (
+      !user ||
+      item.type === ItemType.POTION_SMALL ||
+      item.type === ItemType.POTION_MEDIUM ||
+      item.type === ItemType.POTION_LARGE
+    ) {
+      Alert.alert('Cannot unequip potions');
+      return;
+    }
+
+    try {
+      const newEquippedItems = user.equippedItems.filter(
+        (equippedItemId) => equippedItemId !== item.id,
+      );
+
+      const response = await updateUserProfile(user.id, {
+        equippedItems: newEquippedItems,
+      });
+
+      if (response.success) {
+        setUser({
+          ...user,
+          equippedItems: newEquippedItems,
+        });
+        Alert.alert('Item unequipped successfully');
+        console.log('after unequip, newEquippedItems: ', newEquippedItems);
+      } else {
+        Alert.alert('Error unequipping item', response.error || '');
+      }
+    } catch (error) {
+      console.error('Error unequipping item:', error);
+      Alert.alert('Error', 'An error occurred while unequipping the item.');
+    }
+
     setSelectedItem(null);
   };
 
@@ -137,9 +356,86 @@ const Profile = () => {
     setIsSettingsVisible(false);
   };
 
+  const openStatBreakdownModal = (stat: 'power' | 'health' | 'speed') => {
+    setSelectedStatForBreakdown(stat);
+    setStatBreakdownModalVisible(true);
+  };
+
+  const getStatBreakdown = (stat: 'power' | 'health' | 'speed') => {
+    const baseStat = user?.attributes[stat] ?? 0;
+    const totalContribution = statContributions.reduce(
+      (total, contribution) => total + contribution[stat],
+      0,
+    );
+    const totalStat = baseStat + totalContribution;
+
+    return (
+      <>
+        {/* Base Stat */}
+        <View className="flex-row justify-between mb-3">
+          <Text className="text-lg">
+            Base {stat.charAt(0).toUpperCase() + stat.slice(1)}
+          </Text>
+          <Text className="text-lg">{baseStat}</Text>
+        </View>
+
+        {/* Contributions */}
+        {statContributions
+          .filter((contribution) => contribution[stat] !== 0)
+          .map((contribution, index) => (
+            <View key={index} className="flex-row justify-between mb-3">
+              <Text className="text-lg">{contribution.name}</Text>
+              <Text
+                className={`${'text-lg'}
+                totalStat > baseStat
+                  ? 'text-green'
+                  : totalStat < baseStat
+                    ? 'text-red-500'
+                    : 'text-gray-500'`}
+              >
+                {contribution[stat] > 0
+                  ? `+${contribution[stat]}`
+                  : `${contribution[stat]}`}
+              </Text>
+            </View>
+          ))}
+
+        {/* Separator Line */}
+        <View className="my-4 border-t border-gray-300" />
+
+        {/* Total Stat */}
+        <View className="flex-row justify-between">
+          <Text className="font-bold text-xl">
+            Total {stat.charAt(0).toUpperCase() + stat.slice(1)}
+          </Text>
+          <Text
+            className={`${'font-bold text-xl'}
+              totalStat > baseStat
+                ? 'text-green'
+                : totalStat < baseStat
+                  ? 'text-red-500'
+                  : 'text-gray'`}
+          >
+            {totalStat > baseStat ? `+${totalStat}` : `${totalStat}`}
+          </Text>
+        </View>
+      </>
+    );
+  };
+
   if (!user) {
     return;
   }
+
+  // Type priority for item sorting
+  const typePriority: { [key in ItemType]: number } = {
+    [ItemType.WEAPON]: 1,
+    [ItemType.ARMOR]: 2,
+    [ItemType.ACCESSORY]: 3,
+    [ItemType.POTION_SMALL]: 4,
+    [ItemType.POTION_MEDIUM]: 4,
+    [ItemType.POTION_LARGE]: 4,
+  };
 
   // Get the user's items from the store
   const userItemIds = [
@@ -148,9 +444,23 @@ const Profile = () => {
     ...user.equippedItems,
   ];
 
-  const userItems = items.filter((item: { id: string }) =>
-    userItemIds.includes(item.id),
-  );
+  const userItems = items
+    .filter((item: { id: string }) => userItemIds.includes(item.id))
+    .sort((a, b) => {
+      const aPriority = typePriority[a.type] || 99;
+      const bPriority = typePriority[b.type] || 99;
+
+      if (aPriority < bPriority) return -1;
+      if (aPriority > bPriority) return 1;
+      return 0;
+    });
+
+  function capitalize(selectedStatForBreakdown: string) {
+    return (
+      selectedStatForBreakdown.charAt(0).toUpperCase() +
+      selectedStatForBreakdown.slice(1)
+    );
+  }
 
   return (
     <SafeAreaView className=" bg-offWhite">
@@ -185,7 +495,7 @@ const Profile = () => {
           </View>
         </View>
 
-        {/* Experience Bar */}
+        {/*
         <View className="mb-4">
           <View className="border border-gray rounded">
             <View className="w-full h-2 bg-gray-200 rounded">
@@ -193,47 +503,65 @@ const Profile = () => {
             </View>
           </View>
 
-          <Text className="text-xs text-center text-gray-500 mt-1">
-            300 EXP TILL LEVEL
+          <Text className="text-xs text-center text-gray-500 mt-1 mb-4">
+            300 EXP TILL LEVEL 10
           </Text>
         </View>
+        */}
 
-        <View className="mb-6">
+        {/* Attributes Section */}
+        <View className="text-lg mb-6">
           <Text className="font-bold text-xl text-grayDark mb-2">
             ATTRIBUTES
           </Text>
           <View className="space-y-2">
             <View className="flex-row justify-between items-center">
-              <Text className="text-gray-500">
-                Power: {user?.attributes.power}
+              <Text className="text-lg text-gray-500">
+                Power: {totalStats.power}
               </Text>
-              <Ionicons name="information-circle-outline" size={16} />
+              <TouchableOpacity onPress={() => openStatBreakdownModal('power')}>
+                <Ionicons name="information-circle-outline" size={24} />
+              </TouchableOpacity>
             </View>
             <View className="flex-row justify-between items-center">
-              <Text className="text-gray-500">
-                Speed: {user?.attributes.speed}
+              <Text className="text-lg text-gray-500">
+                Speed: {totalStats.speed}
               </Text>
-              <Ionicons name="information-circle-outline" size={16} />
+              <TouchableOpacity onPress={() => openStatBreakdownModal('speed')}>
+                <Ionicons name="information-circle-outline" size={24} />
+              </TouchableOpacity>
             </View>
             <View className="flex-row justify-between items-center">
-              <Text className="text-gray-500">
-                Health: {user?.attributes.health}
+              <Text className="text-lg text-gray-500">
+                Health: {totalStats.health}
               </Text>
-              <Ionicons name="information-circle-outline" size={16} />
+              <TouchableOpacity
+                onPress={() => openStatBreakdownModal('health')}
+              >
+                <Ionicons name="information-circle-outline" size={24} />
+              </TouchableOpacity>
             </View>
           </View>
         </View>
 
         {/* Items Grid */}
-        <View className="mt-8">
+        <View className="mt-2">
           <Text className="font-bold mb-2 text-xl text-grayDark">ITEMS</Text>
           {userItems.length > 0 ? (
             <View className="flex-row flex-wrap gap-y-4">
-              {userItems.map((item: Item) => (
-                <View key={item.id} className="w-1/3 flex items-center">
-                  <ItemCard item={item} onPress={() => setSelectedItem(item)} />
-                </View>
-              ))}
+              {userItems.map((item: Item) => {
+                const isEquipped = user.equippedItems.includes(item.id); // Determine if the item is equipped
+
+                return (
+                  <View key={item.id} className="w-1/3 flex items-center">
+                    <ItemCard
+                      item={item}
+                      onPress={() => setSelectedItem(item)}
+                      isEquipped={isEquipped} // Pass the equipped status to ItemCard
+                    />
+                  </View>
+                );
+              })}
             </View>
           ) : (
             <Text className="text-gray-500">
@@ -250,12 +578,12 @@ const Profile = () => {
 
           <View className="mt-4">
             <View className="h-[250px] flex-row items-end justify-between mb-2">
-              {[5, 2, 3, 1, 0].map((value) => (
+              {[5, 2, 3, 1, 4].map((value) => (
                 <View key={value} className="w-16">
                   {[...Array(value)].map((_, blockIndex) => (
                     <View
                       key={blockIndex}
-                      className="h-12 w-full bg-green-500 border-t border-green-600"
+                      className="h-12 w-full bg-green border-t border-green-600"
                       style={{
                         backgroundColor: '#22C55E',
                       }}
@@ -374,14 +702,40 @@ const Profile = () => {
       <FQModal
         visible={selectedItem !== null}
         setVisible={(visible) => !visible && setSelectedItem(null)}
-        title={`Equip ${selectedItem?.name}`}
-        cancelText={'CANCEL'}
-        confirmText="EQUIP ITEM"
-        onConfirm={() => handleEquipItem(selectedItem!)}
-        onCancel={() => setSelectedItem(null)}
+        title={
+          selectedItem?.type.startsWith('POTION')
+            ? selectedItem?.name
+            : isItemEquipped
+              ? `Unequip ${selectedItem?.name}`
+              : `Equip ${selectedItem?.name}`
+        }
+        cancelText={
+          selectedItem?.type.startsWith('POTION') ? undefined : 'CANCEL'
+        }
+        onConfirm={() =>
+          selectedItem
+            ? selectedItem.type.startsWith('POTION')
+              ? setSelectedItem(null)
+              : isItemEquipped
+                ? handleUnequipItem(selectedItem)
+                : handleEquipItem(selectedItem)
+            : null
+        }
+        confirmText={
+          selectedItem?.type.startsWith('POTION')
+            ? 'OK'
+            : isItemEquipped
+              ? 'UNEQUIP'
+              : 'EQUIP'
+        }
+        onCancel={
+          selectedItem?.type.startsWith('POTION')
+            ? undefined
+            : () => setSelectedItem(null)
+        }
         subtitle={selectedItem?.type}
       >
-        <View className="py-4 ">
+        <View className="py-4">
           <View className="w-full items-center mb-5">
             <Sprite
               id={selectedItem?.spriteID ?? SpriteID.T1_DAGGER}
@@ -394,50 +748,113 @@ const Profile = () => {
             <Text className="mb-2">{selectedItem?.description}</Text>
           </View>
 
-          <View className="space-y-2">
-            <View className="flex-row justify-between">
-              <Text>Power: {selectedItem?.power}</Text>
-              <Text
-                className={
-                  selectedItem?.power && selectedItem.power > 0
-                    ? 'text-green-500'
-                    : 'text-red-500'
-                }
-              >
-                {selectedItem?.power && selectedItem.power > 0
-                  ? `+${selectedItem?.power}`
-                  : selectedItem?.power}
-              </Text>
+          {!selectedItem?.type.startsWith('POTION') && selectedItem && (
+            <View className="space-y-4">
+              {/* Compute new stats once */}
+              {(() => {
+                const newStats = isItemEquipped
+                  ? calculateNewStats(selectedItem, 'unequip')
+                  : calculateNewStats(selectedItem, 'equip');
+
+                const getStatColor = (
+                  current: number,
+                  newStat: number,
+                  isEquipping: boolean,
+                ) => {
+                  if (newStat === current) return 'text-black';
+                  if (isEquipping) {
+                    return newStat > current ? 'text-green' : 'text-red-500';
+                  } else {
+                    return newStat > current ? 'text-green' : 'text-red-500';
+                  }
+                };
+                return (
+                  <>
+                    {/* Power */}
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-base font-semibold">
+                        Power: {selectedItem.power}
+                      </Text>
+                      <View className="flex-row items-center">
+                        <Text className="text-lg">{totalStats.power}</Text>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={16}
+                          color="black"
+                        />
+                        <Text
+                          className={`text-lg ${getStatColor(totalStats.power, newStats.power, isItemEquipped ?? false)}`}
+                        >
+                          {newStats.power}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Speed */}
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-base font-semibold">
+                        Speed: {selectedItem.speed}
+                      </Text>
+                      <View className="flex-row items-center">
+                        <Text className="text-lg">{totalStats.speed}</Text>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={16}
+                          color="black"
+                        />
+                        <Text
+                          className={`text-lg ${getStatColor(totalStats.speed, newStats.speed, isItemEquipped ?? false)}`}
+                        >
+                          {newStats.speed}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Health */}
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-base font-semibold">
+                        Health: {selectedItem.health}
+                      </Text>
+                      <View className="flex-row items-center">
+                        <Text className="text-lg">{totalStats.health}</Text>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={16}
+                          color="black"
+                        />
+                        <Text
+                          className={`text-lg ${getStatColor(totalStats.health, newStats.health, isItemEquipped ?? false)}`}
+                        >
+                          {newStats.health}
+                        </Text>
+                      </View>
+                    </View>
+                  </>
+                );
+              })()}
             </View>
-            <View className="flex-row justify-between">
-              <Text>Speed: {selectedItem?.speed}</Text>
-              <Text
-                className={
-                  selectedItem?.speed && selectedItem.speed > 0
-                    ? 'text-green-500'
-                    : 'text-red-500'
-                }
-              >
-                {selectedItem?.speed && selectedItem.speed > 0
-                  ? `+${selectedItem?.speed}`
-                  : selectedItem?.speed}
-              </Text>
-            </View>
-            <View className="flex-row justify-between">
-              <Text>Health: {selectedItem?.health}</Text>
-              <Text
-                className={
-                  selectedItem?.health && selectedItem.health > 0
-                    ? 'text-green-500'
-                    : 'text-red-500'
-                }
-              >
-                {selectedItem?.health && selectedItem.health > 0
-                  ? `+${selectedItem?.health}`
-                  : selectedItem?.health}
-              </Text>
-            </View>
-          </View>
+          )}
+        </View>
+      </FQModal>
+
+      {/* Stat Breakdown Modal */}
+      <FQModal
+        title={`${capitalize(selectedStatForBreakdown)} Breakdown`}
+        visible={statBreakdownModalVisible}
+        setVisible={setStatBreakdownModalVisible}
+        onConfirm={() => setStatBreakdownModalVisible(false)}
+        confirmText="OK"
+      >
+        {/* Close Button */}
+        <TouchableOpacity
+          onPress={() => setStatBreakdownModalVisible(false)}
+          style={{ position: 'absolute', top: 10, right: 10 }}
+        >
+          <Ionicons name="close" size={24} color="#000" />
+        </TouchableOpacity>
+
+        <View className="py-4 w-[220px] relative">
+          {getStatBreakdown(selectedStatForBreakdown)}
         </View>
       </FQModal>
     </SafeAreaView>
