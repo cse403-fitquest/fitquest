@@ -18,6 +18,8 @@ import { signIn } from '@/services/auth';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 
+const SPRITE_MOVE_DURATION = 600;
+
 const DEFAULT_SIGN_IN_ERRORS = {
   general: '',
   email: '',
@@ -53,22 +55,21 @@ const SignIn = () => {
   const windowWidth = Dimensions.get('window').width;
   // const windowHeight = Dimensions.get('window').height;
 
-  const xPosTopAnimatedValue = useRef(new Animated.Value(-200)).current;
+  const xPosTopAnimatedValue = useRef(new Animated.Value(-500)).current;
   const xPosBottomAnimatedValue = useRef(
     new Animated.Value(windowWidth),
   ).current;
 
   useEffect(() => {
-    console.log(windowWidth);
-
     const loopTopAnimation = () =>
       Animated.timing(xPosTopAnimatedValue, {
-        toValue: windowWidth + 200,
+        toValue: windowWidth,
         duration: 4500,
+        delay: 2000,
         easing: Easing.linear,
         useNativeDriver: true,
       }).start(() => {
-        xPosTopAnimatedValue.setValue(-200); // Reset value after animation completes
+        xPosTopAnimatedValue.setValue(-500); // Reset value after animation completes
         loopBottomAnimation(); // Start the animation again
       });
 
@@ -76,6 +77,7 @@ const SignIn = () => {
       Animated.timing(xPosBottomAnimatedValue, {
         toValue: -500,
         duration: 4500,
+        delay: 2000,
         easing: Easing.linear,
         useNativeDriver: true,
       }).start(() => {
@@ -183,7 +185,7 @@ const SignIn = () => {
     <SafeAreaView className="flex-1 items-center justify-center h-full bg-off-white px-5">
       <View className="relative h-[100px] w-full bottom-5">
         <Animated.View
-          className="absolute top-0"
+          className="absolute top-0 flex-row justify-end"
           style={{
             transform: [
               {
@@ -192,11 +194,27 @@ const SignIn = () => {
             ],
           }}
         >
-          <AnimatedSprite
-            id={AnimatedSpriteID.HERO_01}
-            state={SpriteState.MOVE}
-            duration={700}
-          />
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_15}
+              state={SpriteState.MOVE}
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_24}
+              state={SpriteState.MOVE}
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_25}
+              state={SpriteState.MOVE}
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
         </Animated.View>
       </View>
 
@@ -274,7 +292,7 @@ const SignIn = () => {
 
       <View className="relative h-[100px] top-0 right-0">
         <Animated.View
-          className="absolute top-0"
+          className="absolute top-0 flex-row"
           style={{
             transform: [
               {
@@ -283,12 +301,30 @@ const SignIn = () => {
             ],
           }}
         >
-          <AnimatedSprite
-            id={AnimatedSpriteID.HERO_01}
-            state={SpriteState.MOVE}
-            direction="left"
-            duration={700}
-          />
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_25}
+              state={SpriteState.MOVE}
+              direction="left"
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_24}
+              state={SpriteState.MOVE}
+              direction="left"
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_15}
+              state={SpriteState.MOVE}
+              direction="left"
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
         </Animated.View>
       </View>
     </SafeAreaView>
