@@ -95,6 +95,8 @@ const Workout = () => {
   const [title, setTitle] = useState('New Workout');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
+  const [viewedTemplate, setViewedTemplate] = useState<Template>({title: "new workout", exercises: []});
+   
 
   // adds to selected
   const addExercise = (exercise: Exercise) => {
@@ -205,6 +207,7 @@ const Workout = () => {
     const [isDropdownVisible, setDropdownVisible] = useState(false);
 
     const toggleDropdown = () => {
+      if (!isDropdownVisible) setViewedTemplate({ title: title, exercises: exercises });
       setDropdownVisible(!isDropdownVisible);
     };
     
@@ -221,7 +224,7 @@ const Workout = () => {
           <Text style={templatestyles.title}>{title}</Text>
           <TouchableOpacity
             style={templatestyles.viewButton}
-            onPress={toggleDropdown}
+            onPress={()=>toggleDropdown()}
           >
             <Text style={templatestyles.buttonText}>View</Text>
           </TouchableOpacity>
@@ -229,10 +232,17 @@ const Workout = () => {
 
         {isDropdownVisible && (
           <View style={templatestyles.dropdownContainer}>
-            <Text style={templatestyles.dropdownItem}>
-              {' '}
-              Name | Weight | Reps | Sets{' '}
-            </Text>
+            <View className="w-full mt-5 flex-row justify-between items-center">
+              <Text style={templatestyles.dropdownItem}>
+                {' '}
+                Name | Weight | Reps | Sets{' '}
+              </Text>
+              {/*button to edit the */}
+              <TouchableOpacity style={{marginRight: 10}} onPress={() => setModalVisible(true)}>
+                <Text style={{fontWeight: 'bold', color: 'purple'}}>Edit</Text>
+              </TouchableOpacity>
+            </View>
+
             <FlatList
               data={exercisesToString(exercises)}
               keyExtractor={(item, index) => item + '' + index}
@@ -299,7 +309,9 @@ const Workout = () => {
 
   ///////////////////////// for template creation ///////////////////////////////
 
-  const CreateTemplateScreen = () => {
+  const CreateTemplateScreen = ({ title, exercises }: Template) => {
+    setSelectedExercises(exercises);
+    setTitle(title);
     return (
       <Modal
         animationType="slide"
@@ -480,7 +492,7 @@ const Workout = () => {
                   MY TEMPLATES
                 </Text>
                 <TouchableOpacity onPress={() => setModalVisible(true)}>
-                  {CreateTemplateScreen()}
+                  {modalVisible && <CreateTemplateScreen title="new workout" exercises={[]} />}
                   <Text style={templatestyles.addtemplatebutton} className="text-xl text-blue-1000">+</Text>
                 </TouchableOpacity>
               </View>
