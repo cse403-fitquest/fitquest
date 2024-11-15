@@ -95,15 +95,16 @@ const Workout = () => {
   const [title, setTitle] = useState('New Workout');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
-  const [viewedTemplate, setViewedTemplate] = useState<Template>({title: "new workout", exercises: []});
+  const [viewedTemplate, setViewedTemplate] = useState<number | null>(null);
    
 
   // adds to selected
   const addExercise = (exercise: Exercise) => {
-    console.log('Added ' + exercise + ' to selected exercises');
+    console.log('Added ' + exercise.name + ' to selected exercises');
     if (!selectedExercises.includes(exercise)) {
       setSelectedExercises([...selectedExercises, exercise]);
     }
+    console.log(selectedExercises);
   };
 
   // removes from selected
@@ -143,6 +144,7 @@ const Workout = () => {
       );
     }
 
+    console.log("exercise: "+exercise.name+" found")
     // Return the found exercise
     return exercise;
   };
@@ -151,6 +153,11 @@ const Workout = () => {
     console.log('template creator closed');
     setSelectedExercises([]);
     setModalVisible(false);
+  };
+
+  const openTemplate = () => {
+    setSelectedExercises(selectedExercises);
+    setTitle(title);
   };
 
   const exerciseToString = (exercise: Exercise) => {
@@ -176,6 +183,9 @@ const Workout = () => {
   const toggleSelection = (index: number) => {
     setSelectedTemplate((prevSelected) => (prevSelected === index ? null : index));
   };
+  const toggleViewDropdown = (index: number) => {
+    setViewedTemplate((prevViewed) => (prevViewed === index ? null : index));
+  };
 
   const saveWorkout = (workout: Template) => {
     setSavedTemplates([...savedTemplates, workout]);
@@ -198,17 +208,20 @@ const Workout = () => {
     exercises,
     isSelected,
     toggleSelection,
+    toggleViewDropdown   // Ensure this is passed as a prop from the parent component
   }: {
     title: string;
     exercises: Exercise[];
     isSelected: boolean;
     toggleSelection: () => void;
+    toggleViewDropdown: () => void;
+    
   }) => {
     const [isDropdownVisible, setDropdownVisible] = useState(false);
 
     const toggleDropdown = () => {
-      if (!isDropdownVisible) setViewedTemplate({ title: title, exercises: exercises });
-      setDropdownVisible(!isDropdownVisible);
+      setDropdownVisible(!isDropdownVisible); // Simplified toggle for debugging
+      console.log("Dropdown visibility set to: ", !isDropdownVisible);
     };
     
     return (
@@ -237,7 +250,7 @@ const Workout = () => {
                 {' '}
                 Name | Weight | Reps | Sets{' '}
               </Text>
-              {/*button to edit the */}
+              { /*button to edit the */ }
               <TouchableOpacity style={{marginRight: 10}} onPress={() => setModalVisible(true)}>
                 <Text style={{fontWeight: 'bold', color: 'purple'}}>Edit</Text>
               </TouchableOpacity>
@@ -309,9 +322,8 @@ const Workout = () => {
 
   ///////////////////////// for template creation ///////////////////////////////
 
-  const CreateTemplateScreen = ({ title, exercises }: Template) => {
-    setSelectedExercises(exercises);
-    setTitle(title);
+  const CreateTemplateScreen = ({ title, exercises, }: {title: string, exercises: Exercise[], }) => {
+    
     return (
       <Modal
         animationType="slide"
@@ -492,7 +504,7 @@ const Workout = () => {
                   MY TEMPLATES
                 </Text>
                 <TouchableOpacity onPress={() => setModalVisible(true)}>
-                  {modalVisible && <CreateTemplateScreen title="new workout" exercises={[]} />}
+                  {modalVisible && <CreateTemplateScreen title = "new workout" exercises = {[]} />}
                   <Text style={templatestyles.addtemplatebutton} className="text-xl text-blue-1000">+</Text>
                 </TouchableOpacity>
               </View>
@@ -504,7 +516,7 @@ const Workout = () => {
                               exercises={item.exercises} 
                               isSelected={selectedTemplate === index}
                               toggleSelection={() => toggleSelection(index)}
-
+                              toggleViewDropdown={() => toggleViewDropdown(index)}
                     />
                   )}
                   nestedScrollEnabled={true}
@@ -516,7 +528,11 @@ const Workout = () => {
                 <Text className="text-xl text-grayDark font-bold mb-2">
                   SUGGESTED TEMPLATES
                 </Text>
-                <Template title="Push Day" exercises={fillerworkoutsuggest} isSelected={false} toggleSelection={() => toggleSelection(13)} />
+                <Template title="Push Day" 
+                exercises={fillerworkoutsuggest} 
+                isSelected={false} 
+                toggleSelection={() => toggleSelection(13)} 
+                toggleViewDropdown={() => toggleViewDropdown(13)}/>
               </View>
             </View>
           </View>
