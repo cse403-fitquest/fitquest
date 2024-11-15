@@ -183,9 +183,9 @@ const Workout = () => {
   const toggleSelection = (index: number) => {
     setSelectedTemplate((prevSelected) => (prevSelected === index ? null : index));
   };
-  const toggleViewDropdown = (index: number) => {
-    setViewedTemplate((prevViewed) => (prevViewed === index ? null : index));
-  };
+  // const toggleViewDropdown = (index: number) => {
+  //   setViewedTemplate((prevViewed) => (prevViewed === index ? null : index));
+  // };
 
   const saveWorkout = (workout: Template) => {
     setSavedTemplates([...savedTemplates, workout]);
@@ -208,13 +208,13 @@ const Workout = () => {
     exercises,
     isSelected,
     toggleSelection,
-    toggleViewDropdown   // Ensure this is passed as a prop from the parent component
+    //toggleViewDropdown   // Ensure this is passed as a prop from the parent component
   }: {
     title: string;
     exercises: Exercise[];
     isSelected: boolean;
     toggleSelection: () => void;
-    toggleViewDropdown: () => void;
+    //toggleViewDropdown: () => void;
     
   }) => {
     const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -223,6 +223,13 @@ const Workout = () => {
       setDropdownVisible(!isDropdownVisible); // Simplified toggle for debugging
       console.log("Dropdown visibility set to: ", !isDropdownVisible);
     };
+
+    const editTemplate = () => {
+      console.log("opened template editor")
+      setSelectedExercises(exercises);
+      setModalVisible(true);
+      
+    }
     
     return (
       <View>
@@ -251,7 +258,7 @@ const Workout = () => {
                 Name | Weight | Reps | Sets{' '}
               </Text>
               { /*button to edit the */ }
-              <TouchableOpacity style={{marginRight: 10}} onPress={() => setModalVisible(true)}>
+              <TouchableOpacity style={{marginRight: 10}} onPress={() => editTemplate()}>
                 <Text style={{fontWeight: 'bold', color: 'purple'}}>Edit</Text>
               </TouchableOpacity>
             </View>
@@ -516,7 +523,7 @@ const Workout = () => {
                               exercises={item.exercises} 
                               isSelected={selectedTemplate === index}
                               toggleSelection={() => toggleSelection(index)}
-                              toggleViewDropdown={() => toggleViewDropdown(index)}
+                              //toggleViewDropdown={() => toggleViewDropdown(index)}
                     />
                   )}
                   nestedScrollEnabled={true}
@@ -529,10 +536,11 @@ const Workout = () => {
                   SUGGESTED TEMPLATES
                 </Text>
                 <Template title="Push Day" 
-                exercises={fillerworkoutsuggest} 
-                isSelected={false} 
-                toggleSelection={() => toggleSelection(13)} 
-                toggleViewDropdown={() => toggleViewDropdown(13)}/>
+                  exercises={fillerworkoutsuggest} 
+                  isSelected={false} 
+                  toggleSelection={() => toggleSelection(13)} 
+                  //toggleViewDropdown={() => toggleViewDropdown(13)}
+                />
               </View>
             </View>
           </View>
