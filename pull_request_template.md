@@ -17,5 +17,6 @@ Brief description of your changes
 - [ ] Shop
 - [ ] Social
 - [ ] Assets
+- [ ] Report
 - [ ] Project Structure
 - [ ] Other. If so, specify:
