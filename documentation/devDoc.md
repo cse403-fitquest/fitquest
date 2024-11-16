@@ -43,7 +43,8 @@ fitquest/
 │   └── workflows/            # GitHub Actions workflow configurations
 ├── app/                      # Screens
 │   ├── auth/                 # Auth screens
-│   └── tabs/                 # Tabbed screens
+│   ├── onboarding/           # Onboarding screens
+│   └── tabs/                 # Tab screens
 ├── assets/                   # Spritesheets, fonts, and other static assets
 ├── components/               # Reusable React Native components
 ├── constants/                # Constants for mocks and base objects
@@ -87,7 +88,7 @@ To build FitQuest, follow these steps:
 
 1. Install Dependencies:
 
-    - Ensure you have Node.js (version 14.x or later) and Yarn or npm installed.
+    - Ensure you have Node.js (version 20.x LTS) and Yarn or npm installed.
 
     - Run:
 
@@ -103,9 +104,9 @@ To build FitQuest, follow these steps:
 
 3. Run on Physical Device using expo barcode or Run on Android Emulator:
 
-    ```bash
-    npm run android
-    ```
+   With an android device, the fastest way to use the app is to use your physical device through expo. Download and install Exp Go SDK 51 (https://expo.dev/go?sdkVersion=51&platform=android&device=true). When the app is running after completing step 2, scan the QR code given in the terminal in the Expo Go application.
+
+   With an iOS device, you will need to work with an android emulator. Following the below instructions will take around 15 minutes to setup depending on whether you have installed android studio: https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=expo-go
 
 
 > **Note:** Ensure you have the necessary emulators or physical devices connected for testing.
@@ -114,7 +115,7 @@ To build FitQuest, follow these steps:
 
 Running Tests:
 
-1. Unit and Integration Tests:
+1. Unit Tests:
 
     - Execute the following command to run all Jest tests:
 
@@ -122,20 +123,15 @@ Running Tests:
         npm test
         ```
 
-2. End-to-End (E2E) Tests: TENTATIVE
-
-    - Ensure you have Detox configured and your emulator/simulator is running.
-
-    - Run Detox tests with:
+    - Or you can run it in watch mode which reruns the tests automatically when saving changes with the following command:
 
         ```bash
-        detox test
+        npm run test:dev
         ```
+
 **Accessing Test Results:**
 
 - Test results will be displayed in the terminal after execution.
-
-- Detailed reports can be found in the /tests/ directory.
 
 **Referencing User Documentation:**
 
@@ -150,13 +146,11 @@ Adding a New Test:
 
 2. Create a Test File:
 
-    - For a component named NewComponent, create NewComponent.test.tsx in the appropriate __tests__ directory, e.g., /tests/components/__tests__/NewComponent.test.tsx.
+    - For a component named NewComponent, create NewComponent.test.tsx in the appropriate `__tests__` directory, e.g., `/tests/components/__tests__/NewComponent.test.tsx`.
 
 3. Write Test Cases:
 
     - Use Jest and React Native Testing Library for unit and integration tests.
-
-    - For E2E tests, use Detox and place tests in the /tests/integration/ directory.
 
     **Example for a Service / Utility Function:**
 
@@ -204,17 +198,21 @@ Adding a New Test:
 
 4. Run the Tests:
 
-    - Execute yarn test or npm test to ensure your new tests pass.
+    - Execute `npm test` to ensure your new tests pass.
 
 5. Commit the Test File:
 
-    - Add and commit your new test file to the repository:
+    - Checkout to a new branch from the main branch (with latest chanegs) with an appropriate prefix (eg. fix/, feat/, refactor/, test/)
+    - Add and commit changes to your new brench
+    - Create a pull request and request to be reviewed by one of the other developers
 
         ```bash
+        git checkout -b test/new-component
         git add /tests/components/__tests__/NewComponent.test.tsx
         git commit -m "Add tests for NewComponent"
-        git push origin main
+        git push --set-upstream origin test/new-component
         ```
+
 
 **Naming Conventions:**
 

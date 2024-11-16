@@ -17,9 +17,11 @@ Prerequisites:
 
 **Mobile Device:** Android (version 8.0 or later).
 
-**Internet Connection:** Required for syncing data.
+or
 
-**FitQuest Account:** An email address to create an account.
+**Android Emulator:** Installed here https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=expo-go. Ensure that Android Simulator and Expo Go is selected for the first two options
+
+**Internet Connection:** Required for syncing data.
 
 Installation Steps:
 
@@ -44,7 +46,7 @@ In addition, it is good to have an editor to work with the code such as [VSCode]
 3. Run the app
 
    ```bash
-   npx expo start -c
+   npm start
    ```
 
 The terminal should now display a barcode that you can scan in the next step.
@@ -55,9 +57,9 @@ The terminal should now display a barcode that you can scan in the next step.
 
 **3. How to Run the Software**
 
-1. Download Expo Go:
+1. Download Expo Go SDK 51:
 
-    - Go to Google Play Store and download Expo Go.
+    - Download Expo Go SDK 51 here https://expo.dev/go?sdkVersion=51&platform=android&device=true
 
 2. Launch FitQuest:
 
@@ -67,7 +69,7 @@ The terminal should now display a barcode that you can scan in the next step.
 
     - If you have an existing account, enter your credentials to sign in.
 
-    - New users can register using their email address by following the on-screen prompts.
+    - New users can register using their email address through the Sign Up screen.
 
 4. Complete Onboarding:
 
@@ -81,7 +83,7 @@ Main Features:
 
 - **Onboarding Wizard:** Assess your fitness level by allocating points to POWER, SPEED, and HEALTH attributes.
 
-- **Quests:** Select and complete workouts to progress through quests, earn experience points (XP), and battle monsters.
+- **Quests:** Complete workouts to progress through quests, earn experience points (XP), and battle monsters.
 
 - **Avatar Customization:** Personalize your avatar with various weapons, armor, and accessories.
 
@@ -110,8 +112,6 @@ Using FitQuest:
     - Visit the "Profile" section to change your avatar's items and upgrade attributes as you level up.
 
 **Work in Progress:**
-
-- Offline Mode: Currently, FitQuest requires an internet connection. Offline functionality is under development and will be available in future updates.
 
 - More Combat Options: Currently, the only combat options include a single attack and health potions. We want combat to be more engaging and personalized by giving users more options for attacks and consumables.
 
