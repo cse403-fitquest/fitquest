@@ -67,7 +67,7 @@ In addition, it is good to have an editor to work with the code such as [VSCode]
 3. Run the app
 
    ```bash
-   npx expo start -c
+   npx start
    ```
 
 4. Setup device for development.
@@ -174,7 +174,7 @@ Do this setup to use your own set of data that the app can interface with.
 5. Start (or restart if already running) the server
 
    ```bash
-   npx expo start -c
+   npx start
    ```
 
 ### Configure linting
