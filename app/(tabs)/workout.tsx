@@ -189,11 +189,28 @@ const Workout = () => {
   // };
 
   const saveWorkout = (workout: Template) => {
-    setSavedTemplates([...savedTemplates, workout]);
+    setSavedTemplates((prevTemplates) => {
+      const existingIndex = prevTemplates.findIndex(
+        (template) => template.title === workout.title
+      );
+  
+      if (existingIndex !== -1) {
+        // Update existing workout
+        const updatedTemplates = [...prevTemplates];
+        updatedTemplates[existingIndex] = workout;
+        console.log('Updated existing workout: ' + workout.title);
+        return updatedTemplates;
+      } else {
+        // Add new workout
+        console.log('Successfully added ' + workout.title + ' to saved templates');
+        return [...prevTemplates, workout];
+      }
+    });
+  
     setSelectedExercises([]);
     setModalVisible(false);
-    console.log('Successfully added ' + workout + 'to saved templates');
   };
+  
 
   // takes name of workout and removes it from the saved templates
   // const removeWorkout = (title: string) => {
@@ -338,31 +355,38 @@ const Workout = () => {
   title: string;
   exercises: Exercise[];
 }) => {
-  const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]); // Add this if it's local state
+  const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([...exercises]); // Add this if it's local state
 
   // Add exercise to the selected list without triggering a full re-render
-  const addExercise = useCallback(
+  const addExercise = 
     (exercise: Exercise) => {
-      setSelectedExercises((prevSelected) => {
-        // Avoid duplicates
-        if (prevSelected.some((ex) => ex.name === exercise.name)) return prevSelected;
-        return [...prevSelected, { ...exercise, weight: 0, reps: 0, sets: 0 }];
-      });
-    },
-    [] // Memoized function
-  );
+      console.log('Added ' + exercise.name + ' to selected exercises');
+      if (!selectedExercises.includes(exercise)) {
+        setSelectedExercises([...selectedExercises, exercise]);
+      }
+    console.log(selectedExercises);
+    }
 
   // Update exercise details
-  const updateExercise = useCallback(
-    (index: number, field: keyof Exercise, value: number) => {
-      setSelectedExercises((prevSelected) =>
-        prevSelected.map((exercise, i) =>
-          i === index ? { ...exercise, [field]: value } : exercise
-        )
-      );
-    },
-    [] // Memoized function
-  );
+  const updateExerciseWeight = 
+    (index: number, value: number) => {
+      const updatedExercises: Exercise[] = [...selectedExercises];
+      updatedExercises[index].weight = value;
+      setSelectedExercises(updatedExercises);
+    };
+  const updateExerciseReps = 
+    (index: number, value: number) => {
+      const updatedExercises: Exercise[] = [...selectedExercises];
+      updatedExercises[index].reps = value;
+      setSelectedExercises(updatedExercises);
+    };
+
+  const updateExerciseSets = 
+    (index: number, value: number) => {
+      const updatedExercises: Exercise[] = [...selectedExercises];
+      updatedExercises[index].reps = value;
+      setSelectedExercises(updatedExercises);
+    };
 
   const removeExercise = useCallback(
     (exerciseName: string) => {
@@ -450,7 +474,7 @@ const Workout = () => {
                     value={item.weight.toString()}
                     keyboardType="numeric"
                     onChangeText={(value) =>
-                      updateExercise(index, 'weight', +value)
+                      updateExerciseWeight(index, +value)
                     }
                   />
                   {/* Reps input */}
@@ -460,7 +484,7 @@ const Workout = () => {
                     value={item.reps.toString()}
                     keyboardType="numeric"
                     onChangeText={(value) =>
-                      updateExercise(index, 'reps', +value)
+                      updateExerciseReps(index, +value)
                     }
                   />
                   {/* Sets input */}
@@ -470,7 +494,7 @@ const Workout = () => {
                     value={item.sets.toString()}
                     keyboardType="numeric"
                     onChangeText={(value) =>
-                      updateExercise(index, 'sets', +value)
+                      updateExerciseSets(index, +value)
                     }
                   />
                 </View>
@@ -547,7 +571,7 @@ const Workout = () => {
                 </Text>
                 <TouchableOpacity onPress={() => setModalVisible(true)}>
                   {modalVisible && (
-                    <CreateTemplateScreen title="new workout" exercises={[]} />
+                    <CreateTemplateScreen title="new workout" exercises={selectedExercises} />
                   )}
                   <Text
                     style={templatestyles.addtemplatebutton}
