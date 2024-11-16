@@ -7,7 +7,7 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { secondsToMinutes } from '@/utils/workout';
@@ -329,150 +329,183 @@ const Workout = () => {
 
   ///////////////////////// for template creation ///////////////////////////////
 
-  const CreateTemplateScreen = ({ title, exercises, }: {title: string, exercises: Exercise[], }) => {
-    
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)} // Allow modal to close on hardware back button on Android
-      >
-        <View style={templatestyles.modalOverlay}>
-          <View style={[templatestyles.modalCreatorContent, { flex: 1 }]}>
-            <Text style={templatestyles.modalCreatorHeader}>
-              Template Creator
-            </Text>
-            {/* Editable Title */}
-            <View style={templatestyles.titleContainer}>
-              {isEditingTitle ? (
-                <TextInput
-                  style={templatestyles.titleInput}
-                  value={title}
-                  onChangeText={(text) => setTitle(text)}
-                  onBlur={() => setIsEditingTitle(false)} // Exit edit mode on blur
-                  autoFocus
-                />
-              ) : (
-                <TouchableOpacity onPress={() => setIsEditingTitle(true)}>
-                  <Text style={templatestyles.titleText}>{title}</Text>
-                </TouchableOpacity>
+  const CreateTemplateScreen = ({
+  title,
+  exercises,
+}: {
+  title: string;
+  exercises: Exercise[];
+}) => {
+  const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]); // Add this if it's local state
+
+  // Add exercise to the selected list without triggering a full re-render
+  const addExercise = useCallback(
+    (exercise: Exercise) => {
+      setSelectedExercises((prevSelected) => {
+        // Avoid duplicates
+        if (prevSelected.some((ex) => ex.name === exercise.name)) return prevSelected;
+        return [...prevSelected, { ...exercise, weight: 0, reps: 0, sets: 0 }];
+      });
+    },
+    [] // Memoized function
+  );
+
+  // Update exercise details
+  const updateExercise = useCallback(
+    (index: number, field: keyof Exercise, value: number) => {
+      setSelectedExercises((prevSelected) =>
+        prevSelected.map((exercise, i) =>
+          i === index ? { ...exercise, [field]: value } : exercise
+        )
+      );
+    },
+    [] // Memoized function
+  );
+
+  const removeExercise = useCallback(
+    (exerciseName: string) => {
+      setSelectedExercises((prevSelected) =>
+        prevSelected.filter((exercise) => exercise.name !== exerciseName)
+      );
+    },
+    [] // Memoized function
+  );
+
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => setModalVisible(false)} // Allow modal to close on hardware back button on Android
+    >
+      <View style={templatestyles.modalOverlay}>
+        <View style={[templatestyles.modalCreatorContent, { flex: 1 }]}>
+          <Text style={templatestyles.modalCreatorHeader}>Template Creator</Text>
+          {/* Editable Title */}
+          <View style={templatestyles.titleContainer}>
+            {isEditingTitle ? (
+              <TextInput
+                style={templatestyles.titleInput}
+                value={title}
+                onChangeText={(text) => setTitle(text)}
+                onBlur={() => setIsEditingTitle(false)} // Exit edit mode on blur
+                autoFocus
+              />
+            ) : (
+              <TouchableOpacity onPress={() => setIsEditingTitle(true)}>
+                <Text style={templatestyles.titleText}>{title}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Available Exercises */}
+          <View style={{ flex: 1, marginBottom: 10 }}>
+            <Text style={templatestyles.sectionTitle}>Available Exercises</Text>
+            <FlatList
+              data={fillerexercises.map((exercise) => exercise.name)}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <View style={templatestyles.exerciseItem}>
+                  <TouchableOpacity
+                    style={templatestyles.addButton}
+                    onPress={() =>
+                      addExercise(findExercise(item, fillerexercises))
+                    }
+                  >
+                    <Text style={templatestyles.addButtonText}>+</Text>
+                  </TouchableOpacity>
+                  <Text> {item}</Text>
+                </View>
               )}
-            </View>
+              contentContainerStyle={{ paddingBottom: 20 }}
+            />
+          </View>
 
-            {/* List of Exercises */}
-            <View style={{ flex: 1, marginBottom: 10 }}>
-              <Text style={templatestyles.sectionTitle}>
-                Available Exercises
-              </Text>
+          {/* Selected Exercises */}
+          <Text style={templatestyles.sectionTitle}>Selected Exercises</Text>
+          <View
+            style={{ flex: 1, marginBottom: 10, alignItems: 'flex-start' }}
+          >
+            <Text style={templatestyles.templateCreatorTableHeader}>
+              | Name | Weight | Reps | Sets |
+            </Text>
+            <FlatList
+              data={selectedExercises}
+              keyExtractor={(item) => item.name}
+              renderItem={({ item, index }) => (
+                <View style={templatestyles.exerciseItem}>
+                  <TouchableOpacity
+                    style={templatestyles.removeButton}
+                    onPress={() => removeExercise(item.name)}
+                  >
+                    <Text style={templatestyles.addButtonText}>-</Text>
+                  </TouchableOpacity>
+                  <Text> {item.name}</Text>
+                  {/* Weight input */}
+                  <TextInput
+                    style={templatestyles.input}
+                    placeholder="Weight"
+                    value={item.weight.toString()}
+                    keyboardType="numeric"
+                    onChangeText={(value) =>
+                      updateExercise(index, 'weight', +value)
+                    }
+                  />
+                  {/* Reps input */}
+                  <TextInput
+                    style={templatestyles.input}
+                    placeholder="Reps"
+                    value={item.reps.toString()}
+                    keyboardType="numeric"
+                    onChangeText={(value) =>
+                      updateExercise(index, 'reps', +value)
+                    }
+                  />
+                  {/* Sets input */}
+                  <TextInput
+                    style={templatestyles.input}
+                    placeholder="Sets"
+                    value={item.sets.toString()}
+                    keyboardType="numeric"
+                    onChangeText={(value) =>
+                      updateExercise(index, 'sets', +value)
+                    }
+                  />
+                </View>
+              )}
+              contentContainerStyle={{ paddingBottom: 20 }}
+            />
+          </View>
 
-              {/*names of each of the exercises*/}
-              <FlatList
-                data={fillerexercises.map((exercise) => exercise.name)}
-                keyExtractor={(item) => item}
-                renderItem={({ item }) => (
-                  <View style={templatestyles.exerciseItem}>
-                    <TouchableOpacity
-                      style={templatestyles.addButton}
-                      onPress={() =>
-                        addExercise(findExercise(item, fillerexercises))
-                      }
-                    >
-                      <Text style={templatestyles.addButtonText}>+</Text>
-                    </TouchableOpacity>
-                    <Text> {item}</Text>
-                  </View>
-                )}
-                contentContainerStyle={{ paddingBottom: 20 }} // Padding to avoid cutoff at bottom
-              />
-            </View>
-
-            {/* Selected Exercises Section (initially empty) */}
-            <Text style={templatestyles.sectionTitle}>Selected Exercises</Text>
-            <View
-              style={{ flex: 1, marginBottom: 10, alignItems: 'flex-start' }}
+          {/* Footer Buttons */}
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              width: '100%',
+            }}
+          >
+            <TouchableOpacity
+              style={templatestyles.closeButton}
+              onPress={() => closeTemplateCreator()} // Close modal
             >
-              <Text style={templatestyles.templateCreatorTableHeader}>
-                {' '}
-                | Name | Weight | Reps | Sets |
-              </Text>
-
-              <FlatList
-                data={selectedExercises}
-                keyExtractor={(item) => item.name}
-                renderItem={({ item, index }) => (
-                  <View style={templatestyles.exerciseItem}>
-                    <TouchableOpacity
-                      style={templatestyles.removeButton}
-                      onPress={() => removeExercise(item.name)}
-                    >
-                      <Text style={templatestyles.addButtonText}>-</Text>
-                    </TouchableOpacity>
-                    <Text> {item.name}</Text>
-                    {/* Weight input */}
-                    <TextInput
-                      style={templatestyles.input}
-                      placeholder="Weight"
-                      value={item.weight.toString()}
-                      keyboardType="numeric"
-                      onChangeText={(value) =>
-                        updateExercise(index, 'weight', +value)
-                      }
-                    />
-
-                    {/* Reps input */}
-                    <TextInput
-                      style={templatestyles.input}
-                      placeholder="Reps"
-                      value={item.reps.toString()}
-                      keyboardType="numeric"
-                      onChangeText={(value) =>
-                        updateExercise(index, 'reps', +value)
-                      }
-                    />
-
-                    {/* Sets input */}
-                    <TextInput
-                      style={templatestyles.input}
-                      placeholder="Sets"
-                      value={item.sets.toString()}
-                      keyboardType="numeric"
-                      onChangeText={(value) =>
-                        updateExercise(index, 'sets', +value)
-                      }
-                    />
-                  </View>
-                )}
-                contentContainerStyle={{ paddingBottom: 20 }} // Padding to avoid cutoff at bottom
-              />
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                width: '100%',
-              }}
+              <Text style={templatestyles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={templatestyles.saveButton}
+              onPress={() =>
+                saveWorkout({ title: title, exercises: selectedExercises })
+              } // Save and close modal
             >
-              <TouchableOpacity
-                style={templatestyles.closeButton}
-                onPress={() => closeTemplateCreator()} // Close modal
-              >
-                <Text style={templatestyles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={templatestyles.saveButton}
-                onPress={() =>
-                  saveWorkout({ title: title, exercises: selectedExercises })
-                } // Close modal
-              >
-                <Text style={templatestyles.closeButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
+              <Text style={templatestyles.closeButtonText}>Save</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </Modal>
-    );
-  };
+      </View>
+    </Modal>
+  );
+};
+
 
   ////////////////////// moving to return section //////////////////////
 
