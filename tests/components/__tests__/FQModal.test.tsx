@@ -1,7 +1,11 @@
-import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import FQModal from '@/components/FQModal';
 import { Text } from 'react-native';
+
+// Mock Ionicons
+jest.mock('@expo/vector-icons', () => ({
+  Ionicons: '',
+}));
 
 describe('FQModal', () => {
   const mockSetVisible = jest.fn();
