@@ -23,7 +23,18 @@ const Workout = () => {
   const [secondsElapsed, setSecondsElapsed] = useState(0);
 
   const { user, setUser } = useUserStore();
-  const [levelUpModalVisible, setLevelUpModalVisible] = useState(false);
+  const [expGainModalVisible, setExpGainModalVisible] = useState(false);
+  const [expGainModalData, setExpGainModalData] = useState<{
+    type: 'levelUp' | 'expGain';
+    title: string;
+    expGain: number;
+    description: string;
+  }>({
+    type: 'expGain',
+    title: 'You gained EXP!',
+    expGain: 0,
+    description: 'You have gained experience points!',
+  });
 
   if (!user) {
     throw new Error('User data not found.');
@@ -272,7 +283,7 @@ const Workout = () => {
       setIsWorkoutActive(false);
       if (timer) {
         const oldUser = user;
-        const expGain = secondsElapsed * 1000;
+        const expGain = secondsElapsed * 500;
         const userAfterExpGain = updateUserAfterExpGain(user, expGain);
 
         setUser(userAfterExpGain);
@@ -281,8 +292,23 @@ const Workout = () => {
         setTimer(null); // Clear the timer ID
 
         if (oldUser.attributePoints < userAfterExpGain.attributePoints) {
-          setLevelUpModalVisible(true);
+          setExpGainModalData({
+            type: 'levelUp',
+            title: 'You have leveled up!',
+            expGain: expGain,
+            description:
+              'You have leveled up. Go to your profile screen to allocate your attribute points.',
+          });
+        } else {
+          setExpGainModalData({
+            type: 'expGain',
+            title: 'You gained EXP!',
+            expGain: expGain,
+            description: 'You have gained experience points!',
+          });
         }
+
+        setExpGainModalVisible(true);
 
         const updateExpResponse = await updateEXP(userID, secondsElapsed); //update user exp
 
@@ -295,7 +321,7 @@ const Workout = () => {
           setUser(oldUser);
 
           // Close the level up modal if it was opened
-          setLevelUpModalVisible(false);
+          setExpGainModalVisible(false);
 
           // Show error message
           Alert.alert('Error updating exp');
@@ -464,43 +490,50 @@ const Workout = () => {
   return (
     <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
       <FQModal
-        visible={levelUpModalVisible}
-        setVisible={setLevelUpModalVisible}
-        onConfirm={() => setLevelUpModalVisible(false)}
-        title="You have levelled up!"
+        visible={expGainModalVisible}
+        setVisible={setExpGainModalVisible}
+        onConfirm={() => setExpGainModalVisible(false)}
+        title={expGainModalData.title}
         confirmText="CLOSE"
         width={300}
       >
         <View>
-          <View className="w-full relative items-center justify-center h-[140px] overflow-hidden mb-10">
-            <View className="absolute bottom-0 flex-row justify-center items-end">
-              <View className="relative">
-                <AnimatedSprite
-                  id={user?.spriteID}
-                  state={SpriteState.ATTACK_3}
-                  width={120}
-                  height={120}
-                  duration={600}
-                />
-              </View>
-              <View className="relative">
-                <AnimatedSprite
-                  id={AnimatedSpriteID.FIRE_SKULL_RED}
-                  state={SpriteState.DAMAGED}
-                  direction="left"
-                  width={120}
-                  height={120}
-                  duration={600}
-                  delay={200}
-                />
+          {expGainModalData.type === 'levelUp' ? (
+            <View className="w-full relative items-center justify-center h-[140px] overflow-hidden">
+              <View className="absolute bottom-0 flex-row justify-center items-end">
+                <View className="relative">
+                  <AnimatedSprite
+                    id={user?.spriteID}
+                    state={SpriteState.ATTACK_3}
+                    width={120}
+                    height={120}
+                    duration={600}
+                  />
+                </View>
+                <View className="relative">
+                  <AnimatedSprite
+                    id={AnimatedSpriteID.FIRE_SKULL_RED}
+                    state={SpriteState.DAMAGED}
+                    direction="left"
+                    width={120}
+                    height={120}
+                    duration={600}
+                    delay={200}
+                  />
+                </View>
               </View>
             </View>
+          ) : null}
+          <View className="mt-8 mb-8">
+            <Text className="text-lg text-center font-bold">
+              EXP GAIN:{' '}
+              <Text className="text-yellow font-bold">
+                {expGainModalData.expGain} XP
+              </Text>
+            </Text>
           </View>
 
-          <Text>
-            You have levelled up. Go to your profile screen to allocate your
-            attribute points.
-          </Text>
+          <Text>{expGainModalData.description} </Text>
         </View>
       </FQModal>
       <FlatList

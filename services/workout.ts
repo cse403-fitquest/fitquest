@@ -33,7 +33,7 @@ export const updateEXP: (
       throw new Error('User data not found.');
     }
 
-    const expGain = duration * 1000;
+    const expGain = duration * 500;
 
     // Get new user exp amount
     const userAfterExpGain = updateUserAfterExpGain(userData, expGain);
