@@ -6,6 +6,7 @@ import {
   View,
   Modal,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +15,8 @@ import { secondsToMinutes, updateUserAfterExpGain } from '@/utils/workout';
 import { updateEXP } from '@/services/workout';
 import { useUserStore } from '@/store/user';
 import FQModal from '@/components/FQModal';
+import { AnimatedSprite } from '@/components/AnimatedSprite';
+import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 
 const Workout = () => {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -269,13 +272,17 @@ const Workout = () => {
       setIsWorkoutActive(false);
       if (timer) {
         const oldUser = user;
-
-        const userAfterExpGain = updateUserAfterExpGain(user, secondsElapsed);
+        const expGain = secondsElapsed * 1000;
+        const userAfterExpGain = updateUserAfterExpGain(user, expGain);
 
         setUser(userAfterExpGain);
 
         clearInterval(timer); // Stop the timer
         setTimer(null); // Clear the timer ID
+
+        if (oldUser.attributePoints < userAfterExpGain.attributePoints) {
+          setLevelUpModalVisible(true);
+        }
 
         const updateExpResponse = await updateEXP(userID, secondsElapsed); //update user exp
 
@@ -286,6 +293,12 @@ const Workout = () => {
 
           // Revert user back to old user if update fails
           setUser(oldUser);
+
+          // Close the level up modal if it was opened
+          setLevelUpModalVisible(false);
+
+          // Show error message
+          Alert.alert('Error updating exp');
         }
       }
     }
@@ -454,10 +467,41 @@ const Workout = () => {
         visible={levelUpModalVisible}
         setVisible={setLevelUpModalVisible}
         onConfirm={() => setLevelUpModalVisible(false)}
-        title="Level Up!"
+        title="You have levelled up!"
+        confirmText="CLOSE"
+        width={300}
       >
-        You have levelled up. Go to the profile screen to allocate your
-        attribute points.
+        <View>
+          <View className="w-full relative items-center justify-center h-[140px] overflow-hidden mb-10">
+            <View className="absolute bottom-0 flex-row justify-center items-end">
+              <View className="relative">
+                <AnimatedSprite
+                  id={user?.spriteID}
+                  state={SpriteState.ATTACK_3}
+                  width={120}
+                  height={120}
+                  duration={600}
+                />
+              </View>
+              <View className="relative">
+                <AnimatedSprite
+                  id={AnimatedSpriteID.FIRE_SKULL_RED}
+                  state={SpriteState.DAMAGED}
+                  direction="left"
+                  width={120}
+                  height={120}
+                  duration={600}
+                  delay={200}
+                />
+              </View>
+            </View>
+          </View>
+
+          <Text>
+            You have levelled up. Go to your profile screen to allocate your
+            attribute points.
+          </Text>
+        </View>
       </FQModal>
       <FlatList
         data={[]}

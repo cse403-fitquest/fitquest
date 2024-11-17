@@ -174,6 +174,12 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
       switch (state) {
         case SpriteState.ATTACK_1:
           return 2;
+        case SpriteState.ATTACK_2:
+          return 3;
+        case SpriteState.ATTACK_3:
+          return 4;
+        case SpriteState.ATTACK_4:
+          return 5;
         case SpriteState.DAMAGED:
           return 8;
         case SpriteState.DEATH:

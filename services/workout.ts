@@ -33,15 +33,17 @@ export const updateEXP: (
       throw new Error('User data not found.');
     }
 
+    const expGain = duration * 1000;
+
     // Get new user exp amount
-    const userAfterExpGain = updateUserAfterExpGain(userData, duration);
+    const userAfterExpGain = updateUserAfterExpGain(userData, expGain);
 
     await updateDoc(userRef, {
       exp: userAfterExpGain.exp,
       attributePoints: userAfterExpGain.attributePoints,
     });
 
-    console.log('exp successfully incremented by ' + duration + 'xp.');
+    console.log('exp successfully incremented by ' + expGain + 'xp.');
 
     return {
       data: null,
