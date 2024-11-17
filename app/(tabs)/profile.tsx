@@ -639,16 +639,9 @@ const Profile = () => {
         setVisible={setIsSettingsVisible}
         title="Profile Settings"
         onConfirm={handleUpdateProfile}
+        closeButton
       >
         <View className="py-4 w-[220px] relative">
-          {/* Close Button */}
-          <TouchableOpacity
-            onPress={() => setIsSettingsVisible(false)}
-            style={{ position: 'absolute', top: 2, right: 2 }}
-          >
-            <Ionicons name="close" size={24} color="#000" />
-          </TouchableOpacity>
-
           <View className="space-y-4 mt-4">
             <View>
               <Text className="text-gray-500 mb-1">Username</Text>
