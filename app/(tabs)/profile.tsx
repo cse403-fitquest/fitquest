@@ -5,10 +5,11 @@ import {
   ScrollView,
   Alert,
   TextInput,
+  DimensionValue,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import FQModal from '@/components/FQModal';
 import { Item, ItemType } from '@/types/item';
 import { updateUserProfile } from '@/services/user';
@@ -20,6 +21,7 @@ import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
 import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import clsx from 'clsx';
+import { getUserExpThreshold } from '@/utils/user';
 
 interface ItemCardProps {
   item: Item;
@@ -110,6 +112,18 @@ const Profile = () => {
   const isItemEquipped = selectedItem
     ? user?.equippedItems.includes(selectedItem.id)
     : false;
+
+  const userExpTillLevelUp = useMemo(() => {
+    if (!user) return 0;
+
+    return getUserExpThreshold(user) - user.exp;
+  }, [user]);
+
+  const userExpBarWidth: DimensionValue = useMemo(() => {
+    if (!user) return `0%`;
+
+    return `${(user.exp / getUserExpThreshold(user)) * 100}%` as DimensionValue;
+  }, [user]);
 
   // Calculate total stats based on user profile and equipped items
   useEffect(() => {
@@ -495,19 +509,22 @@ const Profile = () => {
           </View>
         </View>
 
-        {/*
         <View className="mb-4">
           <View className="border border-gray rounded">
             <View className="w-full h-2 bg-gray-200 rounded">
-              <View className="w-1/3 h-full bg-yellow rounded" />
+              <View
+                className="h-full bg-yellow rounded"
+                style={{
+                  width: userExpBarWidth,
+                }}
+              />
             </View>
           </View>
 
           <Text className="text-xs text-center text-gray-500 mt-1 mb-4">
-            300 EXP TILL LEVEL 10
+            {userExpTillLevelUp} EXP TILL LEVEL UP
           </Text>
         </View>
-        */}
 
         {/* Attributes Section */}
         <View className="text-lg mb-6">
