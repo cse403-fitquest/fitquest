@@ -2,6 +2,7 @@ import { doc, getDoc, updateDoc, collection } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
 import { userConverter } from './user';
+import { updateUserAfterExpGain } from '@/utils/workout';
 
 // Function to handle the updating of exp
 /**
@@ -33,8 +34,12 @@ export const updateEXP: (
     }
 
     // Get new user exp amount
-    const newEXP = userData.exp + duration;
-    await updateDoc(userRef, { exp: newEXP });
+    const userAfterExpGain = updateUserAfterExpGain(userData, duration);
+
+    await updateDoc(userRef, {
+      exp: userAfterExpGain.exp,
+      attributePoints: userAfterExpGain.attributePoints,
+    });
 
     console.log('exp successfully incremented by ' + duration + 'xp.');
 

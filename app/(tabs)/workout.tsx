@@ -10,14 +10,17 @@ import {
 import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { secondsToMinutes } from '@/utils/workout';
+import { secondsToMinutes, updateUserAfterExpGain } from '@/utils/workout';
 import { updateEXP } from '@/services/workout';
 import { useUserStore } from '@/store/user';
+import FQModal from '@/components/FQModal';
 
 const Workout = () => {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [secondsElapsed, setSecondsElapsed] = useState(0);
-  const { user } = useUserStore();
+
+  const { user, setUser } = useUserStore();
+  const [levelUpModalVisible, setLevelUpModalVisible] = useState(false);
 
   if (!user) {
     throw new Error('User data not found.');
@@ -261,15 +264,29 @@ const Workout = () => {
   };
 
   // when workout is stopped
-  // TODO: DELETE LINE BELOW WHEN USING THE FUNCTION
-
-  const stopWorkout = () => {
+  const stopWorkout = async () => {
     if (isWorkoutActive) {
       setIsWorkoutActive(false);
       if (timer) {
-        updateEXP(userID, secondsElapsed); //update user exp
+        const oldUser = user;
+
+        const userAfterExpGain = updateUserAfterExpGain(user, secondsElapsed);
+
+        setUser(userAfterExpGain);
+
         clearInterval(timer); // Stop the timer
         setTimer(null); // Clear the timer ID
+
+        const updateExpResponse = await updateEXP(userID, secondsElapsed); //update user exp
+
+        if (updateExpResponse.success) {
+          console.log('Exp updated successfully');
+        } else {
+          console.error('Error updating exp');
+
+          // Revert user back to old user if update fails
+          setUser(oldUser);
+        }
       }
     }
   };
@@ -433,6 +450,15 @@ const Workout = () => {
 
   return (
     <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
+      <FQModal
+        visible={levelUpModalVisible}
+        setVisible={setLevelUpModalVisible}
+        onConfirm={() => setLevelUpModalVisible(false)}
+        title="Level Up!"
+      >
+        You have levelled up. Go to the profile screen to allocate your
+        attribute points.
+      </FQModal>
       <FlatList
         data={[]}
         renderItem={() => null}
