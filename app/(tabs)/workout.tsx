@@ -294,10 +294,10 @@ const Workout = () => {
         if (oldUser.attributePoints < userAfterExpGain.attributePoints) {
           setExpGainModalData({
             type: 'levelUp',
-            title: 'You have levelled up!',
+            title: 'You have leveled up!',
             expGain: expGain,
             description:
-              'You have levelled up. Go to your profile screen to allocate your attribute points.',
+              'You have leveled up. Go to your profile screen to allocate your attribute points.',
           });
         } else {
           setExpGainModalData({
