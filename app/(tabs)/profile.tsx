@@ -22,6 +22,8 @@ import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import clsx from 'clsx';
 import { getUserExpThreshold } from '@/utils/user';
+import { router } from 'expo-router';
+import { Colors } from '@/constants/colors';
 
 interface ItemCardProps {
   item: Item;
@@ -510,10 +512,10 @@ const Profile = () => {
         </View>
 
         <View className="mb-4">
-          <View className="border border-gray rounded">
+          <View className="w-full border border-gray rounded">
             <View className="w-full h-2 bg-gray-200 rounded">
               <View
-                className="h-full bg-yellow rounded"
+                className="h-full w-full bg-yellow border border-yellow rounded"
                 style={{
                   width: userExpBarWidth,
                 }}
@@ -528,9 +530,17 @@ const Profile = () => {
 
         {/* Attributes Section */}
         <View className="text-lg mb-6">
-          <Text className="font-bold text-xl text-grayDark mb-2">
-            ATTRIBUTES
-          </Text>
+          <View className="mb-2 flex-row items-center">
+            <Text className="font-bold text-xl text-grayDark mr-2">
+              ATTRIBUTES
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push('/allocate-points')}
+              className="ml-2"
+            >
+              <Ionicons name="add-outline" size={30} color={Colors.blue} />
+            </TouchableOpacity>
+          </View>
           <View className="space-y-2">
             <View className="flex-row justify-between items-center">
               <Text className="text-lg text-gray-500">
