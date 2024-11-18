@@ -414,14 +414,8 @@ const Workout = () => {
 
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => setModalVisible(false)} // Allow modal to close on hardware back button on Android
-    >
-      <View style={templatestyles.modalOverlay}>
-        <View style={[templatestyles.modalCreatorContent, { flex: 1 }]}>
+    <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
+        
           <Text style={templatestyles.modalCreatorHeader}>Template Creator</Text>
           {/* Editable Title */}
           <View style={templatestyles.titleContainer}>
@@ -542,9 +536,7 @@ const Workout = () => {
               <Text style={templatestyles.closeButtonText}>Save</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
-    </Modal>
+    </SafeAreaView>
   );
 };
 
@@ -553,6 +545,7 @@ const Workout = () => {
 
   return (
     <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
+      {!modalVisible ?(
       <FlatList
         data={[]}
         renderItem={() => null}
@@ -586,9 +579,6 @@ const Workout = () => {
                   MY TEMPLATES
                 </Text>
                 <TouchableOpacity onPress={() => addWorkout()}>
-                  {modalVisible && (
-                    <CreateTemplateScreen title="new workout" exercises={selectedExercises} />
-                  )}
                   <Text
                     style={templatestyles.addtemplatebutton}
                     className="text-xl text-blue-1000"
@@ -629,6 +619,9 @@ const Workout = () => {
           </View>
         }
       />
+      ) : (                   
+         <CreateTemplateScreen title="new workout" exercises={selectedExercises} />
+      )}
     </SafeAreaView>
   );
 };
@@ -645,6 +638,16 @@ const templatestyles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     position: 'relative',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: '#f5f5f5', // Light background
+    padding: 20,
   },
   circle: {
     width: 20,
@@ -832,6 +835,15 @@ const templatestyles = StyleSheet.create({
     borderRadius: 5,
     textAlign: 'center',
     backgroundColor: '#f9f9f9',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    backgroundColor: '#ffffff',
   },
 });
 
