@@ -6,14 +6,6 @@ import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
 
-const initialPlayer = {
-  id: '',
-  name: 'Player',
-  health: 120,
-  power: 15,
-  speed: 15,
-};
-
 const questThemes = {
   '1': {
     normalMonsters: [
@@ -79,6 +71,17 @@ const Combat = () => {
   const { isBoss, questId, questName, uniqueKey } = useLocalSearchParams();
   const currentQuest = questThemes[questId as keyof typeof questThemes];
 
+  const { user } = useUserStore();
+
+  // Initialize player stats from user data
+  const initialPlayer = {
+    id: user?.id || '',
+    name: user?.profileInfo.username || 'Player',
+    health: (user?.attributes.health || 6) * 20, // Scale health to 20 HP per point (default to 6 for testing)
+    power: (user?.attributes.power || 15) * 2, // Use user data for power
+    speed: user?.attributes.speed || 15, // Use user data for speed
+  };
+
   // Fetch current quest from Firebase
   useEffect(() => {
     const fetchCurrentQuest = async () => {
@@ -101,13 +104,17 @@ const Combat = () => {
   const [player, setPlayer] = useState(initialPlayer);
   const [monster, setMonster] = useState(() => {
     if (isBoss === 'true') {
-      return { ...currentQuest.boss };
+      const scaledMonster = {
+        ...currentQuest.boss,
+        health: currentQuest.boss.health * 20, // Scale monster health to 20 HP per point
+      };
+      return { ...scaledMonster }; // Use scaled monster
     } else {
       const randomMonster =
         currentQuest.normalMonsters[
           Math.floor(Math.random() * currentQuest.normalMonsters.length)
         ];
-      return { ...randomMonster };
+      return { ...randomMonster, health: randomMonster.health * 20 }; // Scale normal monster health
     }
   });
   const [combatLog, setCombatLog] = useState<string[]>([]);
@@ -294,7 +301,16 @@ const Combat = () => {
     setShowVictoryModal(true);
   };
 
-  const { user } = useUserStore();
+  useEffect(() => {
+    if (user) {
+      setPlayer((prev) => ({
+        ...prev,
+        health: (user.attributes.health || 6) * 20, // Ensure health is scaled when user data changes
+        power: (user.attributes.power || 15) * 2,
+        speed: user.attributes.speed || 15,
+      }));
+    }
+  }, [user]); // Update player stats when user data changes
 
   return (
     <SafeAreaView className="flex-1 p-4 pb-20 px-6">
