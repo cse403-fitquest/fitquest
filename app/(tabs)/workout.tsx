@@ -92,8 +92,8 @@ const Workout = () => {
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
   const [savedTemplates, setSavedTemplates] = useState<Template[]>([]);
 
-  const [, setTitle] = useState('New Workout');
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [currtitle, setTitle] = useState('new workout');
+  //const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   // const [viewedTemplate, setViewedTemplate] = useState<number | null>(null);
 
@@ -240,8 +240,9 @@ const Workout = () => {
     };
 
     const editTemplate = () => {
-      console.log('opened template editor');
+      console.log('opened template editor: '+title);
       setSelectedExercises(exercises);
+      setTitle(title);
       setModalVisible(true);
     };
 
@@ -277,7 +278,7 @@ const Workout = () => {
                 onPress={() => editTemplate()}
               >
                 <Text style={{ fontWeight: 'bold', color: 'purple' }}>
-                  Edit
+                Edit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -346,6 +347,11 @@ const Workout = () => {
     };
   }, [timer]);
 
+  const addWorkout = () => {
+    setModalVisible(true);
+    setTitle('new workout');
+  }
+
   ///////////////////////// for template creation ///////////////////////////////
 
   const CreateTemplateScreen = ({
@@ -356,6 +362,10 @@ const Workout = () => {
   exercises: Exercise[];
 }) => {
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([...exercises]); // Add this if it's local state
+  const [chosenTitle, setChosenTitle] = useState(currtitle); // Add this if it's local state
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  
+
 
   // Add exercise to the selected list without triggering a full re-render
   const addExercise = 
@@ -384,8 +394,13 @@ const Workout = () => {
   const updateExerciseSets = 
     (index: number, value: number) => {
       const updatedExercises: Exercise[] = [...selectedExercises];
-      updatedExercises[index].reps = value;
+      updatedExercises[index].sets = value;
       setSelectedExercises(updatedExercises);
+    };
+
+  const updateTitle = 
+    (value: string) => {
+      setChosenTitle(value);
     };
 
   const removeExercise = useCallback(
@@ -396,6 +411,7 @@ const Workout = () => {
     },
     [] // Memoized function
   );
+
 
   return (
     <Modal
@@ -412,14 +428,14 @@ const Workout = () => {
             {isEditingTitle ? (
               <TextInput
                 style={templatestyles.titleInput}
-                value={title}
-                onChangeText={(text) => setTitle(text)}
+                value={chosenTitle}
+                onChangeText={(text) => setChosenTitle(text)}
                 onBlur={() => setIsEditingTitle(false)} // Exit edit mode on blur
                 autoFocus
               />
             ) : (
               <TouchableOpacity onPress={() => setIsEditingTitle(true)}>
-                <Text style={templatestyles.titleText}>{title}</Text>
+                <Text style={templatestyles.titleText}>{chosenTitle}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -520,7 +536,7 @@ const Workout = () => {
             <TouchableOpacity
               style={templatestyles.saveButton}
               onPress={() =>
-                saveWorkout({ title: title, exercises: selectedExercises })
+                saveWorkout({ title: chosenTitle, exercises: selectedExercises })
               } // Save and close modal
             >
               <Text style={templatestyles.closeButtonText}>Save</Text>
@@ -569,7 +585,7 @@ const Workout = () => {
                 <Text className="text-xl text-grayDark font-bold mb-2">
                   MY TEMPLATES
                 </Text>
-                <TouchableOpacity onPress={() => setModalVisible(true)}>
+                <TouchableOpacity onPress={() => addWorkout()}>
                   {modalVisible && (
                     <CreateTemplateScreen title="new workout" exercises={selectedExercises} />
                   )}
