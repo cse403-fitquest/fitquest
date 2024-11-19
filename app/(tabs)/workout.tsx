@@ -113,6 +113,8 @@ const Workout = () => {
   const [currtitle, setTitle] = useState('new workout');
   //const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
+  const [editingTemplate, seteditingTemplate] = useState(false);
+
   // const [viewedTemplate, setViewedTemplate] = useState<number | null>(null);
 
   // adds to selected
@@ -207,6 +209,8 @@ const Workout = () => {
   // };
 
   const saveWorkout = (workout: Template) => {
+    // TODO: allow to differentiate between editing and creating 
+    // TODO: allow to differentiate between suggested and my templates
     setSavedTemplates((prevTemplates) => {
       const existingIndex = prevTemplates.findIndex(
         (template) => template.title === workout.title,
@@ -262,6 +266,7 @@ const Workout = () => {
       console.log('opened template editor: ' + title);
       setSelectedExercises(exercises);
       setTitle(title);
+      seteditingTemplate(true)
       setModalVisible(true);
     };
 
