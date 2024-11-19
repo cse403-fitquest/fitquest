@@ -389,7 +389,7 @@ const Workout = () => {
         if (updateExpResponse.success) {
           console.log('Exp updated successfully');
         } else {
-          console.error('Error updating exp');
+          console.error('Error updating exp', updateExpResponse.error);
 
           // Revert user back to old user if update fails
           setUser(oldUser);
