@@ -415,7 +415,11 @@ const Workout = () => {
 
   return (
     <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
-        
+        <FlatList
+        data={[]}
+        renderItem={() => null}
+        ListHeaderComponent={
+          <View>
           <Text style={templatestyles.modalCreatorHeader}>Template Creator</Text>
           {/* Editable Title */}
           <View style={templatestyles.titleContainer}>
@@ -513,8 +517,12 @@ const Workout = () => {
             />
           </View>
 
-          {/* Footer Buttons */}
-          <View
+          
+          </View>
+        }
+        />
+        {/* Footer Buttons */}
+        <View
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
