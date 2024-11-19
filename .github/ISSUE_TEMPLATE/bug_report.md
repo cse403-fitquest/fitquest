@@ -1,6 +1,14 @@
+---
+name: Bug report
+about: Create a report to help us improve
+title: "[DATE]: [BUG TITLE]"
+description: ''
+labels: ''
+
+---
+
 **Describe the bug**
 A clear and concise description of what the bug is.
-
 
 **To Reproduce**
 Steps to reproduce the behavior:
@@ -12,21 +20,16 @@ Steps to reproduce the behavior:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
+**Desktop (please complete the following information):**
+ - Node Version [20.x LTS]
 
-**Desktop (please complete the following information if using an emulator):**
- - Device [e.g. Lenovo Legion]
- - OS [e.g. Windows 11]
- - Node Version [e.g. 20.x LTS]
-
-
-**Smartphone (please complete the following information if using smartphone):**
- - Device: [e.g. Samsung S23]
- - OS: [e.g. Android 14]
-
+**Smartphone (please complete the following information):**
+ - Device: [e.g. iPhone6]
+ - OS: [e.g. iOS8.1]
+ - Version [e.g. 22]
 
 **Additional context**
 Add any other context about the problem here.
