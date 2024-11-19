@@ -86,7 +86,8 @@ const Workout = () => {
   ];
 
   // const fillerworkout = [fillerex, fillerex, fillerex, fillerex];
-  const fillerworkoutsuggest = [fillerex, fillerex, fillerex];
+  const fillerworkoutsuggest: Template = {title: "Whole Body Day", exercises: [fillerex, fillerexbicep, fillerexsquat]};
+  const suggestedTemplates: Template[]  = [fillerworkoutsuggest]
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
@@ -615,13 +616,20 @@ const Workout = () => {
                 <Text className="text-xl text-grayDark font-bold mb-2">
                   SUGGESTED TEMPLATES
                 </Text>
-                <Template
-                  title="Push Day"
-                  exercises={fillerworkoutsuggest}
-                  isSelected={false}
-                  toggleSelection={() => toggleSelection(13)}
-                  //toggleViewDropdown={() => toggleViewDropdown(13)}
-                />
+                <FlatList
+                data={suggestedTemplates}
+                keyExtractor={(_, index) => `template-${index}`}
+                renderItem={({ item, index }) => (
+                  <Template
+                    title={item.title}
+                    exercises={item.exercises}
+                    isSelected={selectedTemplate === index}
+                    toggleSelection={() => toggleSelection(index)}
+                    //toggleViewDropdown={() => toggleViewDropdown(index)}
+                  />
+                )}
+                nestedScrollEnabled={true}
+              />
               </View>
             </View>
           </View>
