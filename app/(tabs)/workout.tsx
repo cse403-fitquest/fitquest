@@ -654,6 +654,38 @@ const Workout = () => {
           <Text>{expGainModalData.description} </Text>
         </View>
       </FQModal>
+      <FlatList
+        data={[]}
+        renderItem={() => null}
+        ListHeaderComponent={
+          <View className="py-8 px-6">
+            <Text className="text-2xl text-gray-black mb-5">Workout</Text>
+            <View className="flex-1 items-left justify-r h-full">
+              {/* Start/Stop Workout Button */}
+              <TouchableOpacity
+                onPress={toggleWorkout}
+                style={{
+                  backgroundColor: isWorkoutActive ? 'red' : 'purple',
+                  width: 145,
+                  padding: 15,
+                  marginTop: 0,
+                  borderRadius: 40,
+                }}
+              >
+                <Text style={{ color: 'white', fontSize: 18 }}>
+                  {isWorkoutActive ? 'Stop Workout' : 'Start Workout'}
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={{ marginLeft: 12 }}>
+                Time Elapsed: {secondsToMinutes(secondsElapsed)}
+              </Text>
+            </Text>
+          </View>
+
+          <Text>{expGainModalData.description} </Text>
+        </View>
+      </FQModal>
       {!modalVisible ? (
         <FlatList
           data={[]}
