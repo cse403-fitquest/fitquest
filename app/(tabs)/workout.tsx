@@ -103,8 +103,11 @@ const Workout = () => {
   ];
 
   // const fillerworkout = [fillerex, fillerex, fillerex, fillerex];
-  const fillerworkoutsuggest: Template = {title: "Whole Body Day", exercises: [fillerex, fillerexbicep, fillerexsquat]};
-  const suggestedTemplates: Template[]  = [fillerworkoutsuggest]
+  const fillerworkoutsuggest: Template = {
+    title: 'Whole Body Day',
+    exercises: [fillerex, fillerexbicep, fillerexsquat],
+  };
+  const suggestedTemplates: Template[] = [fillerworkoutsuggest];
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
@@ -113,7 +116,7 @@ const Workout = () => {
   const [currtitle, setTitle] = useState('new workout');
   //const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
-  const [editingTemplate, seteditingTemplate] = useState(false);
+  const [, /*editingTemplate*/ seteditingTemplate] = useState(false);
 
   // const [viewedTemplate, setViewedTemplate] = useState<number | null>(null);
 
@@ -209,7 +212,7 @@ const Workout = () => {
   // };
 
   const saveWorkout = (workout: Template) => {
-    // TODO: allow to differentiate between editing and creating 
+    // TODO: allow to differentiate between editing and creating
     // TODO: allow to differentiate between suggested and my templates
     setSavedTemplates((prevTemplates) => {
       const existingIndex = prevTemplates.findIndex(
@@ -266,7 +269,7 @@ const Workout = () => {
       console.log('opened template editor: ' + title);
       setSelectedExercises(exercises);
       setTitle(title);
-      seteditingTemplate(true)
+      seteditingTemplate(true);
       setModalVisible(true);
     };
 
@@ -717,32 +720,35 @@ const Workout = () => {
                   nestedScrollEnabled={true}
                 />
 
-              {/* Suggested Templates Section */}
-              <View className="w-full mt-5">
-                <Text className="text-xl text-grayDark font-bold mb-2">
-                  SUGGESTED TEMPLATES
-                </Text>
-                <FlatList
-                data={suggestedTemplates}
-                keyExtractor={(_, index) => `template-${index}`}
-                renderItem={({ item, index }) => (
-                  <Template
-                    title={item.title}
-                    exercises={item.exercises}
-                    isSelected={selectedTemplate === index}
-                    toggleSelection={() => toggleSelection(index)}
-                    //toggleViewDropdown={() => toggleViewDropdown(index)}
+                {/* Suggested Templates Section */}
+                <View className="w-full mt-5">
+                  <Text className="text-xl text-grayDark font-bold mb-2">
+                    SUGGESTED TEMPLATES
+                  </Text>
+                  <FlatList
+                    data={suggestedTemplates}
+                    keyExtractor={(_, index) => `template-${index}`}
+                    renderItem={({ item, index }) => (
+                      <Template
+                        title={item.title}
+                        exercises={item.exercises}
+                        isSelected={selectedTemplate === index}
+                        toggleSelection={() => toggleSelection(index)}
+                        //toggleViewDropdown={() => toggleViewDropdown(index)}
+                      />
+                    )}
+                    nestedScrollEnabled={true}
                   />
-                )}
-                nestedScrollEnabled={true}
-              />
+                </View>
               </View>
             </View>
-          </View>
-        }
-      />
-      ) : (                   
-         <CreateTemplateScreen title="new workout" exercises={selectedExercises} />
+          }
+        />
+      ) : (
+        <CreateTemplateScreen
+          title="new workout"
+          exercises={selectedExercises}
+        />
       )}
     </SafeAreaView>
   );
