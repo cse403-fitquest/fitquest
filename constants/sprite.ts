@@ -31,6 +31,7 @@ export enum SpriteState {
   ATTACK_1 = 'attack_1',
   ATTACK_2 = 'attack_2',
   ATTACK_3 = 'attack_3',
+  ATTACK_4 = 'attack_4',
   DAMAGED = 'damaged',
   DEATH = 'death',
 }

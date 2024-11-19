@@ -1,5 +1,6 @@
 import { View, Text, Modal, TouchableOpacity } from 'react-native';
 import React, { FC } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 
 interface IFQModal {
   title: string;
@@ -14,6 +15,7 @@ interface IFQModal {
 
   cancelText?: string;
   confirmText?: string;
+  closeButton?: boolean;
 }
 
 const FQModal: FC<IFQModal> = ({
@@ -27,6 +29,7 @@ const FQModal: FC<IFQModal> = ({
   onCancel,
   cancelText,
   confirmText,
+  closeButton = false,
 }) => {
   if (!visible) {
     return null;
@@ -57,12 +60,19 @@ const FQModal: FC<IFQModal> = ({
           style={{ width: width }}
         >
           <View>
-            <Text
-              className="text-xl text-black font-bold"
-              testID="FQButton-title"
-            >
-              {title}
-            </Text>
+            <View className="flex-row justify-between items-center">
+              <Text
+                className="text-xl text-black font-bold"
+                testID="FQButton-title"
+              >
+                {title}
+              </Text>
+              {closeButton && (
+                <TouchableOpacity onPress={handleCancel}>
+                  <Ionicons name="close" size={24} color="#000" />
+                </TouchableOpacity>
+              )}
+            </View>
             {subtitle && (
               <Text
                 className="text-black font-medium"

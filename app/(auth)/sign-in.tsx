@@ -1,17 +1,24 @@
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  Dimensions,
+  Easing,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppTitle from '@/components/AppTitle';
 import FQTextInput from '@/components/FQTextInput';
 import FQButton from '@/components/FQButton';
 import { Href, router } from 'expo-router';
 import { signIn } from '@/services/auth';
+import { AnimatedSprite } from '@/components/AnimatedSprite';
+import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+
+const SPRITE_MOVE_DURATION = 600;
 
 const DEFAULT_SIGN_IN_ERRORS = {
   general: '',
@@ -44,6 +51,48 @@ const SignIn = () => {
     });
     setErrors(DEFAULT_SIGN_IN_ERRORS);
   };
+
+  const windowWidth = Dimensions.get('window').width;
+  // const windowHeight = Dimensions.get('window').height;
+
+  const xPosTopAnimatedValue = useRef(new Animated.Value(-500)).current;
+  const xPosBottomAnimatedValue = useRef(
+    new Animated.Value(windowWidth),
+  ).current;
+
+  useEffect(() => {
+    const loopTopAnimation = () =>
+      Animated.timing(xPosTopAnimatedValue, {
+        toValue: windowWidth,
+        duration: 4500,
+        delay: 2000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }).start(() => {
+        xPosTopAnimatedValue.setValue(-500); // Reset value after animation completes
+        loopBottomAnimation(); // Start the animation again
+      });
+
+    const loopBottomAnimation = () =>
+      Animated.timing(xPosBottomAnimatedValue, {
+        toValue: -500,
+        duration: 4500,
+        delay: 2000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }).start(() => {
+        xPosBottomAnimatedValue.setValue(windowWidth); // Reset value after animation completes
+        loopTopAnimation(); // Start the animation again
+      });
+
+    // loopBottomAnimation();
+    loopTopAnimation();
+
+    return () => {
+      xPosTopAnimatedValue.stopAnimation();
+      xPosBottomAnimatedValue.stopAnimation();
+    };
+  }, []);
 
   const handleSignIn = async () => {
     let newErrors: ErrorState = { ...DEFAULT_SIGN_IN_ERRORS };
@@ -134,6 +183,41 @@ const SignIn = () => {
 
   return (
     <SafeAreaView className="flex-1 items-center justify-center h-full bg-off-white px-5">
+      <View className="relative h-[100px] w-full bottom-5">
+        <Animated.View
+          className="absolute top-0 flex-row justify-end"
+          style={{
+            transform: [
+              {
+                translateX: xPosTopAnimatedValue,
+              },
+            ],
+          }}
+        >
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_15}
+              state={SpriteState.MOVE}
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_24}
+              state={SpriteState.MOVE}
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_25}
+              state={SpriteState.MOVE}
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
+        </Animated.View>
+      </View>
+
       <View className="w-full mb-10">
         <AppTitle />
         <Text className="text-2xl text-black font-semibold">Sign In</Text>
@@ -204,6 +288,44 @@ const SignIn = () => {
         >
           <Text className="text-blue font-bold text-base">Sign Up</Text>
         </TouchableOpacity>
+      </View>
+
+      <View className="relative h-[100px] top-0 right-0">
+        <Animated.View
+          className="absolute top-0 flex-row"
+          style={{
+            transform: [
+              {
+                translateX: xPosBottomAnimatedValue,
+              },
+            ],
+          }}
+        >
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_25}
+              state={SpriteState.MOVE}
+              direction="left"
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_24}
+              state={SpriteState.MOVE}
+              direction="left"
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
+          <View>
+            <AnimatedSprite
+              id={AnimatedSpriteID.HERO_15}
+              state={SpriteState.MOVE}
+              direction="left"
+              duration={SPRITE_MOVE_DURATION}
+            />
+          </View>
+        </Animated.View>
       </View>
     </SafeAreaView>
   );

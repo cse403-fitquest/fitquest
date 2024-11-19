@@ -1,4 +1,5 @@
 import { SpriteID } from '@/constants/sprite';
+import { APIResponse } from './general';
 
 export enum ItemType {
   WEAPON = 'WEAPON',
@@ -20,4 +21,8 @@ export type Item = {
   spriteID: SpriteID;
   cost: number;
   createdAt: Date;
+};
+
+export type GetItemsResponse = APIResponse & {
+  data: Item[];
 };
