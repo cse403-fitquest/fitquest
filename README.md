@@ -76,9 +76,9 @@ In addition, it is good to have an editor to work with the code such as [VSCode]
 
    With an iOS device, you will need to work with an android emulator. Following the below instructions will take around 15 minutes to setup depending on whether you have installed android studio: https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=expo-go
 
-### Firebase Setup
+### Firebase Setup (OPTIONAL)
 
-Do this setup to use your own set of data that the app can interface with.
+Skip this setup if you want to use data provided by us. You only need to do this setup if you wish to use your own set of data that the app can interface with.
 
 1. Access firebase console (https://console.firebase.google.com/)
 
@@ -100,7 +100,99 @@ Do this setup to use your own set of data that the app can interface with.
    };
    ```
 
-5. You will need to create a "quests", "items", "users", and "friends" collection in firestore.
+5. You will need to add two new products in your firebase project, Authentication and Firestore. Let's configure both of them:
+
+      a. For the Authentication product, simply choose Authentication from the list of products (should also be the first option in recommended products).
+
+      b. Click Get Started
+
+      c. When prompted for a sign in method, simply click "Email/Password".
+
+      d. Enable Email/Password, and ensure that Email Link (passwordless sign-in) is disabled. You should be set for authentication now.
+
+      e. For Firestore, simply browse the list of products and click on "Cloud Firestore".
+
+      f. Once initialized, click on the "Create database" button.
+
+      g. You will now be asked a series of questions to setup the database.
+
+      h. For setting location, pick the location closest to you.
+
+      i. For rules, pick test mode.
+
+      j. Wait a couple seconds for the database to initialize
+
+      k. After the database has been created, head over to the "Rules" tab and past the following ruleset:
+
+         rules_version = '2';
+         service cloud.firestore {
+
+            match /databases/{database}/documents {
+            
+               // Shop Item collection where each document corresponds to an item
+               match /items/{itemId} {
+                  
+                  // Only allow read for authenticated users
+                  allow read: if request.auth != null;
+               
+                  allow create: if request.auth != null;
+                  
+                  allow update: if request.auth != null;
+                  
+                  allow delete: if request.auth != null;
+               }
+
+               // Friends collection where each document corresponds to a user
+               match /friends/{userId} {
+
+                  // Only authenticated users can read their own friends document
+                  allow read: if request.auth != null;
+                  
+                  // Only authenticated users can create their own initial friends document
+                  allow create: if request.auth != null && request.auth.uid == userId;
+
+                  // Allow updates only if the user is authenticated and is modifying their own document
+                  allow update: if request.auth != null && (
+                  
+                     // Only allow updates for specified fields: 'pendingFriendRequests', 'sentFriendRequests', 'friends'
+                     request.resource.data.keys().hasAny(['pendingRequests', 'sentRequests', 'friends']) && 
+                  
+                     // Ensure the update does not remove any other fields
+                     request.resource.data.size() == resource.data.size() || 
+                  
+                     // Or, the update must be limited to the allowed fields only
+                     request.resource.data.keys().hasOnly(['pendingRequests', 'sentRequests', 'friends'])
+                  );
+               }
+               
+               // Users collection where each document corresponds to a user's profile
+               match /users/{userId} {
+               
+                  // Allow read access to user data for authenticated users
+                  allow read: if request.auth != null;
+                  
+                  // Allow create access to user data for authenticated users for initial user data
+                  allow create: if request.auth != null && request.resource.data.id == request.auth.uid;
+
+                  // Allow the user to update their consumables or equipment
+                  allow update: if request.auth != null 
+                  // && request.auth.uid == userId && (
+                  //   request.resource.data.keys().hasAny(['equippedItems', 'items'])
+                  // );
+
+                  // Prevent overwriting the entire user document
+                  // allow update: if request.resource.data.size() == resource.data.size();
+               }
+               
+               match /quests/{quest} {
+                  allow read, write:  if request.auth != null;
+               }
+            }
+         }
+
+      l. Your firebase project should now be set up properly. Move on to creating collections and documents inside the database.
+
+7. You will need to create a "quests", "items", "users", and "friends" collection in firestore.
 
       a. For the quests collection, you will need to fill in dummy data in the form:
 
@@ -227,7 +319,7 @@ This app was built with the following technologies:
    - [x] Allocate attribute points
 - [ ] Implement Profile
    - [x] Avatar
-   - [ ] Attributes & inventory
+   - [x] Attributes & inventory
    - [ ] Workouts per week graph
 - [ ] Implement Workout
    - [x] Active workout session
@@ -284,7 +376,7 @@ This app was built with the following technologies:
 ## 👥 Contributors
 
 - [Afuza Afuzarahman](https://github.com/afutofu) - UI/UX/Frontend/Backend/QA
-- [Steven Tang](https://github.com/ArcaneLG) - UI/UX/Frontend
+- [Steven Tang](https://github.com/ArcaneLG) - UI/UX/Frontend/QA
 - [Dominic Roser](https://github.com/Dominic-Roser) - Frontend/Backend/QA
 - [Prayug Sigdel](https://github.com/Prayug) - Frontend/Backend
 - [Adam Benazouz](https://github.com/adamben04) - Frontend/Backend
