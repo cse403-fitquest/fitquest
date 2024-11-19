@@ -4,20 +4,37 @@ import {
   TouchableOpacity,
   StyleSheet,
   View,
-  Modal,
+  // Modal,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { secondsToMinutes } from '@/utils/workout';
+import { secondsToMinutes, updateUserAfterExpGain } from '@/utils/workout';
 import { updateEXP } from '@/services/workout';
 import { useUserStore } from '@/store/user';
+import FQModal from '@/components/FQModal';
+import { AnimatedSprite } from '@/components/AnimatedSprite';
+import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 
 const Workout = () => {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [secondsElapsed, setSecondsElapsed] = useState(0);
-  const { user } = useUserStore();
+
+  const { user, setUser } = useUserStore();
+  const [expGainModalVisible, setExpGainModalVisible] = useState(false);
+  const [expGainModalData, setExpGainModalData] = useState<{
+    type: 'levelUp' | 'expGain';
+    title: string;
+    expGain: number;
+    description: string;
+  }>({
+    type: 'expGain',
+    title: 'You gained EXP!',
+    expGain: 0,
+    description: 'You have gained experience points!',
+  });
 
   if (!user) {
     throw new Error('User data not found.');
@@ -98,35 +115,35 @@ const Workout = () => {
   // const [viewedTemplate, setViewedTemplate] = useState<number | null>(null);
 
   // adds to selected
-  const addExercise = (exercise: Exercise) => {
-    console.log('Added ' + exercise.name + ' to selected exercises');
-    if (!selectedExercises.includes(exercise)) {
-      setSelectedExercises([...selectedExercises, exercise]);
-    }
-    console.log(selectedExercises);
-  };
+  // const addExercise = (exercise: Exercise) => {
+  //   console.log('Added ' + exercise.name + ' to selected exercises');
+  //   if (!selectedExercises.includes(exercise)) {
+  //     setSelectedExercises([...selectedExercises, exercise]);
+  //   }
+  //   console.log(selectedExercises);
+  // };
 
   // removes from selected
-  const removeExercise = (name: string) => {
-    console.log('Removed ' + name + ' from selected exercises');
-    setSelectedExercises(
-      selectedExercises.filter((item) => item.name !== name),
-    );
-  };
-  const updateExercise = (index: number, key: string, value: number) => {
-    // Update the specific property (weight, reps, sets) of the exercise
-    const updatedExercises: Exercise[] = [...selectedExercises];
-    if (key === 'weight') {
-      updatedExercises[index].weight = value;
-    }
-    if (key === 'reps') {
-      updatedExercises[index].reps = value;
-    }
-    if (key === 'sets') {
-      updatedExercises[index].sets = value;
-    }
-    setSelectedExercises(updatedExercises);
-  };
+  // const removeExercise = (name: string) => {
+  //   console.log('Removed ' + name + ' from selected exercises');
+  //   setSelectedExercises(
+  //     selectedExercises.filter((item) => item.name !== name),
+  //   );
+  // };
+  // const updateExercise = (index: number, key: string, value: number) => {
+  //   // Update the specific property (weight, reps, sets) of the exercise
+  //   const updatedExercises: Exercise[] = [...selectedExercises];
+  //   if (key === 'weight') {
+  //     updatedExercises[index].weight = value;
+  //   }
+  //   if (key === 'reps') {
+  //     updatedExercises[index].reps = value;
+  //   }
+  //   if (key === 'sets') {
+  //     updatedExercises[index].sets = value;
+  //   }
+  //   setSelectedExercises(updatedExercises);
+  // };
 
   //finds exercise in exercises with name name
   const findExercise = (name: string, exercises: Exercise[]) => {
@@ -191,9 +208,9 @@ const Workout = () => {
   const saveWorkout = (workout: Template) => {
     setSavedTemplates((prevTemplates) => {
       const existingIndex = prevTemplates.findIndex(
-        (template) => template.title === workout.title
+        (template) => template.title === workout.title,
       );
-  
+
       if (existingIndex !== -1) {
         // Update existing workout
         const updatedTemplates = [...prevTemplates];
@@ -202,15 +219,16 @@ const Workout = () => {
         return updatedTemplates;
       } else {
         // Add new workout
-        console.log('Successfully added ' + workout.title + ' to saved templates');
+        console.log(
+          'Successfully added ' + workout.title + ' to saved templates',
+        );
         return [...prevTemplates, workout];
       }
     });
-  
+
     setSelectedExercises([]);
     setModalVisible(false);
   };
-  
 
   // takes name of workout and removes it from the saved templates
   // const removeWorkout = (title: string) => {
@@ -240,7 +258,7 @@ const Workout = () => {
     };
 
     const editTemplate = () => {
-      console.log('opened template editor: '+title);
+      console.log('opened template editor: ' + title);
       setSelectedExercises(exercises);
       setTitle(title);
       setModalVisible(true);
@@ -278,7 +296,7 @@ const Workout = () => {
                 onPress={() => editTemplate()}
               >
                 <Text style={{ fontWeight: 'bold', color: 'purple' }}>
-                Edit
+                  Edit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -325,15 +343,54 @@ const Workout = () => {
   };
 
   // when workout is stopped
-  // TODO: DELETE LINE BELOW WHEN USING THE FUNCTION
-
-  const stopWorkout = () => {
+  const stopWorkout = async () => {
     if (isWorkoutActive) {
       setIsWorkoutActive(false);
       if (timer) {
-        updateEXP(userID, secondsElapsed); //update user exp
+        const oldUser = user;
+        const expGain = secondsElapsed * 500;
+        const userAfterExpGain = updateUserAfterExpGain(user, expGain);
+
+        setUser(userAfterExpGain);
+
         clearInterval(timer); // Stop the timer
         setTimer(null); // Clear the timer ID
+
+        if (oldUser.attributePoints < userAfterExpGain.attributePoints) {
+          setExpGainModalData({
+            type: 'levelUp',
+            title: 'You have leveled up!',
+            expGain: expGain,
+            description:
+              'You have leveled up. Go to your profile screen to allocate your attribute points.',
+          });
+        } else {
+          setExpGainModalData({
+            type: 'expGain',
+            title: 'You gained EXP!',
+            expGain: expGain,
+            description: 'You have gained experience points!',
+          });
+        }
+
+        setExpGainModalVisible(true);
+
+        const updateExpResponse = await updateEXP(userID, secondsElapsed); //update user exp
+
+        if (updateExpResponse.success) {
+          console.log('Exp updated successfully');
+        } else {
+          console.error('Error updating exp');
+
+          // Revert user back to old user if update fails
+          setUser(oldUser);
+
+          // Close the level up modal if it was opened
+          setExpGainModalVisible(false);
+
+          // Show error message
+          Alert.alert('Error updating exp');
+        }
       }
     }
   };
@@ -350,285 +407,332 @@ const Workout = () => {
   const addWorkout = () => {
     setModalVisible(true);
     setTitle('new workout');
-  }
+  };
 
   ///////////////////////// for template creation ///////////////////////////////
 
   const CreateTemplateScreen = ({
-  title,
-  exercises,
-}: {
-  title: string;
-  exercises: Exercise[];
-}) => {
-  const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([...exercises]); // Add this if it's local state
-  const [chosenTitle, setChosenTitle] = useState(currtitle); // Add this if it's local state
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  
+    // title,
+    exercises,
+  }: {
+    title: string;
+    exercises: Exercise[];
+  }) => {
+    const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([
+      ...exercises,
+    ]); // Add this if it's local state
+    const [chosenTitle, setChosenTitle] = useState(currtitle); // Add this if it's local state
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
 
-
-  // Add exercise to the selected list without triggering a full re-render
-  const addExercise = 
-    (exercise: Exercise) => {
+    // Add exercise to the selected list without triggering a full re-render
+    const addExercise = (exercise: Exercise) => {
       console.log('Added ' + exercise.name + ' to selected exercises');
       if (!selectedExercises.includes(exercise)) {
         setSelectedExercises([...selectedExercises, exercise]);
       }
-    console.log(selectedExercises);
-    }
+      console.log(selectedExercises);
+    };
 
-  // Update exercise details
-  const updateExerciseWeight = 
-    (index: number, value: number) => {
+    // Update exercise details
+    const updateExerciseWeight = (index: number, value: number) => {
       const updatedExercises: Exercise[] = [...selectedExercises];
       updatedExercises[index].weight = value;
       setSelectedExercises(updatedExercises);
     };
-  const updateExerciseReps = 
-    (index: number, value: number) => {
+    const updateExerciseReps = (index: number, value: number) => {
       const updatedExercises: Exercise[] = [...selectedExercises];
       updatedExercises[index].reps = value;
       setSelectedExercises(updatedExercises);
     };
 
-  const updateExerciseSets = 
-    (index: number, value: number) => {
+    const updateExerciseSets = (index: number, value: number) => {
       const updatedExercises: Exercise[] = [...selectedExercises];
       updatedExercises[index].sets = value;
       setSelectedExercises(updatedExercises);
     };
 
-  const updateTitle = 
-    (value: string) => {
-      setChosenTitle(value);
-    };
+    // const updateTitle = (value: string) => {
+    //   setChosenTitle(value);
+    // };
 
-  const removeExercise = useCallback(
-    (exerciseName: string) => {
-      setSelectedExercises((prevSelected) =>
-        prevSelected.filter((exercise) => exercise.name !== exerciseName)
-      );
-    },
-    [] // Memoized function
-  );
+    const removeExercise = useCallback(
+      (exerciseName: string) => {
+        setSelectedExercises((prevSelected) =>
+          prevSelected.filter((exercise) => exercise.name !== exerciseName),
+        );
+      },
+      [], // Memoized function
+    );
 
-
-  return (
-    <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
+    return (
+      <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
         <FlatList
-        data={[]}
-        renderItem={() => null}
-        ListHeaderComponent={
-          <View>
-          <Text style={templatestyles.modalCreatorHeader}>Template Creator</Text>
-          {/* Editable Title */}
-          <View style={templatestyles.titleContainer}>
-            {isEditingTitle ? (
-              <TextInput
-                style={templatestyles.titleInput}
-                value={chosenTitle}
-                onChangeText={(text) => setChosenTitle(text)}
-                onBlur={() => setIsEditingTitle(false)} // Exit edit mode on blur
-                autoFocus
-              />
-            ) : (
-              <TouchableOpacity onPress={() => setIsEditingTitle(true)}>
-                <Text style={templatestyles.titleText}>{chosenTitle}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Available Exercises */}
-          <View style={{ flex: 1, marginBottom: 10 }}>
-            <Text style={templatestyles.sectionTitle}>Available Exercises</Text>
-            <FlatList
-              data={fillerexercises.map((exercise) => exercise.name)}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <View style={templatestyles.exerciseItem}>
-                  <TouchableOpacity
-                    style={templatestyles.addButton}
-                    onPress={() =>
-                      addExercise(findExercise(item, fillerexercises))
-                    }
-                  >
-                    <Text style={templatestyles.addButtonText}>+</Text>
+          data={[]}
+          renderItem={() => null}
+          ListHeaderComponent={
+            <View>
+              <Text style={templatestyles.modalCreatorHeader}>
+                Template Creator
+              </Text>
+              {/* Editable Title */}
+              <View style={templatestyles.titleContainer}>
+                {isEditingTitle ? (
+                  <TextInput
+                    style={templatestyles.titleInput}
+                    value={chosenTitle}
+                    onChangeText={(text) => setChosenTitle(text)}
+                    onBlur={() => setIsEditingTitle(false)} // Exit edit mode on blur
+                    autoFocus
+                  />
+                ) : (
+                  <TouchableOpacity onPress={() => setIsEditingTitle(true)}>
+                    <Text style={templatestyles.titleText}>{chosenTitle}</Text>
                   </TouchableOpacity>
-                  <Text> {item}</Text>
-                </View>
-              )}
-              contentContainerStyle={{ paddingBottom: 20 }}
-            />
-          </View>
+                )}
+              </View>
 
-          {/* Selected Exercises */}
-          <Text style={templatestyles.sectionTitle}>Selected Exercises</Text>
-          <View
-            style={{ flex: 1, marginBottom: 10, alignItems: 'flex-start' }}
-          >
-            <Text style={templatestyles.templateCreatorTableHeader}>
-              | Name | Weight | Reps | Sets |
-            </Text>
-            <FlatList
-              data={selectedExercises}
-              keyExtractor={(item) => item.name}
-              renderItem={({ item, index }) => (
-                <View style={templatestyles.exerciseItem}>
-                  <TouchableOpacity
-                    style={templatestyles.removeButton}
-                    onPress={() => removeExercise(item.name)}
-                  >
-                    <Text style={templatestyles.addButtonText}>-</Text>
-                  </TouchableOpacity>
-                  <Text> {item.name}</Text>
-                  {/* Weight input */}
-                  <TextInput
-                    style={templatestyles.input}
-                    placeholder="Weight"
-                    value={item.weight.toString()}
-                    keyboardType="numeric"
-                    onChangeText={(value) =>
-                      updateExerciseWeight(index, +value)
-                    }
-                  />
-                  {/* Reps input */}
-                  <TextInput
-                    style={templatestyles.input}
-                    placeholder="Reps"
-                    value={item.reps.toString()}
-                    keyboardType="numeric"
-                    onChangeText={(value) =>
-                      updateExerciseReps(index, +value)
-                    }
-                  />
-                  {/* Sets input */}
-                  <TextInput
-                    style={templatestyles.input}
-                    placeholder="Sets"
-                    value={item.sets.toString()}
-                    keyboardType="numeric"
-                    onChangeText={(value) =>
-                      updateExerciseSets(index, +value)
-                    }
-                  />
-                </View>
-              )}
-              contentContainerStyle={{ paddingBottom: 20 }}
-            />
-          </View>
+              {/* Available Exercises */}
+              <View style={{ flex: 1, marginBottom: 10 }}>
+                <Text style={templatestyles.sectionTitle}>
+                  Available Exercises
+                </Text>
+                <FlatList
+                  data={fillerexercises.map((exercise) => exercise.name)}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <View style={templatestyles.exerciseItem}>
+                      <TouchableOpacity
+                        style={templatestyles.addButton}
+                        onPress={() =>
+                          addExercise(findExercise(item, fillerexercises))
+                        }
+                      >
+                        <Text style={templatestyles.addButtonText}>+</Text>
+                      </TouchableOpacity>
+                      <Text> {item}</Text>
+                    </View>
+                  )}
+                  contentContainerStyle={{ paddingBottom: 20 }}
+                />
+              </View>
 
-          
-          </View>
-        }
+              {/* Selected Exercises */}
+              <Text style={templatestyles.sectionTitle}>
+                Selected Exercises
+              </Text>
+              <View
+                style={{ flex: 1, marginBottom: 10, alignItems: 'flex-start' }}
+              >
+                <Text style={templatestyles.templateCreatorTableHeader}>
+                  | Name | Weight | Reps | Sets |
+                </Text>
+                <FlatList
+                  data={selectedExercises}
+                  keyExtractor={(item) => item.name}
+                  renderItem={({ item, index }) => (
+                    <View style={templatestyles.exerciseItem}>
+                      <TouchableOpacity
+                        style={templatestyles.removeButton}
+                        onPress={() => removeExercise(item.name)}
+                      >
+                        <Text style={templatestyles.addButtonText}>-</Text>
+                      </TouchableOpacity>
+                      <Text> {item.name}</Text>
+                      {/* Weight input */}
+                      <TextInput
+                        style={templatestyles.input}
+                        placeholder="Weight"
+                        value={item.weight.toString()}
+                        keyboardType="numeric"
+                        onChangeText={(value) =>
+                          updateExerciseWeight(index, +value)
+                        }
+                      />
+                      {/* Reps input */}
+                      <TextInput
+                        style={templatestyles.input}
+                        placeholder="Reps"
+                        value={item.reps.toString()}
+                        keyboardType="numeric"
+                        onChangeText={(value) =>
+                          updateExerciseReps(index, +value)
+                        }
+                      />
+                      {/* Sets input */}
+                      <TextInput
+                        style={templatestyles.input}
+                        placeholder="Sets"
+                        value={item.sets.toString()}
+                        keyboardType="numeric"
+                        onChangeText={(value) =>
+                          updateExerciseSets(index, +value)
+                        }
+                      />
+                    </View>
+                  )}
+                  contentContainerStyle={{ paddingBottom: 20 }}
+                />
+              </View>
+            </View>
+          }
         />
         {/* Footer Buttons */}
         <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              width: '100%',
-            }}
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            width: '100%',
+          }}
+        >
+          <TouchableOpacity
+            style={templatestyles.closeButton}
+            onPress={() => closeTemplateCreator()} // Close modal
           >
-            <TouchableOpacity
-              style={templatestyles.closeButton}
-              onPress={() => closeTemplateCreator()} // Close modal
-            >
-              <Text style={templatestyles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={templatestyles.saveButton}
-              onPress={() =>
-                saveWorkout({ title: chosenTitle, exercises: selectedExercises })
-              } // Save and close modal
-            >
-              <Text style={templatestyles.closeButtonText}>Save</Text>
-            </TouchableOpacity>
-          </View>
-    </SafeAreaView>
-  );
-};
-
+            <Text style={templatestyles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={templatestyles.saveButton}
+            onPress={() =>
+              saveWorkout({ title: chosenTitle, exercises: selectedExercises })
+            } // Save and close modal
+          >
+            <Text style={templatestyles.closeButtonText}>Save</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  };
 
   ////////////////////// moving to return section //////////////////////
 
   return (
     <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
-      {!modalVisible ?(
-      <FlatList
-        data={[]}
-        renderItem={() => null}
-        ListHeaderComponent={
-          <View className="py-8 px-6">
-            <Text className="text-2xl text-gray-black mb-5">Workout</Text>
-            <View className="flex-1 items-left justify-r h-full">
-              {/* Start/Stop Workout Button */}
-              <TouchableOpacity
-                onPress={toggleWorkout}
-                style={{
-                  backgroundColor: isWorkoutActive ? 'red' : 'purple',
-                  width: 145,
-                  padding: 15,
-                  marginTop: 0,
-                  borderRadius: 40,
-                }}
-              >
-                <Text style={{ color: 'white', fontSize: 18 }}>
-                  {isWorkoutActive ? 'Stop Workout' : 'Start Workout'}
-                </Text>
-              </TouchableOpacity>
-
-              <Text style={{ marginLeft: 12 }}>
-                Time Elapsed: {secondsToMinutes(secondsElapsed)}
-              </Text>
-
-              {/* Saved Templates Section */}
-              <View className="w-full mt-5 flex-row justify-between items-center">
-                <Text className="text-xl text-grayDark font-bold mb-2">
-                  MY TEMPLATES
-                </Text>
-                <TouchableOpacity onPress={() => addWorkout()}>
-                  <Text
-                    style={templatestyles.addtemplatebutton}
-                    className="text-xl text-blue-1000"
-                  >
-                    +
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <FlatList
-                data={savedTemplates}
-                keyExtractor={(_, index) => `template-${index}`}
-                renderItem={({ item, index }) => (
-                  <Template
-                    title={item.title}
-                    exercises={item.exercises}
-                    isSelected={selectedTemplate === index}
-                    toggleSelection={() => toggleSelection(index)}
-                    //toggleViewDropdown={() => toggleViewDropdown(index)}
+      <FQModal
+        visible={expGainModalVisible}
+        setVisible={setExpGainModalVisible}
+        onConfirm={() => setExpGainModalVisible(false)}
+        title={expGainModalData.title}
+        confirmText="CLOSE"
+        width={300}
+      >
+        <View>
+          {expGainModalData.type === 'levelUp' ? (
+            <View className="w-full relative items-center justify-center h-[140px] overflow-hidden">
+              <View className="absolute bottom-0 flex-row justify-center items-end">
+                <View className="relative">
+                  <AnimatedSprite
+                    id={user?.spriteID}
+                    state={SpriteState.ATTACK_3}
+                    width={120}
+                    height={120}
+                    duration={600}
                   />
-                )}
-                nestedScrollEnabled={true}
-              />
-
-              {/* Suggested Templates Section */}
-              <View className="w-full mt-5">
-                <Text className="text-xl text-grayDark font-bold mb-2">
-                  SUGGESTED TEMPLATES
-                </Text>
-                <Template
-                  title="Push Day"
-                  exercises={fillerworkoutsuggest}
-                  isSelected={false}
-                  toggleSelection={() => toggleSelection(13)}
-                  //toggleViewDropdown={() => toggleViewDropdown(13)}
-                />
+                </View>
+                <View className="relative">
+                  <AnimatedSprite
+                    id={AnimatedSpriteID.FIRE_SKULL_RED}
+                    state={SpriteState.DAMAGED}
+                    direction="left"
+                    width={120}
+                    height={120}
+                    duration={600}
+                    delay={200}
+                  />
+                </View>
               </View>
             </View>
+          ) : null}
+          <View className="mt-8 mb-8">
+            <Text className="text-lg text-center font-bold">
+              EXP GAIN:{' '}
+              <Text className="text-yellow font-bold">
+                {expGainModalData.expGain} XP
+              </Text>
+            </Text>
           </View>
-        }
-      />
-      ) : (                   
-         <CreateTemplateScreen title="new workout" exercises={selectedExercises} />
+
+          <Text>{expGainModalData.description} </Text>
+        </View>
+      </FQModal>
+      {!modalVisible ? (
+        <FlatList
+          data={[]}
+          renderItem={() => null}
+          ListHeaderComponent={
+            <View className="py-8 px-6">
+              <Text className="text-2xl text-gray-black mb-5">Workout</Text>
+              <View className="flex-1 items-left justify-r h-full">
+                {/* Start/Stop Workout Button */}
+                <TouchableOpacity
+                  onPress={toggleWorkout}
+                  style={{
+                    backgroundColor: isWorkoutActive ? 'red' : 'purple',
+                    width: 145,
+                    padding: 15,
+                    marginTop: 0,
+                    borderRadius: 40,
+                  }}
+                >
+                  <Text style={{ color: 'white', fontSize: 18 }}>
+                    {isWorkoutActive ? 'Stop Workout' : 'Start Workout'}
+                  </Text>
+                </TouchableOpacity>
+
+                <Text style={{ marginLeft: 12 }}>
+                  Time Elapsed: {secondsToMinutes(secondsElapsed)}
+                </Text>
+
+                {/* Saved Templates Section */}
+                <View className="w-full mt-5 flex-row justify-between items-center">
+                  <Text className="text-xl text-grayDark font-bold mb-2">
+                    MY TEMPLATES
+                  </Text>
+                  <TouchableOpacity onPress={() => addWorkout()}>
+                    <Text
+                      style={templatestyles.addtemplatebutton}
+                      className="text-xl text-blue-1000"
+                    >
+                      +
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <FlatList
+                  data={savedTemplates}
+                  keyExtractor={(_, index) => `template-${index}`}
+                  renderItem={({ item, index }) => (
+                    <Template
+                      title={item.title}
+                      exercises={item.exercises}
+                      isSelected={selectedTemplate === index}
+                      toggleSelection={() => toggleSelection(index)}
+                      //toggleViewDropdown={() => toggleViewDropdown(index)}
+                    />
+                  )}
+                  nestedScrollEnabled={true}
+                />
+
+                {/* Suggested Templates Section */}
+                <View className="w-full mt-5">
+                  <Text className="text-xl text-grayDark font-bold mb-2">
+                    SUGGESTED TEMPLATES
+                  </Text>
+                  <Template
+                    title="Push Day"
+                    exercises={fillerworkoutsuggest}
+                    isSelected={false}
+                    toggleSelection={() => toggleSelection(13)}
+                    //toggleViewDropdown={() => toggleViewDropdown(13)}
+                  />
+                </View>
+              </View>
+            </View>
+          }
+        />
+      ) : (
+        <CreateTemplateScreen
+          title="new workout"
+          exercises={selectedExercises}
+        />
       )}
     </SafeAreaView>
   );

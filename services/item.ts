@@ -13,7 +13,7 @@ import { FIREBASE_DB } from '@/firebaseConfig';
 import { Item } from '@/types/item';
 import { APIResponse } from '@/types/general';
 import { userConverter } from './user';
-import { GetShopItemsResponse } from '@/types/shop';
+import { GetItemsResponse } from '@/types/item';
 
 // Firestore item converter
 export const itemConverter = {
@@ -22,10 +22,10 @@ export const itemConverter = {
 };
 
 /**
- * Get all shop items.
- * @returns {Promise<GetShopItemsResponse>} Returns an GetShopItemsResponse object.
+ * Get all items.
+ * @returns {Promise<GetItemsResponse>} Returns an GetItemsResponse object.
  */
-export const fetchItems: () => Promise<GetShopItemsResponse> = async () => {
+export const fetchItems: () => Promise<GetItemsResponse> = async () => {
   try {
     const itemCollection = collection(FIREBASE_DB, 'items').withConverter(
       itemConverter,
@@ -40,18 +40,18 @@ export const fetchItems: () => Promise<GetShopItemsResponse> = async () => {
       error: null,
     };
   } catch (error) {
-    console.error('Error getting shop items:', error);
+    console.error('Error getting items:', error);
 
     return {
       data: [],
       success: false,
-      error: 'Error getting shop items.',
+      error: 'Error getting items.',
     };
   }
 };
 
 /**
- * Set shop items. This will clear existing items and set new items.
+ * Set items in DB. This will clear existing items and set new items.
  * @param items - The items to set.
  * @param {Item[]} items - The items to set.
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
@@ -79,7 +79,7 @@ export const setItemsInDB: (items: Item[]) => Promise<APIResponse> = async (
 
     await batch.commit();
 
-    console.log('Shop items set successfully!');
+    console.log('Items set successfully!');
 
     return {
       data: null,
@@ -87,12 +87,12 @@ export const setItemsInDB: (items: Item[]) => Promise<APIResponse> = async (
       error: null,
     };
   } catch (error) {
-    console.error('Error setting shop items:', error);
+    console.error('Error setting items:', error);
 
     return {
       data: null,
       success: false,
-      error: 'Error setting shop items.',
+      error: 'Error setting items.',
     };
   }
 };
@@ -183,9 +183,7 @@ export const purchaseItem: (
     return {
       data: null,
       success: false,
-      error: 'Error purchasing item.',
+      error: error ? error + '' : 'Error purchasing item.',
     };
   }
 };
-
-export default purchaseItem;

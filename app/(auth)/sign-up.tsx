@@ -88,7 +88,7 @@ const SignUp = () => {
     if (!newErrors.username && form.username.length < 4) {
       newErrors = {
         ...newErrors,
-        username: 'Must be at least 3 characters long',
+        username: 'Must be at least 4 characters long',
       };
     }
 
