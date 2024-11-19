@@ -88,7 +88,7 @@ To build FitQuest, follow these steps:
 
 1. Install Dependencies:
 
-    - Ensure you have Node.js (version 20.x LTS) and Yarn or npm installed.
+    - Ensure you have [Node.js](https://nodejs.org/dist/v20.18.0/node-v20.18.0-x64.msi) (version 20.x LTS) and npm installed.
 
     - Run:
 

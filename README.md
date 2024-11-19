@@ -46,7 +46,7 @@
 ## 📋 Setup
 
 Before you start, you will need to have the following tools installed on your PC/Laptop:
-[Git](https://git-scm.com), [Node.js](https://nodejs.org/en/) (20.x LTS).
+[Git](https://git-scm.com), [Node.js](https://nodejs.org/dist/v20.18.0/node-v20.18.0-x64.msi) (20.x LTS).
 In addition, it is good to have an editor to work with the code such as [VSCode](https://code.visualstudio.com/).
 
 ### Project installation
