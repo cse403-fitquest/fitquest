@@ -46,7 +46,7 @@
 ## 📋 Setup
 
 Before you start, you will need to have the following tools installed on your PC/Laptop:
-[Git](https://git-scm.com), [Node.js](https://nodejs.org/en/) (LTS).
+[Git](https://git-scm.com), [Node.js](https://nodejs.org/en/) (20.x LTS).
 In addition, it is good to have an editor to work with the code such as [VSCode](https://code.visualstudio.com/).
 
 ### Project installation
@@ -74,7 +74,9 @@ In addition, it is good to have an editor to work with the code such as [VSCode]
 
    With an android device, the fastest way to use the app is to use your physical device through expo. On the Play Store, download Expo Go. When the app is running after completing step 3, scan the QR code given in the terminal in the Expo Go application.
 
-   With an iOS device, you will need to work with an android emulator. Following the below instructions will take around 15 minutes to setup depending on whether you have installed android studio: https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=expo-go
+   Our app currently does not support iPhones, so using Expo Go with your iPhone will likely result in a crash or unintended bug(s).
+
+   With other devices such as a laptop, you will need to work with an android emulator to run the app. Following the instructions from the link will take around 15 minutes to setup depending on whether you have installed android studio: https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=expo-go. Be sure to select "Android Emulator" for the first option and "Expo Go" for the second option.
 
 ### Firebase Setup (OPTIONAL)
 
