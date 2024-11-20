@@ -5,6 +5,7 @@ import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
+import { useMonsterStore } from '@/store/monster';
 
 const questThemes = {
   '1': {
@@ -14,6 +15,7 @@ const questThemes = {
         maxHealth: 80,
         health: 80,
         power: 8,
+        speed: 4,
         spriteId: AnimatedSpriteID.SLIME_GREEN,
       },
       {
@@ -21,6 +23,7 @@ const questThemes = {
         maxHealth: 85,
         health: 85,
         power: 9,
+        speed: 4,
         spriteId: AnimatedSpriteID.SLIME_BLUE,
       },
       {
@@ -28,6 +31,7 @@ const questThemes = {
         maxHealth: 75,
         health: 75,
         power: 7,
+        speed: 4,
         spriteId: AnimatedSpriteID.SLIME_RED,
       },
     ],
@@ -47,6 +51,7 @@ const questThemes = {
         maxHealth: 70,
         health: 70,
         power: 9,
+        speed: 4,
         spriteId: AnimatedSpriteID.FIRE_SKULL_RED,
       },
       {
@@ -54,6 +59,7 @@ const questThemes = {
         maxHealth: 85,
         health: 85,
         power: 7,
+        speed: 4,
         spriteId: AnimatedSpriteID.FIRE_SKULL_BLUE,
       },
     ],
@@ -62,10 +68,13 @@ const questThemes = {
       maxHealth: 180,
       health: 180,
       power: 14,
+      speed: 14,
       spriteId: AnimatedSpriteID.CHOMPBUG_GREEN,
     },
   },
 };
+
+const { currentMonster, fetchMonster } = useMonsterStore();
 
 const Combat = () => {
   const { isBoss, questId, questName, uniqueKey } = useLocalSearchParams();
@@ -85,11 +94,19 @@ const Combat = () => {
   // Fetch current quest from Firebase
   useEffect(() => {
     const fetchCurrentQuest = async () => {
-      // const questData = await getCurrentQuest(); // Fetch from Firebase
-      // Update state or perform actions based on questData
+      if (isBoss === 'true') {
+        // Fetch boss monster
+        await fetchMonster('dummyMonster3'); // Replace with actual boss monster ID
+      } else {
+        // Fetch random normal monster
+        const monsterIds = ['dummyMonster1', 'dummyMonster2', 'dummyMonster3'];
+        const randomId =
+          monsterIds[Math.floor(Math.random() * monsterIds.length)];
+        await fetchMonster(randomId);
+      }
     };
     fetchCurrentQuest();
-  }, []);
+  }, [isBoss, questId]);
 
   const getNewMonster = () => {
     if (isBoss === 'true') {
@@ -102,6 +119,7 @@ const Combat = () => {
   };
 
   const [player, setPlayer] = useState(initialPlayer);
+
   const [monster, setMonster] = useState(() => {
     if (isBoss === 'true') {
       const scaledMonster = {
