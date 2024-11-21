@@ -17,13 +17,14 @@ import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useItemStore } from '@/store/item';
 import { useSocialStore } from '@/store/social';
-import { AnimatedSpriteID, SpriteID, SpriteState } from '@/constants/sprite';
+import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import clsx from 'clsx';
 import { getUserExpThreshold } from '@/utils/user';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/colors';
+import { BASE_ITEM } from '@/constants/item';
 
 interface ItemCardProps {
   item: Item;
@@ -127,6 +128,188 @@ const Profile = () => {
     return `${(user.exp / getUserExpThreshold(user)) * 100}%` as DimensionValue;
   }, [user]);
 
+  const equippedItemModalChildren = useMemo(() => {
+    if (!user || !selectedItem) return null;
+
+    const userEquipments = user.equippedItems.map((id) => {
+      const equipment = items.find((item) => item.id === id);
+      if (!equipment) {
+        console.error('User equipment not found:', id);
+        return { ...BASE_ITEM, id: id, name: 'Unknown Equipment' };
+      }
+      return equipment;
+    });
+
+    if (
+      [ItemType.WEAPON, ItemType.ARMOR, ItemType.ACCESSORY].includes(
+        selectedItem.type,
+      )
+    ) {
+      // Compare selected item with user's current equipment
+      const userEquippedItem = userEquipments.find(
+        (i) => i.type === selectedItem.type,
+      ) || {
+        ...BASE_ITEM,
+        power: 0,
+        speed: 0,
+        health: 0,
+      };
+
+      const powerDiff = selectedItem.power - userEquippedItem.power;
+      const speedDiff = selectedItem.speed - userEquippedItem.speed;
+      const healthDiff = selectedItem.health - userEquippedItem.health;
+
+      return (
+        <View>
+          <View className="justify-center items-center h-[120px] mt-3 mb-5">
+            <Sprite id={selectedItem.spriteID} width={120} height={120} />
+          </View>
+          <Text className="mb-5">{selectedItem.description}</Text>
+          <View className="flex-row justify-evenly items-center mb-5">
+            <View>
+              <Text className="font-medium">Power:</Text>
+              <Text className="font-medium">Speed:</Text>
+              <Text className="font-medium">Health:</Text>
+            </View>
+            <View className="justify-center items-center">
+              <Text className="font-bold">{userEquippedItem.power}</Text>
+              <Text className="font-bold">{userEquippedItem.speed}</Text>
+              <Text className="font-bold">{userEquippedItem.health}</Text>
+            </View>
+            <View>
+              <Ionicons
+                name="chevron-forward-outline"
+                size={18}
+                color="black"
+              />
+              <Ionicons
+                name="chevron-forward-outline"
+                size={18}
+                color="black"
+              />
+              <Ionicons
+                name="chevron-forward-outline"
+                size={18}
+                color="black"
+              />
+            </View>
+            <View className="justify-center items-center">
+              <Text
+                className={clsx('font-bold', {
+                  'text-green': selectedItem.power > userEquippedItem.power,
+                  'text-red-500': selectedItem.power < userEquippedItem.power,
+                })}
+              >
+                {selectedItem.power}
+              </Text>
+              <Text
+                className={clsx('font-bold', {
+                  'text-green': selectedItem.speed > userEquippedItem.speed,
+                  'text-red-500': selectedItem.speed < userEquippedItem.speed,
+                })}
+              >
+                {selectedItem.speed}
+              </Text>
+              <Text
+                className={clsx('font-bold', {
+                  'text-green': selectedItem.health > userEquippedItem.health,
+                  'text-red-500': selectedItem.health < userEquippedItem.health,
+                })}
+              >
+                {selectedItem.health}
+              </Text>
+            </View>
+            <View className="justify-center items-start">
+              <Text
+                className={clsx('font-bold', {
+                  'text-green': selectedItem.power > userEquippedItem.power,
+                  'text-red-500': selectedItem.power < userEquippedItem.power,
+                })}
+              >
+                {powerDiff == 0
+                  ? null
+                  : powerDiff > 0
+                    ? `+${powerDiff}`
+                    : powerDiff}
+              </Text>
+              <Text
+                className={clsx('font-bold', {
+                  'text-green': selectedItem.speed > userEquippedItem.speed,
+                  'text-red-500': selectedItem.speed < userEquippedItem.speed,
+                })}
+              >
+                {speedDiff == 0
+                  ? null
+                  : speedDiff > 0
+                    ? `+${speedDiff}`
+                    : speedDiff}
+              </Text>
+              <Text
+                className={clsx('font-bold', {
+                  'text-green': selectedItem.health > userEquippedItem.health,
+                  'text-red-500': selectedItem.health < userEquippedItem.health,
+                })}
+              >
+                {healthDiff == 0
+                  ? null
+                  : healthDiff > 0
+                    ? `+${healthDiff}`
+                    : healthDiff}
+              </Text>
+            </View>
+          </View>
+        </View>
+      );
+    }
+
+    // Only non-equipment items left are consumables
+
+    let healthPotionsCount = 0;
+
+    const userConsumables = user.consumables.map((id) => {
+      const consumable = items.find((item) => item.id === id);
+      if (!consumable) {
+        console.error('User consumable not found:', id);
+        return { ...BASE_ITEM, id: id, name: 'Unknown Consumable' };
+      }
+      return consumable;
+    });
+
+    const userSmallHealthPotCount = userConsumables.filter(
+      (i) => i.type === ItemType.POTION_SMALL,
+    ).length;
+    const userMediumHealthPotCount = userConsumables.filter(
+      (i) => i.type === ItemType.POTION_MEDIUM,
+    ).length;
+    const userLargeHealthPotCount = userConsumables.filter(
+      (i) => i.type === ItemType.POTION_LARGE,
+    ).length;
+
+    if (selectedItem.type === ItemType.POTION_SMALL) {
+      healthPotionsCount = userSmallHealthPotCount;
+    } else if (selectedItem.type === ItemType.POTION_MEDIUM) {
+      healthPotionsCount = userMediumHealthPotCount;
+    } else if (selectedItem.type === ItemType.POTION_LARGE) {
+      healthPotionsCount = userLargeHealthPotCount;
+    }
+
+    return (
+      <View>
+        <View className="justify-center items-center h-24 my-5">
+          <View className="justify-center items-center h-[120px] mt-3 mb-5">
+            <Sprite id={selectedItem.spriteID} width={120} height={120} />
+          </View>
+        </View>
+        <Text className="mb-2">{selectedItem.description}</Text>
+        <Text className="mb-5">
+          You currently own{' '}
+          <Text className="font-bold">{healthPotionsCount}</Text> of this
+          consumable.
+        </Text>
+      </View>
+    );
+  }, [selectedItem, user]);
+
   // Calculate total stats based on user profile and equipped items
   useEffect(() => {
     if (!user) return;
@@ -165,50 +348,6 @@ const Profile = () => {
     setStatContributions(contributions);
   }, [user, items]);
 
-  const calculateNewStats = (
-    item: Item | null,
-    action: 'equip' | 'unequip',
-  ): { power: number; speed: number; health: number } => {
-    if (!user) return { power: 0, speed: 0, health: 0 };
-
-    // Start with base attributes
-    let newPower = user.attributes.power;
-    let newSpeed = user.attributes.speed;
-    let newHealth = user.attributes.health;
-
-    // Determine new equipped items after action
-    let newEquippedItems: string[] = [...user.equippedItems];
-
-    if (item) {
-      if (action === 'equip') {
-        // Remove any equipped items of the same type
-        const itemsToRemove = user.equippedItems.filter((id) => {
-          const equippedItem = items.find((i) => i.id === id);
-          return equippedItem?.type === item.type;
-        });
-        newEquippedItems = newEquippedItems.filter(
-          (id) => !itemsToRemove.includes(id),
-        );
-        // Add the new item
-        newEquippedItems.push(item.id);
-      } else if (action === 'unequip') {
-        newEquippedItems = newEquippedItems.filter((id) => id !== item.id);
-      }
-    }
-
-    // Sum up the stats based on new equipped items
-    newEquippedItems.forEach((id) => {
-      const eqItem = items.find((i) => i.id === id);
-      if (eqItem) {
-        newPower += eqItem.power;
-        newSpeed += eqItem.speed;
-        newHealth += eqItem.health;
-      }
-    });
-
-    return { power: newPower, speed: newSpeed, health: newHealth };
-  };
-
   // Function to handle equipping an item
   const handleEquipItem = async (item: Item) => {
     if (!user) return;
@@ -234,7 +373,7 @@ const Profile = () => {
         },
       );
 
-      const newEquippedItems = [...user.equippedItems];
+      let newEquippedItems = [...user.equippedItems];
       let swappedItem: Item | null = null;
 
       if (existingEquippedItemId) {
@@ -246,11 +385,14 @@ const Profile = () => {
         if (existingItemIndex !== -1) {
           swappedItem =
             items.find((i) => i.id === existingEquippedItemId) || null;
-          newEquippedItems[existingItemIndex] = item.id;
+          newEquippedItems = newEquippedItems.map((id, index) =>
+            index === existingItemIndex ? item.id : id,
+          );
+          // newEquippedItems[existingItemIndex] = item.id;
         }
       } else {
         // No existing item of the same type, simply add the new item
-        newEquippedItems.push(item.id);
+        newEquippedItems = [...newEquippedItems, item.id];
       }
 
       // Update the user's equipped items in Firestore
@@ -755,106 +897,7 @@ const Profile = () => {
         }
         subtitle={selectedItem?.type}
       >
-        <View className="py-4">
-          <View className="w-full items-center mb-5">
-            <Sprite
-              id={selectedItem?.spriteID ?? SpriteID.T1_DAGGER}
-              width={70}
-              height={70}
-            />
-          </View>
-
-          <View className="w-full items-center mb-5">
-            <Text className="mb-2">{selectedItem?.description}</Text>
-          </View>
-
-          {!selectedItem?.type.startsWith('POTION') && selectedItem && (
-            <View className="space-y-4">
-              {/* Compute new stats once */}
-              {(() => {
-                const newStats = isItemEquipped
-                  ? calculateNewStats(selectedItem, 'unequip')
-                  : calculateNewStats(selectedItem, 'equip');
-
-                const getStatColor = (
-                  current: number,
-                  newStat: number,
-                  isEquipping: boolean,
-                ) => {
-                  if (newStat === current) return 'text-black';
-                  if (isEquipping) {
-                    return newStat > current ? 'text-green' : 'text-red-500';
-                  } else {
-                    return newStat > current ? 'text-green' : 'text-red-500';
-                  }
-                };
-                return (
-                  <>
-                    {/* Power */}
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-base font-semibold">
-                        Power: {selectedItem.power}
-                      </Text>
-                      <View className="flex-row items-center">
-                        <Text className="text-lg">{totalStats.power}</Text>
-                        <Ionicons
-                          name="arrow-forward"
-                          size={16}
-                          color="black"
-                        />
-                        <Text
-                          className={`text-lg ${getStatColor(totalStats.power, newStats.power, isItemEquipped ?? false)}`}
-                        >
-                          {newStats.power}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Speed */}
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-base font-semibold">
-                        Speed: {selectedItem.speed}
-                      </Text>
-                      <View className="flex-row items-center">
-                        <Text className="text-lg">{totalStats.speed}</Text>
-                        <Ionicons
-                          name="arrow-forward"
-                          size={16}
-                          color="black"
-                        />
-                        <Text
-                          className={`text-lg ${getStatColor(totalStats.speed, newStats.speed, isItemEquipped ?? false)}`}
-                        >
-                          {newStats.speed}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Health */}
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-base font-semibold">
-                        Health: {selectedItem.health}
-                      </Text>
-                      <View className="flex-row items-center">
-                        <Text className="text-lg">{totalStats.health}</Text>
-                        <Ionicons
-                          name="arrow-forward"
-                          size={16}
-                          color="black"
-                        />
-                        <Text
-                          className={`text-lg ${getStatColor(totalStats.health, newStats.health, isItemEquipped ?? false)}`}
-                        >
-                          {newStats.health}
-                        </Text>
-                      </View>
-                    </View>
-                  </>
-                );
-              })()}
-            </View>
-          )}
-        </View>
+        {equippedItemModalChildren}
       </FQModal>
 
       {/* Stat Breakdown Modal */}

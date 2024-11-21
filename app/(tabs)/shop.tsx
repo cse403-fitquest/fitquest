@@ -22,6 +22,7 @@ import { purchaseItem } from '@/services/item';
 import { useItemStore } from '@/store/item';
 import { BASE_ITEM } from '@/constants/item';
 import { Sprite } from '@/components/Sprite';
+import { Ionicons } from '@expo/vector-icons';
 
 const Shop = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -153,6 +154,20 @@ const Shop = () => {
         selectedItem.type,
       )
     ) {
+      // Compare selected item with user's current equipment
+      const userEquippedItem = userEquipments.find(
+        (i) => i.type === selectedItem.type,
+      ) || {
+        ...BASE_ITEM,
+        power: 0,
+        speed: 0,
+        health: 0,
+      };
+
+      const powerDiff = selectedItem.power - userEquippedItem.power;
+      const speedDiff = selectedItem.speed - userEquippedItem.speed;
+      const healthDiff = selectedItem.health - userEquippedItem.health;
+
       return (
         <View>
           <View className="justify-center items-center h-[120px] mt-3 mb-5">
@@ -166,39 +181,89 @@ const Shop = () => {
               <Text className="font-medium">Health:</Text>
             </View>
             <View className="justify-center items-center">
-              <Text className="font-bold">{user.attributes.power}</Text>
-              <Text className="font-bold">{user.attributes.speed}</Text>
-              <Text className="font-bold">{user.attributes.health}</Text>
+              <Text className="font-bold">{userEquippedItem.power}</Text>
+              <Text className="font-bold">{userEquippedItem.speed}</Text>
+              <Text className="font-bold">{userEquippedItem.health}</Text>
             </View>
             <View>
-              <Text>{'>>>'}</Text>
-              <Text>{'>>>'}</Text>
-              <Text>{'>>>'}</Text>
+              <Ionicons
+                name="chevron-forward-outline"
+                size={18}
+                color="black"
+              />
+              <Ionicons
+                name="chevron-forward-outline"
+                size={18}
+                color="black"
+              />
+              <Ionicons
+                name="chevron-forward-outline"
+                size={18}
+                color="black"
+              />
             </View>
             <View className="justify-center items-center">
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.power > user.attributes.power,
-                  'text-red-500': selectedItem.power < user.attributes.power,
+                  'text-green': selectedItem.power > userEquippedItem.power,
+                  'text-red-500': selectedItem.power < userEquippedItem.power,
                 })}
               >
                 {selectedItem.power}
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.speed > user.attributes.speed,
-                  'text-red-500': selectedItem.speed < user.attributes.speed,
+                  'text-green': selectedItem.speed > userEquippedItem.speed,
+                  'text-red-500': selectedItem.speed < userEquippedItem.speed,
                 })}
               >
                 {selectedItem.speed}
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.health > user.attributes.health,
-                  'text-red-500': selectedItem.health < user.attributes.health,
+                  'text-green': selectedItem.health > userEquippedItem.health,
+                  'text-red-500': selectedItem.health < userEquippedItem.health,
                 })}
               >
                 {selectedItem.health}
+              </Text>
+            </View>
+            <View className="justify-center items-start">
+              <Text
+                className={clsx('font-bold', {
+                  'text-green': selectedItem.power > userEquippedItem.power,
+                  'text-red-500': selectedItem.power < userEquippedItem.power,
+                })}
+              >
+                {powerDiff == 0
+                  ? null
+                  : powerDiff > 0
+                    ? `+${powerDiff}`
+                    : powerDiff}
+              </Text>
+              <Text
+                className={clsx('font-bold', {
+                  'text-green': selectedItem.speed > userEquippedItem.speed,
+                  'text-red-500': selectedItem.speed < userEquippedItem.speed,
+                })}
+              >
+                {speedDiff == 0
+                  ? null
+                  : speedDiff > 0
+                    ? `+${speedDiff}`
+                    : speedDiff}
+              </Text>
+              <Text
+                className={clsx('font-bold', {
+                  'text-green': selectedItem.health > userEquippedItem.health,
+                  'text-red-500': selectedItem.health < userEquippedItem.health,
+                })}
+              >
+                {healthDiff == 0
+                  ? null
+                  : healthDiff > 0
+                    ? `+${healthDiff}`
+                    : healthDiff}
               </Text>
             </View>
           </View>
