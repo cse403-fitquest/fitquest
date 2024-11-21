@@ -266,14 +266,23 @@ const Profile = () => {
 
     let healthPotionsCount = 0;
 
-    const userSmallHealthPotCount = user.consumables.filter(
-      (i) => i === ItemType.POTION_SMALL,
+    const userConsumables = user.consumables.map((id) => {
+      const consumable = items.find((item) => item.id === id);
+      if (!consumable) {
+        console.error('User consumable not found:', id);
+        return { ...BASE_ITEM, id: id, name: 'Unknown Consumable' };
+      }
+      return consumable;
+    });
+
+    const userSmallHealthPotCount = userConsumables.filter(
+      (i) => i.type === ItemType.POTION_SMALL,
     ).length;
-    const userMediumHealthPotCount = user.consumables.filter(
-      (i) => i === ItemType.POTION_MEDIUM,
+    const userMediumHealthPotCount = userConsumables.filter(
+      (i) => i.type === ItemType.POTION_MEDIUM,
     ).length;
-    const userLargeHealthPotCount = user.consumables.filter(
-      (i) => i === ItemType.POTION_LARGE,
+    const userLargeHealthPotCount = userConsumables.filter(
+      (i) => i.type === ItemType.POTION_LARGE,
     ).length;
 
     if (selectedItem.type === ItemType.POTION_SMALL) {
@@ -297,11 +306,6 @@ const Profile = () => {
           <Text className="font-bold">{healthPotionsCount}</Text> of this
           consumable.
         </Text>
-        <View className="justify-center items-center">
-          <Text className="text-base text-gold font-bold">
-            {selectedItem.cost} Gold to purchase
-          </Text>
-        </View>
       </View>
     );
   }, [selectedItem, user]);
@@ -615,8 +619,6 @@ const Profile = () => {
       selectedStatForBreakdown.slice(1)
     );
   }
-
-  console.log('userEquippedItems:', user.equippedItems);
 
   return (
     <SafeAreaView className=" bg-offWhite">
