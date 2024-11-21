@@ -332,7 +332,7 @@ This app was built with the following technologies:
 - [ ] Implement Workout
    - [x] Active workout session
    - [ ] Workout templates
-   - [ ] Calculate exp gain from workout
+   - [x] Calculate exp gain from workout
 - [x] Implement Quest
    - [x] Active quest
    - [x] Available quests this week
