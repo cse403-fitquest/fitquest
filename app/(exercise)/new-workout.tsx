@@ -1,16 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
   TextInput,
+  Animated,
+  PanResponder,
+  Dimensions,
+  LayoutAnimation,
 } from 'react-native';
 import 'react-native-get-random-values';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
+import React from 'react';
 
 const enum ExerciseTag {
   WEIGHT = 'WEIGHT',
@@ -20,6 +25,7 @@ const enum ExerciseTag {
 }
 
 type ExerciseSet = {
+  id: string;
   weight: number;
   reps: number;
   distance: number;
@@ -27,6 +33,7 @@ type ExerciseSet = {
 };
 
 type ExerciseSetDisplay = {
+  id: string;
   weight: number;
   reps: number;
   distance: number;
@@ -62,12 +69,14 @@ const EXERCISES_STUB: Exercise[] = [
     tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
     sets: [
       {
+        id: uuidv4(),
         weight: 100,
         reps: 10,
         distance: 0,
         time: 0,
       },
       {
+        id: uuidv4(),
         weight: 100,
         reps: 10,
         distance: 0,
@@ -81,12 +90,14 @@ const EXERCISES_STUB: Exercise[] = [
     tags: [ExerciseTag.DISTANCE, ExerciseTag.TIME],
     sets: [
       {
+        id: uuidv4(),
         weight: 0,
         reps: 0,
         distance: 5,
         time: 30,
       },
       {
+        id: uuidv4(),
         weight: 0,
         reps: 0,
         distance: 5,
@@ -98,6 +109,21 @@ const EXERCISES_STUB: Exercise[] = [
 
 const SET_COLUMN_WIDTH = 40;
 // const PREVIOUS_COLUMN_WIDTH = 68;
+
+export const getTagColumnWidth = (tag: ExerciseTag) => {
+  switch (tag) {
+    case ExerciseTag.WEIGHT:
+      return 80;
+    case ExerciseTag.REPS:
+      return 80;
+    case ExerciseTag.DISTANCE:
+      return 80;
+    case ExerciseTag.TIME:
+      return 80;
+    default:
+      return 80;
+  }
+};
 
 const NewWorkout = () => {
   const [workoutName, setWorkoutName] = useState('Empty Workout');
@@ -222,25 +248,11 @@ const NewWorkout = () => {
     }
   };
 
-  const getTagColumnWidth = (tag: ExerciseTag) => {
-    switch (tag) {
-      case ExerciseTag.WEIGHT:
-        return 100;
-      case ExerciseTag.REPS:
-        return 100;
-      case ExerciseTag.DISTANCE:
-        return 100;
-      case ExerciseTag.TIME:
-        return 100;
-      default:
-        return 103;
-    }
-  };
-
   const handleToggleCompleteSet: (
     exerciseID: string,
     setIndex: number,
   ) => void = (exerciseID, setIndex) => {
+    console.log('start toggling set');
     const updatedExercises = workoutExercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
@@ -285,6 +297,8 @@ const NewWorkout = () => {
     });
 
     setWorkoutExercises(updatedExercises);
+
+    console.log('end toggling set');
   };
 
   const handleAddSet: (exerciseID: string) => void = (exerciseID) => {
@@ -295,6 +309,7 @@ const NewWorkout = () => {
           sets: [
             ...exercise.sets,
             {
+              id: uuidv4(),
               weight: 0,
               reps: 0,
               distance: 0,
@@ -317,6 +332,7 @@ const NewWorkout = () => {
     tag: ExerciseTag,
     value: number,
   ) => void = (exerciseID, setIndex, tag, value) => {
+    console.log('start updating set');
     const updatedExercises = workoutExercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
@@ -353,6 +369,37 @@ const NewWorkout = () => {
     });
 
     setWorkoutExercises(updatedExercises);
+    console.log('end updating set');
+  };
+
+  const layoutAnimConfig = {
+    duration: 300,
+    delete: {
+      duration: 200,
+      type: LayoutAnimation.Types.easeInEaseOut,
+      property: LayoutAnimation.Properties.opacity,
+    },
+  };
+
+  const handleDeleteSet: (exerciseID: string, setIndex: number) => void = (
+    exerciseID,
+    setIndex,
+  ) => {
+    const updatedExercises = workoutExercises.map((exercise) => {
+      if (exercise.id === exerciseID) {
+        return {
+          ...exercise,
+          sets: exercise.sets.filter((_, idx) => idx !== setIndex),
+        };
+      }
+
+      return exercise;
+    });
+
+    setWorkoutExercises(updatedExercises);
+
+    // after removing the item, we start animation
+    LayoutAnimation.configureNext(layoutAnimConfig);
   };
 
   const handleFinishWorkout = () => {
@@ -375,15 +422,14 @@ const NewWorkout = () => {
       (exercise) => exercise.sets.length > 0,
     );
 
-    // Turn Execises with SetDisplay into Exercises with Set
+    // Turn Execises with SetDisplay into Exercises with Set (no completed field)
     const exercises: Exercise[] = exercisesThatHasCompletedSets.map(
       (exercise) => {
         return {
-          id: exercise.id,
-          name: exercise.name,
-          tags: exercise.tags,
+          ...exercise,
           sets: exercise.sets.map((set) => {
             return {
+              id: set.id,
               weight: set.weight,
               reps: set.reps,
               distance: set.distance,
@@ -439,6 +485,7 @@ const NewWorkout = () => {
             <FlatList
               data={workoutExercises}
               style={{ width: '100%' }}
+              keyExtractor={(exercise) => exercise.id}
               renderItem={({ item: exercise }) => {
                 return (
                   <View className="w-full justify-start items-start mb-5">
@@ -448,101 +495,23 @@ const NewWorkout = () => {
                     <FlatList
                       data={exercise.sets}
                       style={{ width: '100%' }}
+                      keyExtractor={(set) => set.id}
                       renderItem={({ item: set, index: setIndex }) => {
                         return (
-                          <View className="w-full flex-row justify-start items-center my-1">
-                            {set.completed ? (
-                              <View className="absolute left-[-24px] bg-blue opacity-30 w-[150%] h-full" />
-                            ) : null}
-                            <Text
-                              className={`text-md text-center mr-5`}
-                              style={{ width: SET_COLUMN_WIDTH }}
-                            >
-                              {setIndex + 1}
-                            </Text>
-                            {/* <Text
-                              className={`text-md  text-center mr-5`}
-                              style={{ width: PREVIOUS_COLUMN_WIDTH }}
-                            >
-                              {set.weight} x {set.reps}
-                            </Text> */}
-                            {exercise.tags.map((tag, index) => {
-                              let value = 0;
-                              switch (tag) {
-                                case ExerciseTag.WEIGHT:
-                                  value = set.weight;
-                                  break;
-                                case ExerciseTag.REPS:
-                                  value = set.reps;
-                                  break;
-                                case ExerciseTag.DISTANCE:
-                                  value = set.distance;
-                                  break;
-                                case ExerciseTag.TIME:
-                                  value = set.time;
-                                  break;
-                              }
-
-                              return (
-                                <TextInput
-                                  key={tag}
-                                  keyboardType="numeric"
-                                  style={{ width: getTagColumnWidth(tag) }}
-                                  className={clsx(
-                                    'text-md text-center bg-white rounded',
-                                    {
-                                      'mr-5':
-                                        index !== exercise.tags.length - 1,
-                                    },
-                                  )}
-                                  onChangeText={(text) =>
-                                    (value = parseInt(text))
-                                  }
-                                  onEndEditing={() =>
-                                    handleUpdateSet(
-                                      exercise.id,
-                                      setIndex,
-                                      tag,
-                                      value,
-                                    )
-                                  }
-                                  onBlur={() =>
-                                    handleUpdateSet(
-                                      exercise.id,
-                                      setIndex,
-                                      tag,
-                                      value,
-                                    )
-                                  }
-                                  defaultValue={value.toString()}
-                                />
-                              );
-                            })}
-                            <TouchableOpacity
-                              className="ml-auto p-1"
-                              onPress={() =>
-                                handleToggleCompleteSet(exercise.id, setIndex)
-                              }
-                            >
-                              <View
-                                className={clsx(
-                                  'w-6 h-6 rounded justify-center items-center',
-                                  {
-                                    'bg-blue': set.completed,
-                                    'bg-gray': !set.completed,
-                                  },
-                                )}
-                              >
-                                <Ionicons
-                                  name="checkmark-outline"
-                                  style={{
-                                    color: 'white',
-                                    fontSize: 16,
-                                  }}
-                                />
-                              </View>
-                            </TouchableOpacity>
-                          </View>
+                          <SetItem
+                            exercise={exercise}
+                            set={set}
+                            setIndex={setIndex}
+                            onCompleteSet={() =>
+                              handleToggleCompleteSet(exercise.id, setIndex)
+                            }
+                            onUpdateSet={(tag, value) =>
+                              handleUpdateSet(exercise.id, setIndex, tag, value)
+                            }
+                            onDeleteSet={() =>
+                              handleDeleteSet(exercise.id, setIndex)
+                            }
+                          />
                         );
                       }}
                       ListHeaderComponent={() => (
@@ -612,3 +581,132 @@ const NewWorkout = () => {
 };
 
 export default NewWorkout;
+
+const SetItem: React.FC<{
+  exercise: ExerciseDisplay;
+  set: ExerciseSetDisplay;
+  setIndex: number;
+  onCompleteSet: () => void;
+  onUpdateSet: (tag: ExerciseTag, value: number) => void;
+  onDeleteSet: () => void;
+}> = ({ exercise, set, setIndex, onCompleteSet, onUpdateSet, onDeleteSet }) => {
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        if (Math.abs(gesture?.dx) > Math.abs(gesture?.dy) && gesture.dx < -20) {
+          return true;
+        }
+        return false;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (Math.abs(gestureState?.dx) > Math.abs(gestureState?.dy)) {
+          if (gestureState.dx < 0) {
+            translateX.setValue(gestureState.dx);
+          }
+          return true;
+        }
+        return false;
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dx < -windowWidth * 0.6) {
+          onDeleteSet();
+        } else {
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    }),
+  ).current;
+
+  const windowWidth = Dimensions.get('window').width;
+
+  return (
+    <View className="relative">
+      <Animated.View
+        style={{
+          flex: 1,
+          transform: [{ translateX: translateX }],
+        }}
+      >
+        <View
+          {...panResponder.panHandlers}
+          className="relative w-full flex-row justify-start items-center my-1 py-1"
+        >
+          {set.completed ? (
+            <View className="absolute left-[-24px] bg-blue opacity-30 w-[150%] h-full py-5" />
+          ) : null}
+          <Text
+            className={`text-md text-center mr-5`}
+            style={{ width: SET_COLUMN_WIDTH }}
+          >
+            {setIndex + 1}
+          </Text>
+          {exercise.tags.map((tag, index) => {
+            let value = 0;
+            switch (tag) {
+              case ExerciseTag.WEIGHT:
+                value = set.weight;
+                break;
+              case ExerciseTag.REPS:
+                value = set.reps;
+                break;
+              case ExerciseTag.DISTANCE:
+                value = set.distance;
+                break;
+              case ExerciseTag.TIME:
+                value = set.time;
+                break;
+            }
+
+            return (
+              <TextInput
+                key={tag}
+                keyboardType="numeric"
+                style={{ width: getTagColumnWidth(tag) }}
+                className={clsx('text-md text-center bg-white rounded', {
+                  'mr-5': index !== exercise.tags.length - 1,
+                })}
+                onChangeText={(text) => (value = parseInt(text))}
+                onEndEditing={() => onUpdateSet(tag, value)}
+                onBlur={() => onUpdateSet(tag, value)}
+                defaultValue={value.toString()}
+              />
+            );
+          })}
+          <TouchableOpacity
+            className="ml-auto p-1"
+            onPress={() => onCompleteSet()}
+          >
+            <View
+              className={clsx('w-6 h-6 rounded justify-center items-center', {
+                'bg-blue': set.completed,
+                'bg-gray': !set.completed,
+              })}
+            >
+              <Ionicons
+                name="checkmark-outline"
+                style={{
+                  color: 'white',
+                  fontSize: 16,
+                }}
+              />
+            </View>
+          </TouchableOpacity>
+        </View>
+        <View
+          className="absolute h-full justify-center items-start bg-red-500"
+          style={{ width: windowWidth, right: -windowWidth - 24 }}
+        >
+          <Text className="text-white font-bold text-left pl-5">
+            SWIPE LEFT TO DELETE
+          </Text>
+        </View>
+      </Animated.View>
+    </View>
+  );
+};
