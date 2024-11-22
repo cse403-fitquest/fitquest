@@ -176,9 +176,9 @@ const Workout = () => {
     const index = savedTemplates.findIndex((template) => template.title === title);
   
     // If index is -1, the template was not found, throw an error
-    if (index === -1) {
-      throw new Error('Template with title "' + title + '" not found');
-    }
+    // if (index === -1) {
+    //   throw new Error('Template with title "' + title + '" not found');
+    // }
   
     console.log('Template: "' + title + '" found at index: ' + index);
     // Return the index of the found template
@@ -227,7 +227,7 @@ const Workout = () => {
   // };
 
   const saveWorkout = (workout: Template) => {
-    if(workout.title)
+    
     setSavedTemplates((prevTemplates) => {
       const existingIndex = prevTemplates.findIndex(
         (template) => template.title === workout.title,
@@ -237,13 +237,24 @@ const Workout = () => {
       if(editingTemplate){
         // Update existing workout
         const updatedTemplates = [...prevTemplates];
+        //if the template is a suggested template
+        if(findTemplateIndex(editedTemplate)===-1){
+          console.log(
+            'Successfully added ' + workout.title + ' to saved templates',
+          );
+          seteditingTemplate(false);
+          return [...prevTemplates, workout];
+        }
         updatedTemplates[findTemplateIndex(editedTemplate)] = workout;
         console.log('Updated existing workout: ' + workout.title);
         seteditingTemplate(false);
         return updatedTemplates;
       // if user is adding a new workout
       } else {
-        // Add new workout
+        //if the workout with same name is already in my templates
+        if(savedTemplates.map((template) => template.title).includes(workout.title)){
+          throw new Error('Workout with title: '+workout.title+' already exists');
+        }
         console.log(
           'Successfully added ' + workout.title + ' to saved templates',
         );
@@ -624,7 +635,7 @@ const Workout = () => {
               saveWorkout({ title: chosenTitle, exercises: selectedExercises })
             } // Save and close modal
           >
-            <Text style={templatestyles.closeButtonText}>Save</Text>
+            <Text style={templatestyles.closeButtonText}>Save to Templates</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
