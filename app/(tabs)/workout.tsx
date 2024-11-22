@@ -103,8 +103,11 @@ const Workout = () => {
   ];
 
   // const fillerworkout = [fillerex, fillerex, fillerex, fillerex];
-  const fillerworkoutsuggest: Template = {title: "Whole Body Day", exercises: [fillerex, fillerexbicep, fillerexsquat]};
-  const suggestedTemplates: Template[]  = [fillerworkoutsuggest]
+  const fillerworkoutsuggest: Template = {
+    title: 'Whole Body Day',
+    exercises: [fillerex, fillerexbicep, fillerexsquat],
+  };
+  const suggestedTemplates: Template[] = [fillerworkoutsuggest];
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
@@ -405,7 +408,7 @@ const Workout = () => {
         if (updateExpResponse.success) {
           console.log('Exp updated successfully');
         } else {
-          console.error('Error updating exp');
+          console.error('Error updating exp', updateExpResponse.error);
 
           // Revert user back to old user if update fails
           setUser(oldUser);
@@ -736,32 +739,35 @@ const Workout = () => {
                   nestedScrollEnabled={true}
                 />
 
-              {/* Suggested Templates Section */}
-              <View className="w-full mt-5">
-                <Text className="text-xl text-grayDark font-bold mb-2">
-                  SUGGESTED TEMPLATES
-                </Text>
-                <FlatList
-                data={suggestedTemplates}
-                keyExtractor={(_, index) => `template-${index}`}
-                renderItem={({ item, index }) => (
-                  <Template
-                    title={item.title}
-                    exercises={item.exercises}
-                    isSelected={selectedTemplate === index}
-                    toggleSelection={() => toggleSelection(index)}
-                    //toggleViewDropdown={() => toggleViewDropdown(index)}
+                {/* Suggested Templates Section */}
+                <View className="w-full mt-5">
+                  <Text className="text-xl text-grayDark font-bold mb-2">
+                    SUGGESTED TEMPLATES
+                  </Text>
+                  <FlatList
+                    data={suggestedTemplates}
+                    keyExtractor={(_, index) => `template-${index}`}
+                    renderItem={({ item, index }) => (
+                      <Template
+                        title={item.title}
+                        exercises={item.exercises}
+                        isSelected={selectedTemplate === index}
+                        toggleSelection={() => toggleSelection(index)}
+                        //toggleViewDropdown={() => toggleViewDropdown(index)}
+                      />
+                    )}
+                    nestedScrollEnabled={true}
                   />
-                )}
-                nestedScrollEnabled={true}
-              />
+                </View>
               </View>
             </View>
-          </View>
-        }
-      />
-      ) : (                   
-         <CreateTemplateScreen title="new workout" exercises={selectedExercises} />
+          }
+        />
+      ) : (
+        <CreateTemplateScreen
+          title="new workout"
+          exercises={selectedExercises}
+        />
       )}
     </SafeAreaView>
   );
