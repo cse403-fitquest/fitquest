@@ -43,7 +43,7 @@ export default function RootLayout() {
 
         // Navigate to the appropriate screen
         if (userData.isOnboardingCompleted) {
-          router.replace('/profile' as Href);
+          router.replace('/new-workout' as Href);
         } else {
           router.replace('/01-welcome' as Href);
         }
@@ -73,6 +73,7 @@ export default function RootLayout() {
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(exercise)" options={{ headerShown: false }} />
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="allocate-points" options={{ headerShown: false }} />
       <Stack.Screen name="fight" options={{ headerShown: false }} />
