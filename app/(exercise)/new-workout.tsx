@@ -16,6 +16,7 @@ import 'react-native-get-random-values';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
 import React from 'react';
+import FQModal from '@/components/FQModal';
 
 const enum ExerciseTag {
   WEIGHT = 'WEIGHT',
@@ -133,6 +134,10 @@ const NewWorkout = () => {
     [],
   );
 
+  const [seconds, setSeconds] = useState(0);
+
+  const [modalVisible, setModalVisible] = useState(false);
+
   const workoutStartDate = new Date();
 
   useEffect(() => {
@@ -150,90 +155,96 @@ const NewWorkout = () => {
         };
       }),
     );
+
+    const interval = setInterval(() => {
+      setSeconds((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const turnDateIntoString = (date: Date) => {
-    const dayIndex = date.getDay();
-    let day = 'Sunday';
-    switch (dayIndex) {
-      case 0:
-        day = 'Sunday';
-        break;
-      case 1:
-        day = 'Monday';
-        break;
-      case 2:
-        day = 'Tuesday';
-        break;
-      case 3:
-        day = 'Wednesday';
-        break;
-      case 4:
-        day = 'Thursday';
-        break;
-      case 5:
-        day = 'Friday';
-        break;
-      case 6:
-        day = 'Saturday';
-        break;
-    }
+  // const turnDateIntoString = (date: Date) => {
+  //   const dayIndex = date.getDay();
+  //   let day = 'Sunday';
+  //   switch (dayIndex) {
+  //     case 0:
+  //       day = 'Sunday';
+  //       break;
+  //     case 1:
+  //       day = 'Monday';
+  //       break;
+  //     case 2:
+  //       day = 'Tuesday';
+  //       break;
+  //     case 3:
+  //       day = 'Wednesday';
+  //       break;
+  //     case 4:
+  //       day = 'Thursday';
+  //       break;
+  //     case 5:
+  //       day = 'Friday';
+  //       break;
+  //     case 6:
+  //       day = 'Saturday';
+  //       break;
+  //   }
 
-    const monthIndex = date.getMonth();
-    let month = 'January';
-    switch (monthIndex) {
-      case 0:
-        month = 'January';
-        break;
-      case 1:
-        month = 'February';
-        break;
-      case 2:
-        month = 'March';
-        break;
-      case 3:
-        month = 'April';
-        break;
-      case 4:
-        month = 'May';
-        break;
-      case 5:
-        month = 'June';
-        break;
-      case 6:
-        month = 'July';
-        break;
-      case 7:
-        month = 'August';
-        break;
-      case 8:
-        month = 'September';
-        break;
-      case 9:
-        month = 'October';
-        break;
-      case 10:
-        month = 'November';
-        break;
-      case 11:
-        month = 'December';
-        break;
-    }
+  //   const monthIndex = date.getMonth();
+  //   let month = 'January';
+  //   switch (monthIndex) {
+  //     case 0:
+  //       month = 'January';
+  //       break;
+  //     case 1:
+  //       month = 'February';
+  //       break;
+  //     case 2:
+  //       month = 'March';
+  //       break;
+  //     case 3:
+  //       month = 'April';
+  //       break;
+  //     case 4:
+  //       month = 'May';
+  //       break;
+  //     case 5:
+  //       month = 'June';
+  //       break;
+  //     case 6:
+  //       month = 'July';
+  //       break;
+  //     case 7:
+  //       month = 'August';
+  //       break;
+  //     case 8:
+  //       month = 'September';
+  //       break;
+  //     case 9:
+  //       month = 'October';
+  //       break;
+  //     case 10:
+  //       month = 'November';
+  //       break;
+  //     case 11:
+  //       month = 'December';
+  //       break;
+  //   }
 
-    const hourIndex = date.getHours();
-    let hour = hourIndex.toString();
-    if (hourIndex < 10) {
-      hour = `0${hourIndex}`;
-    }
+  //   const hourIndex = date.getHours();
+  //   let hour = hourIndex.toString();
+  //   if (hourIndex < 10) {
+  //     hour = `0${hourIndex}`;
+  //   }
 
-    const minuteIndex = date.getMinutes();
-    let minute = minuteIndex.toString();
-    if (minuteIndex < 10) {
-      minute = `0${minuteIndex}`;
-    }
+  //   const minuteIndex = date.getMinutes();
+  //   let minute = minuteIndex.toString();
+  //   if (minuteIndex < 10) {
+  //     minute = `0${minuteIndex}`;
+  //   }
 
-    return `${day}, ${month} ${date.getDate()}, ${date.getFullYear()} at ${hour}:${minute}`;
-  };
+  //   return `${day}, ${month} ${date.getDate()}, ${date.getFullYear()} at ${hour}:${minute}`;
+  // };
 
   const turnTagIntoString = (tag: ExerciseTag) => {
     switch (tag) {
@@ -246,6 +257,30 @@ const NewWorkout = () => {
       case ExerciseTag.TIME:
         return 'TIME';
     }
+  };
+
+  const secondsToHHmmss = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+
+    let hoursString = hours.toString();
+    let minutesString = minutes.toString();
+    let remainingSecondsString = remainingSeconds.toString();
+
+    if (hours < 10) {
+      hoursString = `0${hours}`;
+    }
+
+    if (minutes < 10) {
+      minutesString = `0${minutes}`;
+    }
+
+    if (remainingSeconds < 10) {
+      remainingSecondsString = `0${remainingSeconds}`;
+    }
+
+    return `${hoursString}:${minutesString}:${remainingSecondsString}`;
   };
 
   const handleToggleCompleteSet: (
@@ -333,6 +368,12 @@ const NewWorkout = () => {
     value: number,
   ) => void = (exerciseID, setIndex, tag, value) => {
     console.log('start updating set');
+
+    // Valdiate value
+    if (value < 0) {
+      value = 0;
+    }
+
     const updatedExercises = workoutExercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
@@ -459,6 +500,16 @@ const NewWorkout = () => {
 
   return (
     <SafeAreaView className="relative w-full h-full justify-start items-start bg-offWhite">
+      <FQModal
+        title="Add Exercise"
+        visible={modalVisible}
+        setVisible={setModalVisible}
+        onCancel={() => setModalVisible(false)}
+        onConfirm={() => setModalVisible(false)}
+      >
+        <Text>Test</Text>
+      </FQModal>
+
       <FlatList
         data={[]}
         renderItem={() => null}
@@ -478,7 +529,8 @@ const NewWorkout = () => {
               defaultValue={workoutName}
             />
             <Text className="text-grayDark text-sm mb-8">
-              {turnDateIntoString(workoutStartDate)}
+              {secondsToHHmmss(seconds)}
+              {/* {turnDateIntoString(workoutStartDate)} */}
             </Text>
 
             {/* Exercises here */}
@@ -611,7 +663,7 @@ const SetItem: React.FC<{
         return false;
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx < -windowWidth * 0.6) {
+        if (gestureState.dx < -windowWidth * 0.5) {
           onDeleteSet();
         } else {
           Animated.spring(translateX, {
