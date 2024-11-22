@@ -114,6 +114,7 @@ const Workout = () => {
   //const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [editingTemplate, seteditingTemplate] = useState(false);
+  const [editedTemplate, seteditedTemplate] = useState<string>("");
 
   // const [viewedTemplate, setViewedTemplate] = useState<number | null>(null);
 
@@ -167,10 +168,24 @@ const Workout = () => {
     // Return the found exercise
     return exercise;
   };
+  const findTemplateIndex = (title: string): number => {
+    // Find the index of the template by title
+    const index = savedTemplates.findIndex((template) => template.title === title);
+  
+    // If index is -1, the template was not found, throw an error
+    if (index === -1) {
+      throw new Error('Template with title "' + title + '" not found');
+    }
+  
+    console.log('Template: "' + title + '" found at index: ' + index);
+    // Return the index of the found template
+    return index;
+  };
 
   const closeTemplateCreator = () => {
     console.log('template creator closed');
     setSelectedExercises([]);
+    seteditingTemplate(false)
     setModalVisible(false);
   };
 
@@ -209,24 +224,27 @@ const Workout = () => {
   // };
 
   const saveWorkout = (workout: Template) => {
-    // TODO: allow to differentiate between editing and creating 
-    // TODO: allow to differentiate between suggested and my templates
+    if(workout.title)
     setSavedTemplates((prevTemplates) => {
       const existingIndex = prevTemplates.findIndex(
         (template) => template.title === workout.title,
       );
 
-      if (existingIndex !== -1) {
+      //if user is editing
+      if(editingTemplate){
         // Update existing workout
         const updatedTemplates = [...prevTemplates];
-        updatedTemplates[existingIndex] = workout;
+        updatedTemplates[findTemplateIndex(editedTemplate)] = workout;
         console.log('Updated existing workout: ' + workout.title);
+        seteditingTemplate(false);
         return updatedTemplates;
+      // if user is adding a new workout
       } else {
         // Add new workout
         console.log(
           'Successfully added ' + workout.title + ' to saved templates',
         );
+        seteditingTemplate(false);
         return [...prevTemplates, workout];
       }
     });
@@ -266,7 +284,8 @@ const Workout = () => {
       console.log('opened template editor: ' + title);
       setSelectedExercises(exercises);
       setTitle(title);
-      seteditingTemplate(true)
+      seteditingTemplate(true);
+      seteditedTemplate(title)
       setModalVisible(true);
     };
 
