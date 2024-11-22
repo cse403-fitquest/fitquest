@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
 
 const enum ExerciseTag {
   WEIGHT = 'WEIGHT',
@@ -24,14 +26,38 @@ type ExerciseSet = {
   time: number;
 };
 
+type ExerciseSetDisplay = {
+  weight: number;
+  reps: number;
+  distance: number;
+  time: number;
+  completed: boolean;
+};
+
 type Exercise = {
+  id: string;
   name: string;
   tags: ExerciseTag[];
   sets: ExerciseSet[];
 };
 
+type ExerciseDisplay = {
+  id: string;
+  name: string;
+  tags: ExerciseTag[];
+  sets: ExerciseSetDisplay[];
+};
+
+type Workout = {
+  title: string;
+  start: Date;
+  duration: number;
+  exercises: Exercise[];
+};
+
 const EXERCISES_STUB: Exercise[] = [
   {
+    id: uuidv4(),
     name: 'Bench Press',
     tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
     sets: [
@@ -50,6 +76,7 @@ const EXERCISES_STUB: Exercise[] = [
     ],
   },
   {
+    id: uuidv4(),
     name: 'Jogging',
     tags: [ExerciseTag.DISTANCE, ExerciseTag.TIME],
     sets: [
@@ -75,6 +102,29 @@ const PREVIOUS_COLUMN_WIDTH = 68;
 const NewWorkout = () => {
   const [workoutName, setWorkoutName] = useState('Empty Workout');
   let tempWorkoutName = workoutName;
+
+  const [workoutExercises, setWorkoutExercises] = useState<ExerciseDisplay[]>(
+    [],
+  );
+
+  const workoutStartDate = new Date();
+
+  useEffect(() => {
+    setWorkoutExercises(
+      EXERCISES_STUB.map((exercise) => {
+        return {
+          ...exercise,
+          id: uuidv4(),
+          sets: exercise.sets.map((set) => {
+            return {
+              ...set,
+              completed: false,
+            };
+          }),
+        };
+      }),
+    );
+  }, []);
 
   const turnDateIntoString = (date: Date) => {
     const dayIndex = date.getDay();
@@ -144,7 +194,19 @@ const NewWorkout = () => {
         break;
     }
 
-    return `${day}, ${month} ${date.getDate()}, ${date.getFullYear()} at ${date.getHours()}:${date.getMinutes()}`;
+    const hourIndex = date.getHours();
+    let hour = hourIndex.toString();
+    if (hourIndex < 10) {
+      hour = `0${hourIndex}`;
+    }
+
+    const minuteIndex = date.getMinutes();
+    let minute = minuteIndex.toString();
+    if (minuteIndex < 10) {
+      minute = `0${minuteIndex}`;
+    }
+
+    return `${day}, ${month} ${date.getDate()}, ${date.getFullYear()} at ${hour}:${minute}`;
   };
 
   const turnTagIntoString = (tag: ExerciseTag) => {
@@ -163,15 +225,98 @@ const NewWorkout = () => {
   const getTagColumnWidth = (tag: ExerciseTag) => {
     switch (tag) {
       case ExerciseTag.WEIGHT:
-        return 53;
+        return 60;
       case ExerciseTag.REPS:
         return 50;
       case ExerciseTag.DISTANCE:
-        return 66;
+        return 70;
       case ExerciseTag.TIME:
         return 60;
       default:
         return 53;
+    }
+  };
+
+  const handleToggleCompleteSet: (
+    exerciseID: string,
+    setIndex: number,
+  ) => void = (exerciseID, setIndex) => {
+    const updatedExercises = workoutExercises.map((exercise) => {
+      if (exercise.id === exerciseID) {
+        return {
+          ...exercise,
+          sets: exercise.sets.map((set, idx) => {
+            if (setIndex === idx) {
+              return {
+                ...set,
+                completed: !set.completed,
+              };
+            }
+
+            return set;
+          }),
+        };
+      }
+
+      return exercise;
+    });
+
+    setWorkoutExercises(updatedExercises);
+  };
+
+  const handleFinishWorkout = () => {
+    // Filter out  sets that are not completed
+    const exercisesWithCompletedSets = workoutExercises.map((exercise) => {
+      return {
+        ...exercise,
+        sets: exercise.sets.filter((set) => {
+          // Check if set is completed
+          if (!set.completed) {
+            return false;
+          }
+          return true;
+        }),
+      };
+    });
+
+    // Remove exercises with no completed sets
+    const exercisesThatHasCompletedSets = exercisesWithCompletedSets.filter(
+      (exercise) => exercise.sets.length > 0,
+    );
+
+    // Turn Execises with SetDisplay into Exercises with Set
+    const exercises: Exercise[] = exercisesThatHasCompletedSets.map(
+      (exercise) => {
+        return {
+          id: exercise.id,
+          name: exercise.name,
+          tags: exercise.tags,
+          sets: exercise.sets.map((set) => {
+            return {
+              weight: set.weight,
+              reps: set.reps,
+              distance: set.distance,
+              time: set.time,
+            };
+          }),
+        };
+      },
+    );
+
+    // Create workout object
+    const workout = {
+      title: workoutName,
+      startedAt: workoutStartDate,
+      duration: (new Date().getTime() - workoutStartDate.getTime()) * 0.001,
+      exercises: exercises,
+    };
+
+    // Print workout object
+    for (const exercise of exercises) {
+      console.log(exercise.name);
+      for (const set of exercise.sets) {
+        console.log(set);
+      }
     }
   };
 
@@ -184,7 +329,7 @@ const NewWorkout = () => {
         ListHeaderComponent={() => (
           <View className="relative w-full justify-start items-start px-6 py-8">
             <View className="w-full flex-row justify-end mb-2">
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleFinishWorkout}>
                 <Text className="text-blue text-lg font-semibold">FINISH</Text>
               </TouchableOpacity>
             </View>
@@ -196,12 +341,12 @@ const NewWorkout = () => {
               defaultValue={workoutName}
             />
             <Text className="text-grayDark text-sm mb-8">
-              {turnDateIntoString(new Date())}
+              {turnDateIntoString(workoutStartDate)}
             </Text>
 
             {/* Exercises here */}
             <FlatList
-              data={EXERCISES_STUB}
+              data={workoutExercises}
               style={{ width: '100%' }}
               renderItem={({ item: exercise }) => {
                 return (
@@ -212,42 +357,40 @@ const NewWorkout = () => {
                     <FlatList
                       data={exercise.sets}
                       style={{ width: '100%' }}
-                      renderItem={({ item, index }) => {
+                      renderItem={({ item: set, index: setIndex }) => {
                         return (
-                          <View className="w-full flex-row justify-start items-start my-2">
+                          <View className="w-full flex-row justify-start items-center my-2">
+                            {set.completed ? (
+                              <View className="absolute left-[-24px] bg-blue opacity-30 w-[150%] h-full" />
+                            ) : null}
                             <Text
-                              className={`text-md w-[${SET_COLUMN_WIDTH}px] text-center mr-5`}
+                              className={`text-md text-center mr-5`}
+                              style={{ width: SET_COLUMN_WIDTH }}
                             >
-                              {index + 1}
+                              {setIndex + 1}
                             </Text>
                             <Text
-                              className={`text-md w-[${PREVIOUS_COLUMN_WIDTH}px] text-center mr-5`}
+                              className={`text-md  text-center mr-5`}
+                              style={{ width: PREVIOUS_COLUMN_WIDTH }}
                             >
-                              {item.weight} x {item.reps}
+                              {set.weight} x {set.reps}
                             </Text>
                             {exercise.tags.map((tag, index) => {
                               let value = 0;
                               switch (tag) {
                                 case ExerciseTag.WEIGHT:
-                                  value = item.weight;
+                                  value = set.weight;
                                   break;
                                 case ExerciseTag.REPS:
-                                  value = item.reps;
+                                  value = set.reps;
                                   break;
                                 case ExerciseTag.DISTANCE:
-                                  value = item.distance;
+                                  value = set.distance;
                                   break;
                                 case ExerciseTag.TIME:
-                                  value = item.time;
+                                  value = set.time;
                                   break;
                               }
-
-                              console.log(
-                                index,
-                                exercise.tags.length - 1,
-                                tag,
-                                getTagColumnWidth(tag),
-                              );
 
                               return (
                                 <TextInput
@@ -264,8 +407,21 @@ const NewWorkout = () => {
                                 />
                               );
                             })}
-                            <TouchableOpacity className="ml-auto">
-                              <View className="w-6 h-6 bg-gray rounded justify-center items-center">
+                            <TouchableOpacity
+                              className="ml-auto p-1"
+                              onPress={() =>
+                                handleToggleCompleteSet(exercise.id, setIndex)
+                              }
+                            >
+                              <View
+                                className={clsx(
+                                  'w-6 h-6 rounded justify-center items-center',
+                                  {
+                                    'bg-blue': set.completed,
+                                    'bg-gray': !set.completed,
+                                  },
+                                )}
+                              >
                                 <Ionicons
                                   name="checkmark-outline"
                                   style={{
@@ -281,19 +437,26 @@ const NewWorkout = () => {
                       ListHeaderComponent={() => (
                         <View className="w-full flex-row justify-start items-start mb-2">
                           <Text
-                            className={`text-md font-semibold w-[${SET_COLUMN_WIDTH}px] text-center mr-5`}
+                            className={`text-md font-semibold text-center mr-5`}
+                            style={{ width: SET_COLUMN_WIDTH }}
                           >
                             SET
                           </Text>
                           <Text
-                            className={`text-md font-semibold w-[${PREVIOUS_COLUMN_WIDTH}px] text-center mr-5`}
+                            className={`text-md font-semibold text-center mr-5`}
+                            style={{ width: PREVIOUS_COLUMN_WIDTH }}
                           >
                             PREVIOUS
                           </Text>
                           {exercise.tags.map((tag, index) => (
                             <Text
                               key={tag}
-                              className={`text-md font-semibold w-[${getTagColumnWidth(tag)}px] text-center ${index === exercise.tags.length - 1 ? '' : 'mr-5'}`}
+                              className={`text-md font-semibold text-center`}
+                              style={{
+                                width: getTagColumnWidth(tag),
+                                marginRight:
+                                  index === exercise.tags.length - 1 ? 0 : 20,
+                              }}
                             >
                               {turnTagIntoString(tag)}
                             </Text>
