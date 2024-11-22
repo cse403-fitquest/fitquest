@@ -50,7 +50,7 @@ type ExerciseDisplay = {
 
 type Workout = {
   title: string;
-  start: Date;
+  startedAt: Date;
   duration: number;
   exercises: Exercise[];
 };
@@ -96,8 +96,8 @@ const EXERCISES_STUB: Exercise[] = [
   },
 ];
 
-const SET_COLUMN_WIDTH = 30;
-const PREVIOUS_COLUMN_WIDTH = 68;
+const SET_COLUMN_WIDTH = 40;
+// const PREVIOUS_COLUMN_WIDTH = 68;
 
 const NewWorkout = () => {
   const [workoutName, setWorkoutName] = useState('Empty Workout');
@@ -225,15 +225,15 @@ const NewWorkout = () => {
   const getTagColumnWidth = (tag: ExerciseTag) => {
     switch (tag) {
       case ExerciseTag.WEIGHT:
-        return 60;
+        return 100;
       case ExerciseTag.REPS:
-        return 50;
+        return 100;
       case ExerciseTag.DISTANCE:
-        return 70;
+        return 100;
       case ExerciseTag.TIME:
-        return 60;
+        return 100;
       default:
-        return 53;
+        return 103;
     }
   };
 
@@ -247,9 +247,100 @@ const NewWorkout = () => {
           ...exercise,
           sets: exercise.sets.map((set, idx) => {
             if (setIndex === idx) {
+              // If set is empty, do nothing
+              if (
+                set.distance === 0 &&
+                set.time === 0 &&
+                set.reps === 0 &&
+                set.weight === 0
+              ) {
+                return set;
+              }
+
+              // If exercise includes reps, check if reps is 0
+              if (exercise.tags.includes(ExerciseTag.REPS) && set.reps === 0) {
+                return set;
+              }
+
+              // If exercise includes distance, check if distance is 0
+              if (
+                exercise.tags.includes(ExerciseTag.DISTANCE) &&
+                set.distance === 0
+              ) {
+                return set;
+              }
+
               return {
                 ...set,
                 completed: !set.completed,
+              };
+            }
+
+            return set;
+          }),
+        };
+      }
+
+      return exercise;
+    });
+
+    setWorkoutExercises(updatedExercises);
+  };
+
+  const handleAddSet: (exerciseID: string) => void = (exerciseID) => {
+    const updatedExercises = workoutExercises.map((exercise) => {
+      if (exercise.id === exerciseID) {
+        return {
+          ...exercise,
+          sets: [
+            ...exercise.sets,
+            {
+              weight: 0,
+              reps: 0,
+              distance: 0,
+              time: 0,
+              completed: false,
+            },
+          ],
+        };
+      }
+
+      return exercise;
+    });
+
+    setWorkoutExercises(updatedExercises);
+  };
+
+  const handleUpdateSet: (
+    exerciseID: string,
+    setIndex: number,
+    tag: ExerciseTag,
+    value: number,
+  ) => void = (exerciseID, setIndex, tag, value) => {
+    const updatedExercises = workoutExercises.map((exercise) => {
+      if (exercise.id === exerciseID) {
+        return {
+          ...exercise,
+          sets: exercise.sets.map((set, idx) => {
+            if (setIndex === idx) {
+              let tagToUpdate = 'weight';
+              switch (tag) {
+                case ExerciseTag.WEIGHT:
+                  tagToUpdate = 'weight';
+                  break;
+                case ExerciseTag.REPS:
+                  tagToUpdate = 'reps';
+                  break;
+                case ExerciseTag.DISTANCE:
+                  tagToUpdate = 'distance';
+                  break;
+                case ExerciseTag.TIME:
+                  tagToUpdate = 'time';
+                  break;
+              }
+              return {
+                ...set,
+                [tagToUpdate]: value,
               };
             }
 
@@ -304,7 +395,7 @@ const NewWorkout = () => {
     );
 
     // Create workout object
-    const workout = {
+    const workout: Workout = {
       title: workoutName,
       startedAt: workoutStartDate,
       duration: (new Date().getTime() - workoutStartDate.getTime()) * 0.001,
@@ -312,7 +403,7 @@ const NewWorkout = () => {
     };
 
     // Print workout object
-    for (const exercise of exercises) {
+    for (const exercise of workout.exercises) {
       console.log(exercise.name);
       for (const set of exercise.sets) {
         console.log(set);
@@ -329,7 +420,7 @@ const NewWorkout = () => {
         ListHeaderComponent={() => (
           <View className="relative w-full justify-start items-start px-6 py-8">
             <View className="w-full flex-row justify-end mb-2">
-              <TouchableOpacity onPress={handleFinishWorkout}>
+              <TouchableOpacity onPress={handleFinishWorkout} className="p-1">
                 <Text className="text-blue text-lg font-semibold">FINISH</Text>
               </TouchableOpacity>
             </View>
@@ -359,7 +450,7 @@ const NewWorkout = () => {
                       style={{ width: '100%' }}
                       renderItem={({ item: set, index: setIndex }) => {
                         return (
-                          <View className="w-full flex-row justify-start items-center my-2">
+                          <View className="w-full flex-row justify-start items-center my-1">
                             {set.completed ? (
                               <View className="absolute left-[-24px] bg-blue opacity-30 w-[150%] h-full" />
                             ) : null}
@@ -369,12 +460,12 @@ const NewWorkout = () => {
                             >
                               {setIndex + 1}
                             </Text>
-                            <Text
+                            {/* <Text
                               className={`text-md  text-center mr-5`}
                               style={{ width: PREVIOUS_COLUMN_WIDTH }}
                             >
                               {set.weight} x {set.reps}
-                            </Text>
+                            </Text> */}
                             {exercise.tags.map((tag, index) => {
                               let value = 0;
                               switch (tag) {
@@ -395,6 +486,7 @@ const NewWorkout = () => {
                               return (
                                 <TextInput
                                   key={tag}
+                                  keyboardType="numeric"
                                   style={{ width: getTagColumnWidth(tag) }}
                                   className={clsx(
                                     'text-md text-center bg-white rounded',
@@ -403,6 +495,25 @@ const NewWorkout = () => {
                                         index !== exercise.tags.length - 1,
                                     },
                                   )}
+                                  onChangeText={(text) =>
+                                    (value = parseInt(text))
+                                  }
+                                  onEndEditing={() =>
+                                    handleUpdateSet(
+                                      exercise.id,
+                                      setIndex,
+                                      tag,
+                                      value,
+                                    )
+                                  }
+                                  onBlur={() =>
+                                    handleUpdateSet(
+                                      exercise.id,
+                                      setIndex,
+                                      tag,
+                                      value,
+                                    )
+                                  }
                                   defaultValue={value.toString()}
                                 />
                               );
@@ -442,12 +553,12 @@ const NewWorkout = () => {
                           >
                             SET
                           </Text>
-                          <Text
+                          {/* <Text
                             className={`text-md font-semibold text-center mr-5`}
                             style={{ width: PREVIOUS_COLUMN_WIDTH }}
                           >
                             PREVIOUS
-                          </Text>
+                          </Text> */}
                           {exercise.tags.map((tag, index) => (
                             <Text
                               key={tag}
@@ -464,8 +575,10 @@ const NewWorkout = () => {
                         </View>
                       )}
                       ListFooterComponent={() => (
-                        <View className="w-full justify-center items-center mt-2">
-                          <TouchableOpacity>
+                        <View className="w-full justify-center items-center mt-4">
+                          <TouchableOpacity
+                            onPress={() => handleAddSet(exercise.id)}
+                          >
                             <Text className="text-blue text-md font-semibold">
                               ADD SET
                             </Text>
