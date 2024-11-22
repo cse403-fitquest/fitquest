@@ -7,6 +7,7 @@ import {
   // Modal,
   TextInput,
   Alert,
+  Modal,
 } from 'react-native';
 import { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -107,18 +108,21 @@ const Workout = () => {
     title: 'Whole Body Day',
     exercises: [fillerex, fillerexbicep, fillerexsquat],
   };
-  const suggestedTemplates: Template[] = [fillerworkoutsuggest];
+  //const suggestedTemplates: Template[] = [fillerworkoutsuggest];
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
   const [savedTemplates, setSavedTemplates] = useState<Template[]>([]);
+  const [suggestedTemplates, setSuggestedTemplates] = useState<Template[]>([fillerworkoutsuggest]);
+
 
   const [currtitle, setTitle] = useState('new workout');
   //const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [editingTemplate, seteditingTemplate] = useState(false);
   const [editedTemplate, seteditedTemplate] = useState<string>("");
-
+  const [removeConfirmationVisible, setremoveConfirmationVisible] = useState(false);
+  
   // const [viewedTemplate, setViewedTemplate] = useState<number | null>(null);
 
   // adds to selected
@@ -267,25 +271,19 @@ const Workout = () => {
     setModalVisible(false);
   };
 
-  // takes name of workout and removes it from the saved templates
-  // const removeWorkout = (title: string) => {
-  //   console.log('Removed ' + title + ' from saved templates');
-  //   setSavedTemplates(savedTemplates.filter((item) => item.title !== title));
-  // };
-
   //constructor for a Template
   const Template = ({
     title,
     exercises,
     isSelected,
+    isSaved,
     toggleSelection,
-    //toggleViewDropdown   // Ensure this is passed as a prop from the parent component
   }: {
     title: string;
     exercises: Exercise[];
     isSelected: boolean;
+    isSaved: boolean;
     toggleSelection: () => void;
-    //toggleViewDropdown: () => void;
   }) => {
     const [isDropdownVisible, setDropdownVisible] = useState(false);
 
@@ -302,6 +300,18 @@ const Workout = () => {
       seteditedTemplate(title)
       setModalVisible(true);
     };
+    //takes name of workout and removes it from the saved templates
+    const openRemoveConfirmation = () => {
+      console.log('Opened remove confirmation');
+      setTitle(title);
+      setremoveConfirmationVisible(true);
+    };
+    const confirmRemove = () => {
+      console.log('Removed ' + currtitle + ' from saved templates');
+      setremoveConfirmationVisible(false);
+      setSavedTemplates(savedTemplates.filter((item) => item.title !== currtitle));
+    };
+
 
     return (
       <View>
@@ -321,7 +331,24 @@ const Workout = () => {
             <Text style={templatestyles.buttonText}>View</Text>
           </TouchableOpacity>
         </View>
-
+        {removeConfirmationVisible && (
+          <Modal transparent={true} animationType="fade">
+          <View style={templatestyles.modalContainer}>
+            <View style={templatestyles.modalBox}>
+              <Text style={templatestyles.modalText}>Are you sure?</Text>
+              <View style={templatestyles.buttonContainer}>
+                <TouchableOpacity style={templatestyles.purplebutton}>
+                  <Text style={templatestyles.buttonText}>No</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={templatestyles.redbutton} onPress={() => confirmRemove()}>
+                  <Text style={templatestyles.buttonText}>Yes</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+        )
+        }
         {isDropdownVisible && (
           <View style={templatestyles.dropdownContainer}>
             <View className="w-full mt-5 flex-row justify-between items-center">
@@ -329,7 +356,7 @@ const Workout = () => {
                 {' '}
                 Name | Weight | Reps | Sets{' '}
               </Text>
-              {/*button to edit the */}
+              {/*button to edit the template*/}
               <TouchableOpacity
                 style={{ marginRight: 10 }}
                 onPress={() => editTemplate()}
@@ -338,6 +365,18 @@ const Workout = () => {
                   Edit
                 </Text>
               </TouchableOpacity>
+              
+              {/*button to delete the template*/}
+              {isSaved && (
+              <TouchableOpacity
+                style={{ marginRight: 10 }}
+                onPress={() => openRemoveConfirmation()}
+              >
+                <Text style={{ fontWeight: 'bold', color: 'red' }}>
+                  Remove
+                </Text>
+              </TouchableOpacity>
+              )}
             </View>
 
             <FlatList
@@ -740,9 +779,10 @@ const Workout = () => {
                   keyExtractor={(_, index) => `template-${index}`}
                   renderItem={({ item, index }) => (
                     <Template
-                      title={item.title}
-                      exercises={item.exercises}
-                      isSelected={selectedTemplate === index}
+                      title = {item.title}
+                      exercises = {item.exercises}
+                      isSelected = {selectedTemplate === index}
+                      isSaved = {true}
                       toggleSelection={() => toggleSelection(index)}
                       //toggleViewDropdown={() => toggleViewDropdown(index)}
                     />
@@ -760,10 +800,11 @@ const Workout = () => {
                     keyExtractor={(_, index) => `template-${index}`}
                     renderItem={({ item, index }) => (
                       <Template
-                        title={item.title}
-                        exercises={item.exercises}
-                        isSelected={selectedTemplate === index}
-                        toggleSelection={() => toggleSelection(index)}
+                        title = {item.title}
+                        exercises = {item.exercises}
+                        isSelected = {selectedTemplate === index}
+                        isSaved = {false}
+                        toggleSelection = {() => toggleSelection(index)}
                         //toggleViewDropdown={() => toggleViewDropdown(index)}
                       />
                     )}
@@ -1002,6 +1043,45 @@ const templatestyles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
     backgroundColor: '#ffffff',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // semi-transparent background
+  },
+  modalBox: {
+    width: 300,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  redbutton: {
+    flex: 1,
+    marginHorizontal: 10,
+    paddingVertical: 10,
+    backgroundColor: 'red', // button color
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  purplebutton: {
+    flex: 1,
+    marginHorizontal: 10,
+    paddingVertical: 10,
+    backgroundColor: 'purple', // button color
+    borderRadius: 5,
+    alignItems: 'center',
   },
 });
 
