@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -86,19 +86,19 @@ const EXERCISES_STUB: Exercise[] = [
     ],
   },
   {
-    id: uuidv4(),
+    id: uuidv4() + 3,
     name: 'Jogging',
     tags: [ExerciseTag.DISTANCE, ExerciseTag.TIME],
     sets: [
       {
-        id: uuidv4(),
+        id: uuidv4() + 1,
         weight: 0,
         reps: 0,
         distance: 5,
         time: 30,
       },
       {
-        id: uuidv4(),
+        id: uuidv4() + 2,
         weight: 0,
         reps: 0,
         distance: 5,
@@ -137,6 +137,21 @@ const NewWorkout = () => {
   const [seconds, setSeconds] = useState(0);
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalContent, setModalContent] = useState<{
+    title: string;
+    content: React.ReactNode;
+    onConfirm: () => void;
+    confirmText?: string;
+    onCancel?: () => void;
+    cancelText?: string;
+  }>(
+    // Default modal content
+    {
+      title: 'Finished?',
+      content: <View />,
+      onConfirm: () => {},
+    },
+  );
 
   const workoutStartDate = new Date();
 
@@ -145,7 +160,6 @@ const NewWorkout = () => {
       EXERCISES_STUB.map((exercise) => {
         return {
           ...exercise,
-          id: uuidv4(),
           sets: exercise.sets.map((set) => {
             return {
               ...set,
@@ -283,17 +297,17 @@ const NewWorkout = () => {
     return `${hoursString}:${minutesString}:${remainingSecondsString}`;
   };
 
-  const handleToggleCompleteSet: (
-    exerciseID: string,
-    setIndex: number,
-  ) => void = (exerciseID, setIndex) => {
-    console.log('start toggling set', exerciseID, setIndex);
+  const handleToggleCompleteSet: (exerciseID: string, setID: string) => void = (
+    exerciseID,
+    setID,
+  ) => {
+    console.log('start toggling set', exerciseID, setID);
     const updatedExercises = workoutExercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
           ...exercise,
-          sets: exercise.sets.map((set, idx) => {
-            if (setIndex === idx) {
+          sets: exercise.sets.map((set) => {
+            if (set.id === setID) {
               // If set is empty, do nothing
               if (
                 set.distance === 0 &&
@@ -373,6 +387,40 @@ const NewWorkout = () => {
       for (const set of exercise.sets) {
         // Print only relevant tags
 
+        let str =
+          'ID: ' +
+          set.id.slice(0, 5) +
+          ' | Set ' +
+          (exercise.sets.indexOf(set) + 1) +
+          ': ';
+        if (exercise.tags.includes(ExerciseTag.WEIGHT)) {
+          str += `WEIGHT: ${set.weight} `;
+        }
+        if (exercise.tags.includes(ExerciseTag.REPS)) {
+          str += `REPS: ${set.reps} `;
+        }
+        if (exercise.tags.includes(ExerciseTag.DISTANCE)) {
+          str += `DISTANCE: ${set.distance} `;
+        }
+        if (exercise.tags.includes(ExerciseTag.TIME)) {
+          str += `TIME: ${set.time} `;
+        }
+
+        console.log(str);
+      }
+    }
+  };
+
+  // Helper function to print workout object
+  const printWorkout = (workout: Workout) => {
+    console.log('Workout Title:', workout.title);
+    console.log('Workout Started At:', workout.startedAt);
+    console.log('Workout Duration:', workout.duration);
+    for (const exercise of workout.exercises) {
+      console.log(exercise.name);
+      for (const set of exercise.sets) {
+        // Print only relevant tags
+
         let str = 'Set ' + (exercise.sets.indexOf(set) + 1) + ': ';
         if (exercise.tags.includes(ExerciseTag.WEIGHT)) {
           str += `WEIGHT: ${set.weight} `;
@@ -394,11 +442,11 @@ const NewWorkout = () => {
 
   const handleUpdateSet: (
     exerciseID: string,
-    setIndex: number,
+    setID: string,
     tag: ExerciseTag,
     value: number,
-  ) => void = (exerciseID, setIndex, tag, value) => {
-    console.log('start updating set', exerciseID, setIndex, tag, value);
+  ) => void = (exerciseID, setID, tag, value) => {
+    console.log('start updating set', exerciseID, setID, tag, value);
 
     // Valdiate value
     if (value < 0) {
@@ -409,8 +457,8 @@ const NewWorkout = () => {
       if (exercise.id === exerciseID) {
         return {
           ...exercise,
-          sets: exercise.sets.map((set, idx) => {
-            if (setIndex === idx) {
+          sets: exercise.sets.map((set) => {
+            if (set.id === setID) {
               let tagToUpdate = 'weight';
               switch (tag) {
                 case ExerciseTag.WEIGHT:
@@ -448,34 +496,136 @@ const NewWorkout = () => {
   const layoutAnimConfig = {
     duration: 300,
     delete: {
-      duration: 200,
+      duration: 100,
       type: LayoutAnimation.Types.easeInEaseOut,
       property: LayoutAnimation.Properties.opacity,
     },
   };
 
-  const handleDeleteSet: (exerciseID: string, setIndex: number) => void = (
-    exerciseID,
-    setIndex,
-  ) => {
-    const updatedExercises = workoutExercises.map((exercise) => {
-      if (exercise.id === exerciseID) {
-        return {
-          ...exercise,
-          sets: exercise.sets.filter((_, idx) => idx !== setIndex),
-        };
-      }
+  const handleDeleteSet = useCallback((exerciseID: string, setID: string) => {
+    console.log('start deleting set', exerciseID, setID);
 
-      return exercise;
+    setWorkoutExercises((prevWorkoutExercises) => {
+      const updatedExercisesWithDeletedSet = prevWorkoutExercises.map(
+        (exercise) => {
+          if (exercise.id === exerciseID) {
+            if (exercise.sets.length === 1) {
+              return {
+                ...exercise,
+                sets: [],
+              };
+            }
+
+            return {
+              ...exercise,
+              sets: exercise.sets.filter((set) => set.id !== setID),
+            };
+          }
+
+          return exercise;
+        },
+      );
+
+      // If exercise has no sets, remove the exercise
+      const updatedExercises = updatedExercisesWithDeletedSet.filter(
+        (exercise) => exercise.sets.length > 0,
+      );
+
+      printExerciseDisplays(updatedExercises);
+      console.log('end deleting set');
+
+      return updatedExercises;
     });
-
-    setWorkoutExercises(updatedExercises);
 
     // after removing the item, we start animation
     LayoutAnimation.configureNext(layoutAnimConfig);
+  }, []);
+
+  const onFinishWorkoutPress = () => {
+    // Check if there are no completed sets
+    let hasCompletedSets = false;
+    for (const exercise of workoutExercises) {
+      for (const set of exercise.sets) {
+        if (set.completed) {
+          hasCompletedSets = true;
+          break;
+        }
+      }
+    }
+
+    if (!hasCompletedSets) {
+      setModalContent({
+        title: 'No Completed Sets',
+        content: (
+          <View className="w-full justify-start items-start pt-3 pb-1">
+            <Text>
+              There are no completed sets. Are you sure you want to finish? This
+              will amount to cancelling this workout
+            </Text>
+          </View>
+        ),
+        confirmText: 'CANCEL WORKOUT',
+        onConfirm: () => {
+          setModalVisible(false);
+          // Cancel workout
+        },
+        cancelText: 'CANCEL',
+      });
+
+      setModalVisible(true);
+      return;
+    }
+
+    const expGain = seconds * 500;
+
+    setModalContent({
+      title: 'Finished?',
+      content: (
+        <View className="w-full justify-start items-start pt-3 pb-1">
+          <Text className="mb-3">All empty sets will be discarded.</Text>
+
+          <Text className="text-md font-bold">
+            EXP GAIN:{' '}
+            <Text className="text-yellow font-bold">{expGain} XP</Text>
+          </Text>
+        </View>
+      ),
+      confirmText: 'FINISH WORKOUT',
+      onConfirm: () => {
+        handleFinishWorkout(seconds);
+        setModalVisible(false);
+      },
+      cancelText: 'CANCEL',
+    });
+
+    setModalVisible(true);
   };
 
-  const handleFinishWorkout = () => {
+  const onCancelWorkoutPress = () => {
+    setModalContent({
+      title: 'Cancel Workout?',
+      content: (
+        <View className="w-full justify-start items-start pt-3 pb-1">
+          <Text>
+            Are you sure you want to cancel and discard this workout? This
+            cannot be undone.
+          </Text>
+        </View>
+      ),
+      confirmText: 'CANCEL WORKOUT',
+      onConfirm: () => {
+        setModalVisible(false);
+      },
+      cancelText: 'BACK',
+      onCancel: () => {
+        setModalVisible(false);
+      },
+    });
+
+    setModalVisible(true);
+  };
+
+  const handleFinishWorkout = (seconds: number) => {
     // Filter out  sets that are not completed
     const exercisesWithCompletedSets = workoutExercises.map((exercise) => {
       return {
@@ -517,29 +667,30 @@ const NewWorkout = () => {
     const workout: Workout = {
       title: workoutName,
       startedAt: workoutStartDate,
-      duration: (new Date().getTime() - workoutStartDate.getTime()) * 0.001,
+      duration: seconds,
       exercises: exercises,
     };
 
     // Print workout object
-    for (const exercise of workout.exercises) {
-      console.log(exercise.name);
-      for (const set of exercise.sets) {
-        console.log(set);
-      }
-    }
+    printWorkout(workout);
+
+    // TODO: Save workout object
+    // TODO: Update user exp
+    // TODO: Redirect to workout screen
   };
 
   return (
     <SafeAreaView className="relative w-full h-full justify-start items-start bg-offWhite">
       <FQModal
-        title="Add Exercise"
+        title={modalContent.title}
         visible={modalVisible}
         setVisible={setModalVisible}
-        onCancel={() => setModalVisible(false)}
-        onConfirm={() => setModalVisible(false)}
+        onCancel={modalContent.onCancel}
+        onConfirm={modalContent.onConfirm}
+        confirmText={modalContent.confirmText}
+        cancelText={modalContent.cancelText}
       >
-        <Text>Test</Text>
+        {modalContent.content}
       </FQModal>
 
       <FlatList
@@ -563,17 +714,18 @@ const NewWorkout = () => {
                       renderItem={({ item: set, index: setIndex }) => {
                         return (
                           <SetItem
+                            key={set.id}
                             exercise={exercise}
                             set={set}
                             setIndex={setIndex}
                             onCompleteSet={() =>
-                              handleToggleCompleteSet(exercise.id, setIndex)
+                              handleToggleCompleteSet(exercise.id, set.id)
                             }
                             onUpdateSet={(tag, value) =>
-                              handleUpdateSet(exercise.id, setIndex, tag, value)
+                              handleUpdateSet(exercise.id, set.id, tag, value)
                             }
                             onDeleteSet={() =>
-                              handleDeleteSet(exercise.id, setIndex)
+                              handleDeleteSet(exercise.id, set.id)
                             }
                           />
                         );
@@ -630,7 +782,7 @@ const NewWorkout = () => {
         ListHeaderComponent={() => (
           <View className="relative w-full justify-start items-start px-6 pt-8">
             <View className="w-full flex-row justify-end">
-              <TouchableOpacity onPress={handleFinishWorkout} className="p-1">
+              <TouchableOpacity onPress={onFinishWorkoutPress} className="p-1">
                 <Text className="text-blue text-lg font-semibold">FINISH</Text>
               </TouchableOpacity>
             </View>
@@ -656,7 +808,7 @@ const NewWorkout = () => {
                 ADD EXERCISE
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={onCancelWorkoutPress}>
               <Text className="text-red-500 text-lg font-semibold">
                 CANCEL WORKOUT
               </Text>
