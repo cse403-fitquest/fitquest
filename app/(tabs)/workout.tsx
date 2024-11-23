@@ -113,16 +113,18 @@ const Workout = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
   const [savedTemplates, setSavedTemplates] = useState<Template[]>([]);
-  const [suggestedTemplates, setSuggestedTemplates] = useState<Template[]>([fillerworkoutsuggest]);
-
+  const [suggestedTemplates /*setSuggestedTemplates*/] = useState<Template[]>([
+    fillerworkoutsuggest,
+  ]);
 
   const [currtitle, setTitle] = useState('new workout');
   //const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [editingTemplate, seteditingTemplate] = useState(false);
-  const [editedTemplate, seteditedTemplate] = useState<string>("");
-  const [removeConfirmationVisible, setremoveConfirmationVisible] = useState(false);
-  
+  const [editedTemplate, seteditedTemplate] = useState<string>('');
+  const [removeConfirmationVisible, setremoveConfirmationVisible] =
+    useState(false);
+
   // const [viewedTemplate, setViewedTemplate] = useState<number | null>(null);
 
   // adds to selected
@@ -177,13 +179,15 @@ const Workout = () => {
   };
   const findTemplateIndex = (title: string): number => {
     // Find the index of the template by title
-    const index = savedTemplates.findIndex((template) => template.title === title);
-  
+    const index = savedTemplates.findIndex(
+      (template) => template.title === title,
+    );
+
     // If index is -1, the template was not found, throw an error
     // if (index === -1) {
     //   throw new Error('Template with title "' + title + '" not found');
     // }
-  
+
     console.log('Template: "' + title + '" found at index: ' + index);
     // Return the index of the found template
     return index;
@@ -192,7 +196,7 @@ const Workout = () => {
   const closeTemplateCreator = () => {
     console.log('template creator closed');
     setSelectedExercises([]);
-    seteditingTemplate(false)
+    seteditingTemplate(false);
     setModalVisible(false);
   };
 
@@ -231,18 +235,17 @@ const Workout = () => {
   // };
 
   const saveWorkout = (workout: Template) => {
-    
     setSavedTemplates((prevTemplates) => {
-      const existingIndex = prevTemplates.findIndex(
-        (template) => template.title === workout.title,
-      );
+      // const existingIndex = prevTemplates.findIndex(
+      //   (template) => template.title === workout.title,
+      // );
 
       //if user is editing
-      if(editingTemplate){
+      if (editingTemplate) {
         // Update existing workout
         const updatedTemplates = [...prevTemplates];
         //if the template is a suggested template
-        if(findTemplateIndex(editedTemplate)===-1){
+        if (findTemplateIndex(editedTemplate) === -1) {
           console.log(
             'Successfully added ' + workout.title + ' to saved templates',
           );
@@ -253,11 +256,17 @@ const Workout = () => {
         console.log('Updated existing workout: ' + workout.title);
         seteditingTemplate(false);
         return updatedTemplates;
-      // if user is adding a new workout
+        // if user is adding a new workout
       } else {
         //if the workout with same name is already in my templates
-        if(savedTemplates.map((template) => template.title).includes(workout.title)){
-          throw new Error('Workout with title: '+workout.title+' already exists');
+        if (
+          savedTemplates
+            .map((template) => template.title)
+            .includes(workout.title)
+        ) {
+          throw new Error(
+            'Workout with title: ' + workout.title + ' already exists',
+          );
         }
         console.log(
           'Successfully added ' + workout.title + ' to saved templates',
@@ -297,7 +306,7 @@ const Workout = () => {
       setSelectedExercises(exercises);
       setTitle(title);
       seteditingTemplate(true);
-      seteditedTemplate(title)
+      seteditedTemplate(title);
       setModalVisible(true);
     };
     //takes name of workout and removes it from the saved templates
@@ -309,9 +318,10 @@ const Workout = () => {
     const confirmRemove = () => {
       console.log('Removed ' + currtitle + ' from saved templates');
       setremoveConfirmationVisible(false);
-      setSavedTemplates(savedTemplates.filter((item) => item.title !== currtitle));
+      setSavedTemplates(
+        savedTemplates.filter((item) => item.title !== currtitle),
+      );
     };
-
 
     return (
       <View>
@@ -333,22 +343,27 @@ const Workout = () => {
         </View>
         {removeConfirmationVisible && (
           <Modal transparent={true} animationType="fade">
-          <View style={templatestyles.modalContainer}>
-            <View style={templatestyles.modalBox}>
-              <Text style={templatestyles.modalText}>Are you sure?</Text>
-              <View style={templatestyles.buttonContainer}>
-                <TouchableOpacity style={templatestyles.purplebutton} onPress={()=>setremoveConfirmationVisible(false)}>
-                  <Text style={templatestyles.buttonText}>No</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={templatestyles.redbutton} onPress={() => confirmRemove()}>
-                  <Text style={templatestyles.buttonText}>Yes</Text>
-                </TouchableOpacity>
+            <View style={templatestyles.modalContainer}>
+              <View style={templatestyles.modalBox}>
+                <Text style={templatestyles.modalText}>Are you sure?</Text>
+                <View style={templatestyles.buttonContainer}>
+                  <TouchableOpacity
+                    style={templatestyles.purplebutton}
+                    onPress={() => setremoveConfirmationVisible(false)}
+                  >
+                    <Text style={templatestyles.buttonText}>No</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={templatestyles.redbutton}
+                    onPress={() => confirmRemove()}
+                  >
+                    <Text style={templatestyles.buttonText}>Yes</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
-        </Modal>
-        )
-        }
+          </Modal>
+        )}
         {isDropdownVisible && (
           <View style={templatestyles.dropdownContainer}>
             <View className="w-full mt-5 flex-row justify-between items-center">
@@ -365,17 +380,17 @@ const Workout = () => {
                   Edit
                 </Text>
               </TouchableOpacity>
-              
+
               {/*button to delete the template*/}
               {isSaved && (
-              <TouchableOpacity
-                style={{ marginRight: 10 }}
-                onPress={() => openRemoveConfirmation()}
-              >
-                <Text style={{ fontWeight: 'bold', color: 'red' }}>
-                  Remove
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ marginRight: 10 }}
+                  onPress={() => openRemoveConfirmation()}
+                >
+                  <Text style={{ fontWeight: 'bold', color: 'red' }}>
+                    Remove
+                  </Text>
+                </TouchableOpacity>
               )}
             </View>
 
@@ -674,7 +689,9 @@ const Workout = () => {
               saveWorkout({ title: chosenTitle, exercises: selectedExercises })
             } // Save and close modal
           >
-            <Text style={templatestyles.closeButtonText}>Save to Templates</Text>
+            <Text style={templatestyles.closeButtonText}>
+              Save to Templates
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -779,10 +796,10 @@ const Workout = () => {
                   keyExtractor={(_, index) => `template-${index}`}
                   renderItem={({ item, index }) => (
                     <Template
-                      title = {item.title}
-                      exercises = {item.exercises}
-                      isSelected = {selectedTemplate === index}
-                      isSaved = {true}
+                      title={item.title}
+                      exercises={item.exercises}
+                      isSelected={selectedTemplate === index}
+                      isSaved={true}
                       toggleSelection={() => toggleSelection(index)}
                       //toggleViewDropdown={() => toggleViewDropdown(index)}
                     />
@@ -800,11 +817,11 @@ const Workout = () => {
                     keyExtractor={(_, index) => `template-${index}`}
                     renderItem={({ item, index }) => (
                       <Template
-                        title = {item.title}
-                        exercises = {item.exercises}
-                        isSelected = {selectedTemplate === index}
-                        isSaved = {false}
-                        toggleSelection = {() => toggleSelection(index)}
+                        title={item.title}
+                        exercises={item.exercises}
+                        isSelected={selectedTemplate === index}
+                        isSaved={false}
+                        toggleSelection={() => toggleSelection(index)}
                         //toggleViewDropdown={() => toggleViewDropdown(index)}
                       />
                     )}
