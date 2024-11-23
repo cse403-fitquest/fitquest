@@ -511,29 +511,9 @@ const NewWorkout = () => {
       </FQModal>
 
       <FlatList
-        data={[]}
-        renderItem={() => null}
-        style={{ width: '100%' }}
-        ListHeaderComponent={() => (
-          <View className="relative w-full justify-start items-start px-6 py-8">
-            <View className="w-full flex-row justify-end mb-2">
-              <TouchableOpacity onPress={handleFinishWorkout} className="p-1">
-                <Text className="text-blue text-lg font-semibold">FINISH</Text>
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              className="w-full text-lg font-semibold mb-2"
-              onChangeText={(text) => (tempWorkoutName = text)}
-              onEndEditing={() => setWorkoutName(tempWorkoutName)}
-              onBlur={() => setWorkoutName(tempWorkoutName)}
-              defaultValue={workoutName}
-            />
-            <Text className="text-grayDark text-sm mb-8">
-              {secondsToHHmmss(seconds)}
-              {/* {turnDateIntoString(workoutStartDate)} */}
-            </Text>
-
-            {/* Exercises here */}
+        data={['']}
+        renderItem={() => (
+          <View className="relative w-full justify-start items-start px-6">
             <FlatList
               data={workoutExercises}
               style={{ width: '100%' }}
@@ -575,11 +555,11 @@ const NewWorkout = () => {
                             SET
                           </Text>
                           {/* <Text
-                            className={`text-md font-semibold text-center mr-5`}
-                            style={{ width: PREVIOUS_COLUMN_WIDTH }}
-                          >
-                            PREVIOUS
-                          </Text> */}
+                        className={`text-md font-semibold text-center mr-5`}
+                        style={{ width: PREVIOUS_COLUMN_WIDTH }}
+                      >
+                        PREVIOUS
+                      </Text> */}
                           {exercise.tags.map((tag, index) => (
                             <Text
                               key={tag}
@@ -612,19 +592,43 @@ const NewWorkout = () => {
               }}
               ListEmptyComponent={() => <View className="h-24" />}
             />
-
-            <View className="w-full justify-center items-center mt-5">
-              <TouchableOpacity className="mb-4">
-                <Text className="text-blue text-lg font-semibold ">
-                  ADD EXERCISE
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Text className="text-red-500 text-lg font-semibold">
-                  CANCEL WORKOUT
-                </Text>
+          </View>
+        )}
+        style={{ width: '100%' }}
+        ListHeaderComponent={() => (
+          <View className="relative w-full justify-start items-start px-6 pt-8">
+            <View className="w-full flex-row justify-end mb-2">
+              <TouchableOpacity onPress={handleFinishWorkout} className="p-1">
+                <Text className="text-blue text-lg font-semibold">FINISH</Text>
               </TouchableOpacity>
             </View>
+            <TextInput
+              className="w-full text-lg font-semibold mb-2"
+              onChangeText={(text) => (tempWorkoutName = text)}
+              onEndEditing={() => setWorkoutName(tempWorkoutName)}
+              onBlur={() => setWorkoutName(tempWorkoutName)}
+              defaultValue={workoutName}
+            />
+            <Text className="text-grayDark text-sm mb-8">
+              {secondsToHHmmss(seconds)}
+              {/* {turnDateIntoString(workoutStartDate)} */}
+            </Text>
+
+            {/* Exercises here */}
+          </View>
+        )}
+        ListFooterComponent={() => (
+          <View className="w-full justify-center items-center mt-5 pb-8">
+            <TouchableOpacity className="mb-4">
+              <Text className="text-blue text-lg font-semibold ">
+                ADD EXERCISE
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Text className="text-red-500 text-lg font-semibold">
+                CANCEL WORKOUT
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
       />
