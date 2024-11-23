@@ -337,7 +337,7 @@ const Workout = () => {
             <View style={templatestyles.modalBox}>
               <Text style={templatestyles.modalText}>Are you sure?</Text>
               <View style={templatestyles.buttonContainer}>
-                <TouchableOpacity style={templatestyles.purplebutton}>
+                <TouchableOpacity style={templatestyles.purplebutton} onPress={()=>setremoveConfirmationVisible(false)}>
                   <Text style={templatestyles.buttonText}>No</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={templatestyles.redbutton} onPress={() => confirmRemove()}>
