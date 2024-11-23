@@ -287,7 +287,7 @@ const NewWorkout = () => {
     exerciseID: string,
     setIndex: number,
   ) => void = (exerciseID, setIndex) => {
-    console.log('start toggling set');
+    console.log('start toggling set', exerciseID, setIndex);
     const updatedExercises = workoutExercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
@@ -331,12 +331,14 @@ const NewWorkout = () => {
       return exercise;
     });
 
+    printExerciseDisplays(updatedExercises);
     setWorkoutExercises(updatedExercises);
 
     console.log('end toggling set');
   };
 
   const handleAddSet: (exerciseID: string) => void = (exerciseID) => {
+    console.log('start adding set', exerciseID);
     const updatedExercises = workoutExercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
@@ -358,7 +360,36 @@ const NewWorkout = () => {
       return exercise;
     });
 
+    printExerciseDisplays(updatedExercises);
     setWorkoutExercises(updatedExercises);
+
+    console.log('end adding set');
+  };
+
+  // Helper function to print exercise display
+  const printExerciseDisplays = (exercises: ExerciseDisplay[]) => {
+    for (const exercise of exercises) {
+      console.log(exercise.name);
+      for (const set of exercise.sets) {
+        // Print only relevant tags
+
+        let str = 'Set ' + (exercise.sets.indexOf(set) + 1) + ': ';
+        if (exercise.tags.includes(ExerciseTag.WEIGHT)) {
+          str += `WEIGHT: ${set.weight} `;
+        }
+        if (exercise.tags.includes(ExerciseTag.REPS)) {
+          str += `REPS: ${set.reps} `;
+        }
+        if (exercise.tags.includes(ExerciseTag.DISTANCE)) {
+          str += `DISTANCE: ${set.distance} `;
+        }
+        if (exercise.tags.includes(ExerciseTag.TIME)) {
+          str += `TIME: ${set.time} `;
+        }
+
+        console.log(str);
+      }
+    }
   };
 
   const handleUpdateSet: (
@@ -367,7 +398,7 @@ const NewWorkout = () => {
     tag: ExerciseTag,
     value: number,
   ) => void = (exerciseID, setIndex, tag, value) => {
-    console.log('start updating set');
+    console.log('start updating set', exerciseID, setIndex, tag, value);
 
     // Valdiate value
     if (value < 0) {
@@ -409,6 +440,7 @@ const NewWorkout = () => {
       return exercise;
     });
 
+    printExerciseDisplays(updatedExercises);
     setWorkoutExercises(updatedExercises);
     console.log('end updating set');
   };
@@ -597,7 +629,7 @@ const NewWorkout = () => {
         style={{ width: '100%' }}
         ListHeaderComponent={() => (
           <View className="relative w-full justify-start items-start px-6 pt-8">
-            <View className="w-full flex-row justify-end mb-2">
+            <View className="w-full flex-row justify-end">
               <TouchableOpacity onPress={handleFinishWorkout} className="p-1">
                 <Text className="text-blue text-lg font-semibold">FINISH</Text>
               </TouchableOpacity>
@@ -703,34 +735,40 @@ const SetItem: React.FC<{
             {setIndex + 1}
           </Text>
           {exercise.tags.map((tag, index) => {
-            let value = 0;
-            switch (tag) {
-              case ExerciseTag.WEIGHT:
-                value = set.weight;
-                break;
-              case ExerciseTag.REPS:
-                value = set.reps;
-                break;
-              case ExerciseTag.DISTANCE:
-                value = set.distance;
-                break;
-              case ExerciseTag.TIME:
-                value = set.time;
-                break;
-            }
+            const [value, setValue] = useState(() => {
+              switch (tag) {
+                case ExerciseTag.WEIGHT:
+                  return set.weight;
+                case ExerciseTag.REPS:
+                  return set.reps;
+                case ExerciseTag.DISTANCE:
+                  return set.distance;
+                case ExerciseTag.TIME:
+                  return set.time;
+                default:
+                  return 0;
+              }
+            });
 
             return (
               <TextInput
-                key={tag}
+                key={set.id + tag}
                 keyboardType="numeric"
                 style={{ width: getTagColumnWidth(tag) }}
                 className={clsx('text-md text-center bg-white rounded', {
                   'mr-5': index !== exercise.tags.length - 1,
                 })}
-                onChangeText={(text) => (value = parseInt(text))}
-                onEndEditing={() => onUpdateSet(tag, value)}
-                onBlur={() => onUpdateSet(tag, value)}
-                defaultValue={value.toString()}
+                onChangeText={(text) => {
+                  const newValue = text === '' ? 0 : parseInt(text);
+                  setValue(newValue);
+                }}
+                onEndEditing={() => {
+                  onUpdateSet(tag, value);
+                }}
+                onBlur={() => {
+                  onUpdateSet(tag, value);
+                }}
+                value={value.toString()}
               />
             );
           })}
