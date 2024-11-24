@@ -1,5 +1,11 @@
-import { ALL_EXERCISES_STUB, MuscleGroup } from '@/constants/workout';
-import { Exercise } from '@/types/workout';
+import {
+  ALL_EXERCISES_STUB,
+  BASE_EXERCISE_DISPLAY,
+  MuscleGroup,
+} from '@/constants/workout';
+import { useWorkoutStore } from '@/store/workout';
+import { Exercise, ExerciseDisplay, ExerciseSetDisplay } from '@/types/workout';
+import { printExerciseDisplays } from '@/utils/workout';
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
 import { router } from 'expo-router';
@@ -14,14 +20,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
 
-type ExerciseDisplay = Exercise & {
+type AddExerciseDisplay = Exercise & {
   selected: boolean;
 };
 
 const AddExercises = () => {
-  const [exercises, setExercises] = useState<ExerciseDisplay[]>([]);
+  const [exercises, setExercises] = useState<AddExerciseDisplay[]>([]);
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+
+  const { setWorkoutExercises } = useWorkoutStore();
 
   useEffect(() => {
     setExercises(
@@ -161,10 +169,51 @@ const AddExercises = () => {
     ];
   }, [search, exercises, selectedExerciseIds]);
 
+  const onCheckmarkPress = () => {
+    const selectedExercises: ExerciseDisplay[] = exercises
+      .filter((exercise) => selectedExerciseIds.includes(exercise.id))
+      .map((exercise) => {
+        const firstSet: ExerciseSetDisplay = {
+          id: uuidv4(),
+          weight: 0,
+          reps: 0,
+          distance: 0,
+          time: 0,
+          completed: false,
+        };
+
+        const exerciseObject: ExerciseDisplay = {
+          ...BASE_EXERCISE_DISPLAY,
+          id: uuidv4(),
+          tags: exercise.tags,
+          name: exercise.name,
+          sets: [firstSet],
+        };
+
+        return exerciseObject;
+      });
+
+    printExerciseDisplays(selectedExercises);
+
+    setWorkoutExercises((prevExercises) => {
+      const newExercises = [
+        ...prevExercises,
+        ...selectedExercises,
+      ] as ExerciseDisplay[];
+
+      return newExercises;
+    });
+
+    router.back();
+  };
+
   return (
     <SafeAreaView className="relative w-full h-full justify-start items-start bg-offWhite">
       {selectedExerciseIds.length > 0 ? (
-        <TouchableOpacity className="absolute bottom-10 right-10 z-50">
+        <TouchableOpacity
+          className="absolute bottom-10 right-10 z-50"
+          onPress={onCheckmarkPress}
+        >
           <View className="flex-row justify-center items-center bg-blue w-16 h-16 rounded-full shadow shadow-black">
             <Ionicons name="checkmark" size={30} color="white" />
           </View>

@@ -1,4 +1,21 @@
-import { Exercise, ExerciseTag } from '@/types/workout';
+import { Exercise, ExerciseDisplay, ExerciseTag } from '@/types/workout';
+
+export const BASE_EXERCISE_DISPLAY: ExerciseDisplay = {
+  id: '',
+  name: '',
+  muscleGroup: '',
+  tags: [],
+  sets: [],
+};
+
+export const BASE_EXERCISE_SET_DISPLAY = {
+  id: '',
+  weight: 0,
+  reps: 0,
+  distance: 0,
+  time: 0,
+  completed: false,
+};
 
 export enum MuscleGroup {
   CHEST = 'Chest',
@@ -11,20 +28,20 @@ export enum MuscleGroup {
 
 export const EXERCISES_STUB: Exercise[] = [
   {
-    id: '',
+    id: '3234',
     name: 'Bench Press',
     muscleGroup: 'Chest',
     tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
     sets: [
       {
-        id: '',
+        id: 'garg',
         weight: 100,
         reps: 10,
         distance: 0,
         time: 0,
       },
       {
-        id: '',
+        id: 'arga',
         weight: 100,
         reps: 8,
         distance: 0,
@@ -33,20 +50,20 @@ export const EXERCISES_STUB: Exercise[] = [
     ],
   },
   {
-    id: '',
+    id: '254',
     name: 'Jogging',
     muscleGroup: 'Cardio',
     tags: [ExerciseTag.DISTANCE, ExerciseTag.TIME],
     sets: [
       {
-        id: '',
+        id: 'gsg',
         weight: 0,
         reps: 0,
         distance: 5,
         time: 30,
       },
       {
-        id: '',
+        id: 'hdfh',
         weight: 0,
         reps: 0,
         distance: 5,

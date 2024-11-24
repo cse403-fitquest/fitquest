@@ -24,8 +24,9 @@ import {
   ExerciseTag,
   Workout,
 } from '@/types/workout';
-import { EXERCISES_STUB } from '@/constants/workout';
 import { Href, router } from 'expo-router';
+import { useWorkoutStore } from '@/store/workout';
+import { printExerciseDisplays } from '@/utils/workout';
 
 const SET_COLUMN_WIDTH = 40;
 // const PREVIOUS_COLUMN_WIDTH = 68;
@@ -49,9 +50,7 @@ const NewWorkout = () => {
   const [workoutName, setWorkoutName] = useState('Empty Workout');
   let tempWorkoutName = workoutName;
 
-  const [workoutExercises, setWorkoutExercises] = useState<ExerciseDisplay[]>(
-    [],
-  );
+  const { workoutExercises, setWorkoutExercises } = useWorkoutStore();
 
   const [seconds, setSeconds] = useState(0);
 
@@ -75,21 +74,21 @@ const NewWorkout = () => {
   const workoutStartDate = new Date();
 
   useEffect(() => {
-    setWorkoutExercises(
-      EXERCISES_STUB.map((exercise) => {
-        return {
-          ...exercise,
-          id: uuidv4(),
-          sets: exercise.sets.map((set) => {
-            return {
-              ...set,
-              id: uuidv4(),
-              completed: false,
-            };
-          }),
-        };
-      }),
-    );
+    // setWorkoutExercises(
+    //   EXERCISES_STUB.map((exercise) => {
+    //     return {
+    //       ...exercise,
+    //       id: uuidv4(),
+    //       sets: exercise.sets.map((set) => {
+    //         return {
+    //           ...set,
+    //           id: uuidv4(),
+    //           completed: false,
+    //         };
+    //       }),
+    //     };
+    //   }),
+    // );
 
     const interval = setInterval(() => {
       setSeconds((prev) => prev + 1);
@@ -267,7 +266,7 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkoutExercises(updatedExercises);
+    setWorkoutExercises(() => updatedExercises);
 
     console.log('end toggling set');
   };
@@ -296,40 +295,9 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkoutExercises(updatedExercises);
+    setWorkoutExercises(() => updatedExercises);
 
     console.log('end adding set');
-  };
-
-  // Helper function to print exercise display
-  const printExerciseDisplays = (exercises: ExerciseDisplay[]) => {
-    for (const exercise of exercises) {
-      console.log(exercise.name);
-      for (const set of exercise.sets) {
-        // Print only relevant tags
-
-        let str =
-          'ID: ' +
-          set.id.slice(0, 5) +
-          ' | Set ' +
-          (exercise.sets.indexOf(set) + 1) +
-          ': ';
-        if (exercise.tags.includes(ExerciseTag.WEIGHT)) {
-          str += `WEIGHT: ${set.weight} `;
-        }
-        if (exercise.tags.includes(ExerciseTag.REPS)) {
-          str += `REPS: ${set.reps} `;
-        }
-        if (exercise.tags.includes(ExerciseTag.DISTANCE)) {
-          str += `DISTANCE: ${set.distance} `;
-        }
-        if (exercise.tags.includes(ExerciseTag.TIME)) {
-          str += `TIME: ${set.time} `;
-        }
-
-        console.log(str);
-      }
-    }
   };
 
   // Helper function to print workout object
@@ -410,7 +378,7 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkoutExercises(updatedExercises);
+    setWorkoutExercises(() => updatedExercises);
     console.log('end updating set');
   };
 
@@ -457,6 +425,38 @@ const NewWorkout = () => {
 
       return updatedExercises;
     });
+
+    // setWorkoutExercises((prevWorkoutExercises) => {
+    //   const updatedExercisesWithDeletedSet = prevWorkoutExercises.map(
+    //     (exercise) => {
+    //       if (exercise.id === exerciseID) {
+    //         if (exercise.sets.length === 1) {
+    //           return {
+    //             ...exercise,
+    //             sets: [],
+    //           };
+    //         }
+
+    //         return {
+    //           ...exercise,
+    //           sets: exercise.sets.filter((set) => set.id !== setID),
+    //         };
+    //       }
+
+    //       return exercise;
+    //     },
+    //   );
+
+    //   // If exercise has no sets, remove the exercise
+    //   const updatedExercises = updatedExercisesWithDeletedSet.filter(
+    //     (exercise) => exercise.sets.length > 0,
+    //   );
+
+    //   printExerciseDisplays(updatedExercises);
+    //   console.log('end deleting set');
+
+    //   return updatedExercises;
+    // });
 
     // after removing the item, we start animation
     LayoutAnimation.configureNext(layoutAnimConfig);
