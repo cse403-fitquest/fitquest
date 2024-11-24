@@ -366,6 +366,7 @@ const NewWorkout = () => {
         onConfirm: () => {
           setModalVisible(false);
           // Cancel workout
+          router.back();
         },
         cancelText: 'CANCEL',
       });
