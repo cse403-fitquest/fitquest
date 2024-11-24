@@ -74,111 +74,12 @@ const NewWorkout = () => {
   const workoutStartDate = new Date();
 
   useEffect(() => {
-    // setWorkoutExercises(
-    //   EXERCISES_STUB.map((exercise) => {
-    //     return {
-    //       ...exercise,
-    //       id: uuidv4(),
-    //       sets: exercise.sets.map((set) => {
-    //         return {
-    //           ...set,
-    //           id: uuidv4(),
-    //           completed: false,
-    //         };
-    //       }),
-    //     };
-    //   }),
-    // );
-
     const interval = setInterval(() => {
       setSeconds((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(interval);
   }, []);
-
-  // const turnDateIntoString = (date: Date) => {
-  //   const dayIndex = date.getDay();
-  //   let day = 'Sunday';
-  //   switch (dayIndex) {
-  //     case 0:
-  //       day = 'Sunday';
-  //       break;
-  //     case 1:
-  //       day = 'Monday';
-  //       break;
-  //     case 2:
-  //       day = 'Tuesday';
-  //       break;
-  //     case 3:
-  //       day = 'Wednesday';
-  //       break;
-  //     case 4:
-  //       day = 'Thursday';
-  //       break;
-  //     case 5:
-  //       day = 'Friday';
-  //       break;
-  //     case 6:
-  //       day = 'Saturday';
-  //       break;
-  //   }
-
-  //   const monthIndex = date.getMonth();
-  //   let month = 'January';
-  //   switch (monthIndex) {
-  //     case 0:
-  //       month = 'January';
-  //       break;
-  //     case 1:
-  //       month = 'February';
-  //       break;
-  //     case 2:
-  //       month = 'March';
-  //       break;
-  //     case 3:
-  //       month = 'April';
-  //       break;
-  //     case 4:
-  //       month = 'May';
-  //       break;
-  //     case 5:
-  //       month = 'June';
-  //       break;
-  //     case 6:
-  //       month = 'July';
-  //       break;
-  //     case 7:
-  //       month = 'August';
-  //       break;
-  //     case 8:
-  //       month = 'September';
-  //       break;
-  //     case 9:
-  //       month = 'October';
-  //       break;
-  //     case 10:
-  //       month = 'November';
-  //       break;
-  //     case 11:
-  //       month = 'December';
-  //       break;
-  //   }
-
-  //   const hourIndex = date.getHours();
-  //   let hour = hourIndex.toString();
-  //   if (hourIndex < 10) {
-  //     hour = `0${hourIndex}`;
-  //   }
-
-  //   const minuteIndex = date.getMinutes();
-  //   let minute = minuteIndex.toString();
-  //   if (minuteIndex < 10) {
-  //     minute = `0${minuteIndex}`;
-  //   }
-
-  //   return `${day}, ${month} ${date.getDate()}, ${date.getFullYear()} at ${hour}:${minute}`;
-  // };
 
   const turnTagIntoString = (tag: ExerciseTag) => {
     switch (tag) {
@@ -426,38 +327,6 @@ const NewWorkout = () => {
       return updatedExercises;
     });
 
-    // setWorkoutExercises((prevWorkoutExercises) => {
-    //   const updatedExercisesWithDeletedSet = prevWorkoutExercises.map(
-    //     (exercise) => {
-    //       if (exercise.id === exerciseID) {
-    //         if (exercise.sets.length === 1) {
-    //           return {
-    //             ...exercise,
-    //             sets: [],
-    //           };
-    //         }
-
-    //         return {
-    //           ...exercise,
-    //           sets: exercise.sets.filter((set) => set.id !== setID),
-    //         };
-    //       }
-
-    //       return exercise;
-    //     },
-    //   );
-
-    //   // If exercise has no sets, remove the exercise
-    //   const updatedExercises = updatedExercisesWithDeletedSet.filter(
-    //     (exercise) => exercise.sets.length > 0,
-    //   );
-
-    //   printExerciseDisplays(updatedExercises);
-    //   console.log('end deleting set');
-
-    //   return updatedExercises;
-    // });
-
     // after removing the item, we start animation
     LayoutAnimation.configureNext(layoutAnimConfig);
   }, []);
@@ -637,7 +506,6 @@ const NewWorkout = () => {
           />
           <Text className="text-grayDark text-sm mb-8">
             {secondsToHHmmss(seconds)}
-            {/* {turnDateIntoString(workoutStartDate)} */}
           </Text>
 
           {/* Exercises here */}

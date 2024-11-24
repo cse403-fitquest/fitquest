@@ -43,7 +43,7 @@ export default function RootLayout() {
 
         // Navigate to the appropriate screen
         if (userData.isOnboardingCompleted) {
-          router.replace('/new-workout' as Href);
+          router.replace('/workout-template' as Href);
         } else {
           router.replace('/01-welcome' as Href);
         }

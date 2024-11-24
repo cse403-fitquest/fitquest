@@ -6,7 +6,7 @@ const ExerciseLayout = () => {
     <>
       <Stack>
         <Stack.Screen
-          name="template"
+          name="workout-template"
           options={{
             headerShown: false,
           }}
