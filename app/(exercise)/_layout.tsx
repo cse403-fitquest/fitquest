@@ -18,7 +18,7 @@ const ExerciseLayout = () => {
           }}
         />
         <Stack.Screen
-          name="exercises"
+          name="add-exercises"
           options={{
             headerShown: false,
           }}

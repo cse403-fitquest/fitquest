@@ -17,96 +17,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
 import React from 'react';
 import FQModal from '@/components/FQModal';
-
-const enum ExerciseTag {
-  WEIGHT = 'WEIGHT',
-  REPS = 'REPS',
-  DISTANCE = 'DISTANCE',
-  TIME = 'TIME',
-}
-
-type ExerciseSet = {
-  id: string;
-  weight: number;
-  reps: number;
-  distance: number;
-  time: number;
-};
-
-type ExerciseSetDisplay = {
-  id: string;
-  weight: number;
-  reps: number;
-  distance: number;
-  time: number;
-  completed: boolean;
-};
-
-type Exercise = {
-  id: string;
-  name: string;
-  tags: ExerciseTag[];
-  sets: ExerciseSet[];
-};
-
-type ExerciseDisplay = {
-  id: string;
-  name: string;
-  tags: ExerciseTag[];
-  sets: ExerciseSetDisplay[];
-};
-
-type Workout = {
-  title: string;
-  startedAt: Date;
-  duration: number;
-  exercises: Exercise[];
-};
-
-const EXERCISES_STUB: Exercise[] = [
-  {
-    id: uuidv4(),
-    name: 'Bench Press',
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
-    sets: [
-      {
-        id: uuidv4(),
-        weight: 100,
-        reps: 10,
-        distance: 0,
-        time: 0,
-      },
-      {
-        id: uuidv4(),
-        weight: 100,
-        reps: 10,
-        distance: 0,
-        time: 0,
-      },
-    ],
-  },
-  {
-    id: uuidv4() + 3,
-    name: 'Jogging',
-    tags: [ExerciseTag.DISTANCE, ExerciseTag.TIME],
-    sets: [
-      {
-        id: uuidv4() + 1,
-        weight: 0,
-        reps: 0,
-        distance: 5,
-        time: 30,
-      },
-      {
-        id: uuidv4() + 2,
-        weight: 0,
-        reps: 0,
-        distance: 5,
-        time: 30,
-      },
-    ],
-  },
-];
+import {
+  Exercise,
+  ExerciseDisplay,
+  ExerciseSetDisplay,
+  ExerciseTag,
+  Workout,
+} from '@/types/workout';
+import { EXERCISES_STUB } from '@/constants/workout';
+import { Href, router } from 'expo-router';
 
 const SET_COLUMN_WIDTH = 40;
 // const PREVIOUS_COLUMN_WIDTH = 68;
@@ -160,9 +79,11 @@ const NewWorkout = () => {
       EXERCISES_STUB.map((exercise) => {
         return {
           ...exercise,
+          id: uuidv4(),
           sets: exercise.sets.map((set) => {
             return {
               ...set,
+              id: uuidv4(),
               completed: false,
             };
           }),
@@ -582,7 +503,7 @@ const NewWorkout = () => {
       title: 'Finished?',
       content: (
         <View className="w-full justify-start items-start pt-3 pb-1">
-          <Text className="mb-3">All empty sets will be discarded.</Text>
+          <Text className="mb-3">All uncompleted sets will be discarded.</Text>
 
           <Text className="text-md font-bold">
             EXP GAIN:{' '}
@@ -803,7 +724,10 @@ const NewWorkout = () => {
         )}
         ListFooterComponent={() => (
           <View className="w-full justify-center items-center mt-5 pb-8">
-            <TouchableOpacity className="mb-4">
+            <TouchableOpacity
+              className="mb-4"
+              onPress={() => router.push('add-exercises' as Href)}
+            >
               <Text className="text-blue text-lg font-semibold ">
                 ADD EXERCISE
               </Text>
