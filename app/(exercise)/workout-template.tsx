@@ -101,6 +101,23 @@ const WorkoutTemplate = () => {
     return `${day}, ${month} ${date.getDate()}, ${date.getFullYear()} at ${hour}:${minute}`;
   };
 
+  const onEditTemplatePress = () => {
+    // Turn template from Exercise[] into ExerciseDisplay[]
+    const workoutExercises = template.map((exercise) => ({
+      ...exercise,
+      sets: exercise.sets.map((set) => ({
+        ...set,
+        completed: false,
+      })),
+    }));
+
+    // Set the workoutExercises in the store
+    setWorkoutExercises(() => workoutExercises);
+
+    // Navigate to the edit template screen
+    router.push('/edit-workout-template' as Href);
+  };
+
   const onPerformWorkoutPress = () => {
     // Turn template from Exercise[] into ExerciseDisplay[]
     const workoutExercises = template.map((exercise) => ({
@@ -117,20 +134,33 @@ const WorkoutTemplate = () => {
     setWorkoutExercises(() => workoutExercises);
 
     // Navigate to the workout screen
-    router.replace('/new-workout' as Href);
+    router.push('/new-workout' as Href);
   };
 
   return (
-    <SafeAreaView className="relative w-full h-full justify-start items-start bg-offWhite px-6 pt-8">
+    <SafeAreaView className="relative w-full h-full justify-start items-start bg-offWhite ">
       <FlatList
         data={[]}
         renderItem={() => null}
         style={{ width: '100%' }}
         ListHeaderComponent={
-          <View className="relative w-full h-full justify-start items-start ">
-            <TouchableOpacity onPress={() => router.back()} className="mb-5">
-              <Ionicons name="arrow-back" size={35} color="black" />
-            </TouchableOpacity>
+          <View className="relative w-full h-full justify-start items-start px-6 pt-8">
+            <View className="mb-5 w-full flex-row justify-between items-center">
+              <TouchableOpacity onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={35} color="black" />
+              </TouchableOpacity>
+              <View className="flex-row items-center">
+                <TouchableOpacity
+                  className="mr-5"
+                  onPress={onEditTemplatePress}
+                >
+                  <Text className="font-semibold text-blue p-1">EDIT</Text>
+                </TouchableOpacity>
+                <TouchableOpacity>
+                  <Text className="font-semibold text-red-500 p-1">DELETE</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
             <Text className="w-full text-3xl font-semibold mb-2">
               Sample Template Name 1
             </Text>
@@ -217,7 +247,7 @@ const WorkoutTemplate = () => {
                 </View>
               )}
             />
-            <View className="w-full">
+            <View className="w-full mb-8">
               <FQButton onPress={onPerformWorkoutPress}>
                 PERFORM WORKOUT
               </FQButton>

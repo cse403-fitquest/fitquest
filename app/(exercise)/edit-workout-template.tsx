@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -52,8 +52,6 @@ const NewWorkout = () => {
 
   const { workoutExercises, setWorkoutExercises } = useWorkoutStore();
 
-  const [seconds, setSeconds] = useState(0);
-
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState<{
     title: string;
@@ -73,14 +71,6 @@ const NewWorkout = () => {
 
   const workoutStartDate = new Date();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSeconds((prev) => prev + 1);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   const turnTagIntoString = (tag: ExerciseTag) => {
     switch (tag) {
       case ExerciseTag.WEIGHT:
@@ -92,84 +82,6 @@ const NewWorkout = () => {
       case ExerciseTag.TIME:
         return 'TIME';
     }
-  };
-
-  const secondsToHHmmss = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-
-    let hoursString = hours.toString();
-    let minutesString = minutes.toString();
-    let remainingSecondsString = remainingSeconds.toString();
-
-    if (hours < 10) {
-      hoursString = `0${hours}`;
-    }
-
-    if (minutes < 10) {
-      minutesString = `0${minutes}`;
-    }
-
-    if (remainingSeconds < 10) {
-      remainingSecondsString = `0${remainingSeconds}`;
-    }
-
-    return `${hoursString}:${minutesString}:${remainingSecondsString}`;
-  };
-
-  const handleToggleCompleteSet: (exerciseID: string, setID: string) => void = (
-    exerciseID,
-    setID,
-  ) => {
-    console.log('start toggling set', exerciseID, setID);
-    const updatedExercises = workoutExercises.map((exercise) => {
-      if (exercise.id === exerciseID) {
-        return {
-          ...exercise,
-          sets: exercise.sets.map((set) => {
-            if (set.id === setID) {
-              // If set is empty, do nothing
-              if (
-                set.distance === 0 &&
-                set.time === 0 &&
-                set.reps === 0 &&
-                set.weight === 0
-              ) {
-                return set;
-              }
-
-              // If exercise includes reps, check if reps is 0
-              if (exercise.tags.includes(ExerciseTag.REPS) && set.reps === 0) {
-                return set;
-              }
-
-              // If exercise includes distance, check if distance is 0
-              if (
-                exercise.tags.includes(ExerciseTag.DISTANCE) &&
-                set.distance === 0
-              ) {
-                return set;
-              }
-
-              return {
-                ...set,
-                completed: !set.completed,
-              };
-            }
-
-            return set;
-          }),
-        };
-      }
-
-      return exercise;
-    });
-
-    printExerciseDisplays(updatedExercises);
-    setWorkoutExercises(() => updatedExercises);
-
-    console.log('end toggling set');
   };
 
   const handleAddSet: (exerciseID: string) => void = (exerciseID) => {
@@ -286,7 +198,7 @@ const NewWorkout = () => {
   const layoutAnimConfig = {
     duration: 300,
     delete: {
-      duration: 100,
+      duration: 200,
       type: LayoutAnimation.Types.easeInEaseOut,
       property: LayoutAnimation.Properties.opacity,
     },
@@ -339,59 +251,18 @@ const NewWorkout = () => {
     setWorkoutExercises(() => updatedExercises);
   };
 
-  const onFinishWorkoutPress = () => {
-    // Check if there are no completed sets
-    let hasCompletedSets = false;
-    for (const exercise of workoutExercises) {
-      for (const set of exercise.sets) {
-        if (set.completed) {
-          hasCompletedSets = true;
-          break;
-        }
-      }
-    }
-
-    if (!hasCompletedSets) {
-      setModalContent({
-        title: 'No Completed Sets',
-        content: (
-          <View className="w-full justify-start items-start pt-3 pb-1">
-            <Text>
-              There are no completed sets. Are you sure you want to finish? This
-              will amount to cancelling this workout
-            </Text>
-          </View>
-        ),
-        confirmText: 'CANCEL WORKOUT',
-        onConfirm: () => {
-          setModalVisible(false);
-          // Cancel workout
-        },
-        cancelText: 'CANCEL',
-      });
-
-      setModalVisible(true);
-      return;
-    }
-
-    const expGain = seconds * 500;
-
+  const onSaveTemplatePress = () => {
     setModalContent({
-      title: 'Finished?',
+      title: 'Save template?',
       content: (
         <View className="w-full justify-start items-start pt-3 pb-1">
-          <Text className="mb-3">All uncompleted sets will be discarded.</Text>
-
-          <Text className="text-md font-bold">
-            EXP GAIN:{' '}
-            <Text className="text-yellow font-bold">{expGain} XP</Text>
-          </Text>
+          <Text>Are you sure you wish to save this template?</Text>
         </View>
       ),
-      confirmText: 'FINISH WORKOUT',
+      confirmText: 'SAVE TEMPLATE',
       onConfirm: () => {
-        handleFinishWorkout(seconds);
         setModalVisible(false);
+        handleSaveTemplate();
       },
       cancelText: 'CANCEL',
     });
@@ -399,83 +270,37 @@ const NewWorkout = () => {
     setModalVisible(true);
   };
 
-  const onCancelWorkoutPress = () => {
-    setModalContent({
-      title: 'Cancel Workout?',
-      content: (
-        <View className="w-full justify-start items-start pt-3 pb-1">
-          <Text>
-            Are you sure you want to cancel and discard this workout? This
-            cannot be undone.
-          </Text>
-        </View>
-      ),
-      confirmText: 'CANCEL WORKOUT',
-      onConfirm: () => {
-        setModalVisible(false);
-        router.back();
-      },
-      cancelText: 'BACK',
-      onCancel: () => {
-        setModalVisible(false);
-      },
-    });
-
-    setModalVisible(true);
-  };
-
-  const handleFinishWorkout = (seconds: number) => {
-    // Filter out  sets that are not completed
-    const exercisesWithCompletedSets = workoutExercises.map((exercise) => {
+  const handleSaveTemplate = () => {
+    // Turn Execises with SetDisplay into Exercises with Set (no completed field)
+    const exercises: Exercise[] = workoutExercises.map((exercise) => {
       return {
         ...exercise,
-        sets: exercise.sets.filter((set) => {
-          // Check if set is completed
-          if (!set.completed) {
-            return false;
-          }
-          return true;
+        sets: exercise.sets.map((set) => {
+          return {
+            id: set.id,
+            weight: set.weight,
+            reps: set.reps,
+            distance: set.distance,
+            time: set.time,
+          };
         }),
       };
     });
-
-    // Remove exercises with no completed sets
-    const exercisesThatHasCompletedSets = exercisesWithCompletedSets.filter(
-      (exercise) => exercise.sets.length > 0,
-    );
-
-    // Turn Execises with SetDisplay into Exercises with Set (no completed field)
-    const exercises: Exercise[] = exercisesThatHasCompletedSets.map(
-      (exercise) => {
-        return {
-          ...exercise,
-          sets: exercise.sets.map((set) => {
-            return {
-              id: set.id,
-              weight: set.weight,
-              reps: set.reps,
-              distance: set.distance,
-              time: set.time,
-            };
-          }),
-        };
-      },
-    );
 
     // Create workout object
     const workout: Workout = {
       title: workoutName,
       startedAt: workoutStartDate,
-      duration: seconds,
+      duration: 0,
       exercises: exercises,
     };
 
     // Print workout object
     printWorkout(workout);
 
-    // TODO: Save workout object
-    // TODO: Update user exp
-    // TODO: Redirect to workout screen
+    // TODO: Save workout object to database and update store
+
+    router.back();
   };
 
   return (
@@ -494,21 +319,22 @@ const NewWorkout = () => {
 
       <ScrollView className="w-full">
         <View className="relative w-full justify-start items-start px-6 pt-8">
-          <View className="w-full flex-row justify-end">
-            <TouchableOpacity onPress={onFinishWorkoutPress} className="p-1">
-              <Text className="text-blue text-lg font-semibold">FINISH</Text>
+          <View className="w-full flex-row justify-between items-center mb-5">
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={35} color="black" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onSaveTemplatePress} className="p-1">
+              <Text className="text-blue text-lg font-semibold">
+                SAVE TEMPLATE
+              </Text>
             </TouchableOpacity>
           </View>
           <TextInput
-            className="w-full text-lg font-semibold mb-2"
+            className="w-full text-lg font-semibold mb-8"
             onChangeText={(text) => setWorkoutName(text)}
             value={workoutName}
             defaultValue={''}
           />
-          <Text className="text-grayDark text-sm mb-8">
-            {secondsToHHmmss(seconds)}
-          </Text>
-
           {/* Exercises here */}
         </View>
         <View className="relative w-full justify-start items-start">
@@ -570,9 +396,6 @@ const NewWorkout = () => {
                           exercise={exercise}
                           set={set}
                           setIndex={setIndex}
-                          onCompleteSet={() =>
-                            handleToggleCompleteSet(exercise.id, set.id)
-                          }
                           onUpdateSet={(tag, value) =>
                             handleUpdateSet(exercise.id, set.id, tag, value)
                           }
@@ -638,11 +461,6 @@ const NewWorkout = () => {
               ADD EXERCISE
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={onCancelWorkoutPress}>
-            <Text className="text-red-500 text-lg font-semibold">
-              CANCEL WORKOUT
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -655,10 +473,9 @@ const SetItem: React.FC<{
   exercise: ExerciseDisplay;
   set: ExerciseSetDisplay;
   setIndex: number;
-  onCompleteSet: () => void;
   onUpdateSet: (tag: ExerciseTag, value: number) => void;
   onDeleteSet: () => void;
-}> = ({ exercise, set, setIndex, onCompleteSet, onUpdateSet, onDeleteSet }) => {
+}> = ({ exercise, set, setIndex, onUpdateSet, onDeleteSet }) => {
   const translateX = useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
@@ -753,25 +570,6 @@ const SetItem: React.FC<{
               />
             );
           })}
-          <TouchableOpacity
-            className="ml-auto p-1"
-            onPress={() => onCompleteSet()}
-          >
-            <View
-              className={clsx('w-6 h-6 rounded justify-center items-center', {
-                'bg-blue': set.completed,
-                'bg-gray': !set.completed,
-              })}
-            >
-              <Ionicons
-                name="checkmark-outline"
-                style={{
-                  color: 'white',
-                  fontSize: 16,
-                }}
-              />
-            </View>
-          </TouchableOpacity>
         </View>
         <View
           className="absolute h-full justify-center items-start bg-red-500"

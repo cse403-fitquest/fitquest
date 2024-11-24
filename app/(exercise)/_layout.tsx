@@ -12,6 +12,12 @@ const ExerciseLayout = () => {
           }}
         />
         <Stack.Screen
+          name="edit-workout-template"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
           name="new-workout"
           options={{
             headerShown: false,
