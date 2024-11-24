@@ -1,10 +1,16 @@
-import { ALL_EXERCISES_STUB } from '@/constants/workout';
+import { ALL_EXERCISES_STUB, MuscleGroup } from '@/constants/workout';
 import { Exercise } from '@/types/workout';
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { View, FlatList, Text, TouchableOpacity } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  TextInput,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -15,6 +21,7 @@ type ExerciseDisplay = Exercise & {
 const AddExercises = () => {
   const [exercises, setExercises] = useState<ExerciseDisplay[]>([]);
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     setExercises(
@@ -44,6 +51,100 @@ const AddExercises = () => {
     });
   };
 
+  const chestExercisesSection = {
+    title: 'Chest',
+    data: exercises.filter(
+      (exercise) => exercise.muscleGroup === MuscleGroup.CHEST,
+    ),
+  };
+
+  const backExercisesSection = {
+    title: 'Back',
+    data: exercises.filter(
+      (exercise) => exercise.muscleGroup === MuscleGroup.BACK,
+    ),
+  };
+
+  const legsExercisesSection = {
+    title: 'Legs',
+    data: exercises.filter(
+      (exercise) => exercise.muscleGroup === MuscleGroup.LEGS,
+    ),
+  };
+
+  const coreExercisesSection = {
+    title: 'Core',
+    data: exercises.filter(
+      (exercise) => exercise.muscleGroup === MuscleGroup.CORE,
+    ),
+  };
+
+  const cardioExercisesSection = {
+    title: 'Cardio',
+    data: exercises.filter(
+      (exercise) => exercise.muscleGroup === MuscleGroup.CARDIO,
+    ),
+  };
+
+  const sections = useMemo(() => {
+    if (!search) {
+      return [
+        chestExercisesSection,
+        backExercisesSection,
+        legsExercisesSection,
+        coreExercisesSection,
+        cardioExercisesSection,
+      ];
+    }
+
+    const filteredExercises = exercises.filter((exercise) =>
+      exercise.name.toLowerCase().includes(search.toLowerCase()),
+    );
+
+    const filteredChestExercisesSection = {
+      title: 'Chest',
+      data: filteredExercises.filter(
+        (exercise) => exercise.muscleGroup === MuscleGroup.CHEST,
+      ),
+    };
+
+    const filteredBackExercisesSection = {
+      title: 'Back',
+      data: filteredExercises.filter(
+        (exercise) => exercise.muscleGroup === MuscleGroup.BACK,
+      ),
+    };
+
+    const filteredLegsExercisesSection = {
+      title: 'Legs',
+      data: filteredExercises.filter(
+        (exercise) => exercise.muscleGroup === MuscleGroup.LEGS,
+      ),
+    };
+
+    const filteredCoreExercisesSection = {
+      title: 'Core',
+      data: filteredExercises.filter(
+        (exercise) => exercise.muscleGroup === MuscleGroup.CORE,
+      ),
+    };
+
+    const filteredCardioExercisesSection = {
+      title: 'Cardio',
+      data: filteredExercises.filter(
+        (exercise) => exercise.muscleGroup === MuscleGroup.CARDIO,
+      ),
+    };
+
+    return [
+      filteredChestExercisesSection,
+      filteredBackExercisesSection,
+      filteredLegsExercisesSection,
+      filteredCoreExercisesSection,
+      filteredCardioExercisesSection,
+    ];
+  }, [search, exercises, selectedExerciseIds]);
+
   return (
     <SafeAreaView className="relative w-full h-full justify-start items-start bg-offWhite">
       {selectedExerciseIds.length > 0 ? (
@@ -55,9 +156,9 @@ const AddExercises = () => {
       ) : null}
 
       <FlatList
-        data={exercises}
+        data={sections}
         style={{ width: '100%' }}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.title}
         ListHeaderComponent={
           <View className="px-6 pt-8 mb-4">
             <TouchableOpacity onPress={() => router.back()} className="mb-5">
@@ -66,35 +167,55 @@ const AddExercises = () => {
             <Text className="text-3xl font-medium mb-2">Add exercises</Text>
 
             <Text className="text-md font-medium">ALL EXERCISES</Text>
+
+            <TextInput
+              placeholder="Search exercises"
+              className="w-full h-12 px-4 mt-2 bg-white rounded"
+              value={search}
+              onChangeText={setSearch}
+            />
           </View>
         }
         renderItem={({ item: exercise }) => (
-          <TouchableOpacity onPress={() => onExercisePress(exercise.id)}>
-            <View
-              className={clsx('justify-center items-start py-2', {
-                'bg-blue': exercise.selected,
-              })}
-            >
-              <View className="px-10">
-                <Text
-                  className={clsx({
-                    'text-white': exercise.selected,
-                  })}
-                >
-                  {exercise.name}
-                </Text>
-                <Text
-                  className={clsx('font-semibold', {
-                    'text-white': exercise.selected,
-                  })}
-                >
-                  {exercise.muscleGroup}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+          <View>
+            <Text className="text-lg font-medium mb-2 px-6">
+              {exercise.title}
+            </Text>
+
+            <FlatList
+              data={exercise.data}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item: exercise }) => (
+                <TouchableOpacity onPress={() => onExercisePress(exercise.id)}>
+                  <View
+                    className={clsx('justify-center items-start py-2', {
+                      'bg-blue': exercise.selected,
+                    })}
+                  >
+                    <View className="px-10">
+                      <Text
+                        className={clsx('py-2', {
+                          'text-white': exercise.selected,
+                        })}
+                      >
+                        {exercise.name}
+                      </Text>
+                      {/* <Text
+                        className={clsx('font-semibold', {
+                          'text-white': exercise.selected,
+                        })}
+                      >
+                        {exercise.muscleGroup}
+                      </Text> */}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              )}
+              ItemSeparatorComponent={() => <View className="h-1" />}
+            />
+          </View>
         )}
-        ItemSeparatorComponent={() => <View className="h-1" />}
+        ItemSeparatorComponent={() => <View className="h-4" />}
       />
     </SafeAreaView>
   );
