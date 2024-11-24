@@ -14,6 +14,7 @@ type ExerciseDisplay = Exercise & {
 
 const AddExercises = () => {
   const [exercises, setExercises] = useState<ExerciseDisplay[]>([]);
+  const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
 
   useEffect(() => {
     setExercises(
@@ -33,10 +34,26 @@ const AddExercises = () => {
           : exercise,
       ),
     );
+
+    setSelectedExerciseIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((prevId) => prevId !== id);
+      }
+
+      return [...prev, id];
+    });
   };
 
   return (
     <SafeAreaView className="relative w-full h-full justify-start items-start bg-offWhite">
+      {selectedExerciseIds.length > 0 ? (
+        <TouchableOpacity className="absolute bottom-10 right-10">
+          <View className="flex-row justify-center items-center bg-blue w-16 h-16 rounded-full">
+            <Ionicons name="checkmark" size={30} color="white" />
+          </View>
+        </TouchableOpacity>
+      ) : null}
+
       <FlatList
         data={exercises}
         style={{ width: '100%' }}
@@ -58,7 +75,7 @@ const AddExercises = () => {
                 'bg-blue': exercise.selected,
               })}
             >
-              <View className="px-6">
+              <View className="px-10">
                 <Text
                   className={clsx({
                     'text-white': exercise.selected,
