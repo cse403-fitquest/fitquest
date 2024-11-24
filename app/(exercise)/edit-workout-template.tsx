@@ -48,9 +48,8 @@ export const getTagColumnWidth = (tag: ExerciseTag) => {
 };
 
 const NewWorkout = () => {
-  const [workoutName, setWorkoutName] = useState('Empty Workout');
-
-  const { workoutExercises, setWorkoutExercises } = useWorkoutStore();
+  const { workoutName, setWorkoutName, workoutExercises, setWorkoutExercises } =
+    useWorkoutStore();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState<{

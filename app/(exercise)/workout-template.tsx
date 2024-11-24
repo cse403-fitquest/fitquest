@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 const WorkoutTemplate = () => {
   const [template, setTemplate] = useState<Exercise[]>([]);
 
-  const { setWorkoutExercises } = useWorkoutStore();
+  const { setWorkoutName, setWorkoutExercises } = useWorkoutStore();
 
   const [setModalVisible, setSetModalVisible] = useState(false);
   const [setModalContent, setSetModalContent] = useState<{
@@ -151,6 +151,9 @@ const WorkoutTemplate = () => {
   };
 
   const onPerformWorkoutPress = () => {
+    // Set workout name
+    setWorkoutName('Sample Template Name 1');
+
     // Turn template from Exercise[] into ExerciseDisplay[]
     const workoutExercises = template.map((exercise) => ({
       ...exercise,

@@ -3,6 +3,10 @@ import { ExerciseDisplay } from '@/types/workout';
 import { create } from 'zustand';
 
 interface IWorkoutStore {
+  workoutName: string;
+
+  setWorkoutName: (name: string) => void;
+
   workoutExercises: ExerciseDisplay[];
 
   setWorkoutExercises: (
@@ -11,6 +15,10 @@ interface IWorkoutStore {
 }
 
 export const useWorkoutStore = create<IWorkoutStore>((set) => ({
+  workoutName: '',
+
+  setWorkoutName: (name) => set({ workoutName: name }),
+
   workoutExercises: [],
   //   workoutExercises: EXERCISES_STUB.map((exercise) => ({
   //     ...exercise,
