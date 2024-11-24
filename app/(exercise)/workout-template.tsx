@@ -116,6 +116,9 @@ const WorkoutTemplate = () => {
   };
 
   const onEditTemplatePress = () => {
+    // Set workout name
+    setWorkoutName('Sample Template Name 1');
+
     // Turn template from Exercise[] into ExerciseDisplay[]
     const workoutExercises = template.map((exercise) => ({
       ...exercise,
