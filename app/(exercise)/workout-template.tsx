@@ -1,10 +1,11 @@
 import FQButton from '@/components/FQButton';
+import FQModal from '@/components/FQModal';
 import { EXERCISES_STUB } from '@/constants/workout';
 import { useWorkoutStore } from '@/store/workout';
 import { Exercise, ExerciseTag } from '@/types/workout';
 import { Ionicons } from '@expo/vector-icons';
 import { Href, router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,6 +14,19 @@ const WorkoutTemplate = () => {
   const [template, setTemplate] = useState<Exercise[]>([]);
 
   const { setWorkoutExercises } = useWorkoutStore();
+
+  const [setModalVisible, setSetModalVisible] = useState(false);
+  const [setModalContent, setSetModalContent] = useState<{
+    title: string;
+    content: ReactNode;
+    confirmText: string;
+    onConfirm: () => void;
+  }>({
+    title: '',
+    content: null,
+    confirmText: '',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     setTemplate(EXERCISES_STUB);
@@ -118,6 +132,24 @@ const WorkoutTemplate = () => {
     router.push('/edit-workout-template' as Href);
   };
 
+  const onDeleteTemplatePress = () => {
+    setSetModalContent({
+      title: 'Delete Template',
+      content: (
+        <Text className="pt-1">
+          Are you sure you want to delete this template? This action cannot be
+          undone.
+        </Text>
+      ),
+      confirmText: 'DELETE',
+      onConfirm: () => {
+        // Delete the template
+      },
+    });
+
+    setSetModalVisible(true);
+  };
+
   const onPerformWorkoutPress = () => {
     // Turn template from Exercise[] into ExerciseDisplay[]
     const workoutExercises = template.map((exercise) => ({
@@ -139,6 +171,19 @@ const WorkoutTemplate = () => {
 
   return (
     <SafeAreaView className="relative w-full h-full justify-start items-start bg-offWhite ">
+      <FQModal
+        visible={setModalVisible}
+        setVisible={setSetModalVisible}
+        title={setModalContent.title}
+        confirmText={setModalContent.confirmText}
+        onConfirm={setModalContent.onConfirm}
+        onCancel={() => setSetModalVisible(false)}
+        cancelText="CANCEL"
+        width={300}
+      >
+        {setModalContent.content}
+      </FQModal>
+
       <FlatList
         data={[]}
         renderItem={() => null}
@@ -156,7 +201,7 @@ const WorkoutTemplate = () => {
                 >
                   <Text className="font-semibold text-blue p-1">EDIT</Text>
                 </TouchableOpacity>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={onDeleteTemplatePress}>
                   <Text className="font-semibold text-red-500 p-1">DELETE</Text>
                 </TouchableOpacity>
               </View>
