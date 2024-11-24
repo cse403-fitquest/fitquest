@@ -695,7 +695,7 @@ const NewWorkout = () => {
                   </View>
                 );
               }}
-              ListEmptyComponent={() => <View className="h-24" />}
+              ListEmptyComponent={() => <View className="h-5" />}
             />
           </View>
         )}

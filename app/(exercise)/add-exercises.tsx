@@ -80,6 +80,13 @@ const AddExercises = () => {
     ),
   };
 
+  const shouldersExercisesSection = {
+    title: 'Shoulders',
+    data: exercises.filter(
+      (exercise) => exercise.muscleGroup === MuscleGroup.SHOULDERS,
+    ),
+  };
+
   const legsExercisesSection = {
     title: 'Legs',
     data: exercises.filter(
@@ -107,6 +114,7 @@ const AddExercises = () => {
         chestExercisesSection,
         backExercisesSection,
         armExercisesSection,
+        shouldersExercisesSection,
         legsExercisesSection,
         coreExercisesSection,
         cardioExercisesSection,
@@ -138,6 +146,13 @@ const AddExercises = () => {
       ),
     };
 
+    const filteredShoulderExercisesSection = {
+      title: 'Shoulders',
+      data: filteredExercises.filter(
+        (exercise) => exercise.muscleGroup === MuscleGroup.SHOULDERS,
+      ),
+    };
+
     const filteredLegsExercisesSection = {
       title: 'Legs',
       data: filteredExercises.filter(
@@ -163,6 +178,7 @@ const AddExercises = () => {
       filteredChestExercisesSection,
       filteredBackExercisesSection,
       filteredArmExercisesSection,
+      filteredShoulderExercisesSection,
       filteredLegsExercisesSection,
       filteredCoreExercisesSection,
       filteredCardioExercisesSection,
