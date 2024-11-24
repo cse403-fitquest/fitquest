@@ -11,6 +11,7 @@ import {
   PanResponder,
   Dimensions,
   LayoutAnimation,
+  ScrollView,
 } from 'react-native';
 import 'react-native-get-random-values';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -48,7 +49,6 @@ export const getTagColumnWidth = (tag: ExerciseTag) => {
 
 const NewWorkout = () => {
   const [workoutName, setWorkoutName] = useState('Empty Workout');
-  let tempWorkoutName = workoutName;
 
   const { workoutExercises, setWorkoutExercises } = useWorkoutStore();
 
@@ -614,132 +614,150 @@ const NewWorkout = () => {
         {modalContent.content}
       </FQModal>
 
-      <FlatList
-        data={['']}
-        renderItem={() => (
-          <View className="relative w-full justify-start items-start px-6">
-            <FlatList
-              data={workoutExercises}
-              style={{ width: '100%' }}
-              keyExtractor={(exercise) => exercise.id}
-              renderItem={({ item: exercise }) => {
-                return (
-                  <View className="w-full justify-start items-start mb-5">
+      <ScrollView className="w-full">
+        <View className="relative w-full justify-start items-start px-6 pt-8">
+          <View className="w-full flex-row justify-end">
+            <TouchableOpacity onPress={onFinishWorkoutPress} className="p-1">
+              <Text className="text-blue text-lg font-semibold">FINISH</Text>
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            className="w-full text-lg font-semibold mb-2"
+            onChangeText={(text) => setWorkoutName(text)}
+            value={workoutName}
+            defaultValue={''}
+          />
+          <Text className="text-grayDark text-sm mb-8">
+            {secondsToHHmmss(seconds)}
+            {/* {turnDateIntoString(workoutStartDate)} */}
+          </Text>
+
+          {/* Exercises here */}
+        </View>
+        <View className="relative w-full justify-start items-start">
+          <FlatList
+            data={workoutExercises}
+            scrollEnabled={false}
+            style={{ width: '100%' }}
+            keyExtractor={(exercise) => exercise.id}
+            renderItem={({ item: exercise, index: exerciseIndex }) => {
+              return (
+                <View className="w-full justify-start items-start mb-5">
+                  <View className="w-full flex-row justify-between items-center px-6">
                     <Text className="text-lg font-base mb-2">
                       {exercise.name}
                     </Text>
-                    <FlatList
-                      data={exercise.sets}
-                      style={{ width: '100%' }}
-                      keyExtractor={(set) => set.id}
-                      renderItem={({ item: set, index: setIndex }) => {
-                        return (
-                          <SetItem
-                            key={set.id}
-                            exercise={exercise}
-                            set={set}
-                            setIndex={setIndex}
-                            onCompleteSet={() =>
-                              handleToggleCompleteSet(exercise.id, set.id)
-                            }
-                            onUpdateSet={(tag, value) =>
-                              handleUpdateSet(exercise.id, set.id, tag, value)
-                            }
-                            onDeleteSet={() =>
-                              handleDeleteSet(exercise.id, set.id)
-                            }
+                    <View className="flex-row">
+                      {exerciseIndex !== 0 ? (
+                        <TouchableOpacity className="p-1">
+                          <Ionicons
+                            name="chevron-up-outline"
+                            style={{
+                              fontSize: 25,
+                              color: 'black',
+                            }}
                           />
-                        );
-                      }}
-                      ListHeaderComponent={() => (
-                        <View className="w-full flex-row justify-start items-start mb-2">
-                          <Text
-                            className={`text-md font-semibold text-center mr-5`}
-                            style={{ width: SET_COLUMN_WIDTH }}
-                          >
-                            SET
-                          </Text>
-                          {/* <Text
+                        </TouchableOpacity>
+                      ) : null}
+                      {exerciseIndex !== workoutExercises.length - 1 ? (
+                        <TouchableOpacity className="p-1">
+                          <Ionicons
+                            name="chevron-down-outline"
+                            style={{
+                              fontSize: 25,
+                              color: 'black',
+                            }}
+                          />
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                  </View>
+                  <FlatList
+                    data={exercise.sets}
+                    style={{ width: '100%' }}
+                    keyExtractor={(set) => set.id}
+                    renderItem={({ item: set, index: setIndex }) => {
+                      return (
+                        <SetItem
+                          key={set.id}
+                          exercise={exercise}
+                          set={set}
+                          setIndex={setIndex}
+                          onCompleteSet={() =>
+                            handleToggleCompleteSet(exercise.id, set.id)
+                          }
+                          onUpdateSet={(tag, value) =>
+                            handleUpdateSet(exercise.id, set.id, tag, value)
+                          }
+                          onDeleteSet={() =>
+                            handleDeleteSet(exercise.id, set.id)
+                          }
+                        />
+                      );
+                    }}
+                    ListHeaderComponent={() => (
+                      <View className="w-full flex-row justify-start items-start mb-2 px-6">
+                        <Text
+                          className={`text-md font-semibold text-center mr-5`}
+                          style={{ width: SET_COLUMN_WIDTH }}
+                        >
+                          SET
+                        </Text>
+                        {/* <Text
                         className={`text-md font-semibold text-center mr-5`}
                         style={{ width: PREVIOUS_COLUMN_WIDTH }}
                       >
                         PREVIOUS
                       </Text> */}
-                          {exercise.tags.map((tag, index) => (
-                            <Text
-                              key={tag}
-                              className={`text-md font-semibold text-center`}
-                              style={{
-                                width: getTagColumnWidth(tag),
-                                marginRight:
-                                  index === exercise.tags.length - 1 ? 0 : 20,
-                              }}
-                            >
-                              {turnTagIntoString(tag)}
-                            </Text>
-                          ))}
-                        </View>
-                      )}
-                      ListFooterComponent={() => (
-                        <View className="w-full justify-center items-center mt-4">
-                          <TouchableOpacity
-                            onPress={() => handleAddSet(exercise.id)}
+                        {exercise.tags.map((tag, index) => (
+                          <Text
+                            key={tag}
+                            className={`text-md font-semibold text-center`}
+                            style={{
+                              width: getTagColumnWidth(tag),
+                              marginRight:
+                                index === exercise.tags.length - 1 ? 0 : 20,
+                            }}
                           >
-                            <Text className="text-blue text-md font-semibold">
-                              ADD SET
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      )}
-                    />
-                  </View>
-                );
-              }}
-              ListEmptyComponent={() => <View className="h-5" />}
-            />
-          </View>
-        )}
-        style={{ width: '100%' }}
-        ListHeaderComponent={() => (
-          <View className="relative w-full justify-start items-start px-6 pt-8">
-            <View className="w-full flex-row justify-end">
-              <TouchableOpacity onPress={onFinishWorkoutPress} className="p-1">
-                <Text className="text-blue text-lg font-semibold">FINISH</Text>
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              className="w-full text-lg font-semibold mb-2"
-              onChangeText={(text) => (tempWorkoutName = text)}
-              onEndEditing={() => setWorkoutName(tempWorkoutName)}
-              onBlur={() => setWorkoutName(tempWorkoutName)}
-              defaultValue={workoutName}
-            />
-            <Text className="text-grayDark text-sm mb-8">
-              {secondsToHHmmss(seconds)}
-              {/* {turnDateIntoString(workoutStartDate)} */}
+                            {turnTagIntoString(tag)}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                    ListFooterComponent={() => (
+                      <View className="w-full justify-center items-center mt-4">
+                        <TouchableOpacity
+                          onPress={() => handleAddSet(exercise.id)}
+                        >
+                          <Text className="text-blue text-md font-semibold">
+                            ADD SET
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  />
+                </View>
+              );
+            }}
+            ListEmptyComponent={() => <View className="h-5" />}
+          />
+        </View>
+        <View className="w-full justify-center items-center mt-5 pb-8">
+          <TouchableOpacity
+            className="mb-4"
+            onPress={() => router.push('add-exercises' as Href)}
+          >
+            <Text className="text-blue text-lg font-semibold ">
+              ADD EXERCISE
             </Text>
-
-            {/* Exercises here */}
-          </View>
-        )}
-        ListFooterComponent={() => (
-          <View className="w-full justify-center items-center mt-5 pb-8">
-            <TouchableOpacity
-              className="mb-4"
-              onPress={() => router.push('add-exercises' as Href)}
-            >
-              <Text className="text-blue text-lg font-semibold ">
-                ADD EXERCISE
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onCancelWorkoutPress}>
-              <Text className="text-red-500 text-lg font-semibold">
-                CANCEL WORKOUT
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onCancelWorkoutPress}>
+            <Text className="text-red-500 text-lg font-semibold">
+              CANCEL WORKOUT
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -799,7 +817,7 @@ const SetItem: React.FC<{
       >
         <View
           {...panResponder.panHandlers}
-          className="relative w-full flex-row justify-start items-center my-1 py-1"
+          className="relative w-full flex-row justify-start items-center my-1 py-1 px-6"
         >
           {set.completed ? (
             <View className="absolute left-[-24px] bg-blue opacity-30 w-[150%] h-full py-5" />
