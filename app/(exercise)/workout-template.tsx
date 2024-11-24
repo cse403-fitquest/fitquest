@@ -1,12 +1,23 @@
 import FQButton from '@/components/FQButton';
 import { EXERCISES_STUB } from '@/constants/workout';
-import { ExerciseTag } from '@/types/workout';
+import { useWorkoutStore } from '@/store/workout';
+import { Exercise, ExerciseTag } from '@/types/workout';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { Href, router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { v4 as uuidv4 } from 'uuid';
 
-const ExerciseTemplate = () => {
+const WorkoutTemplate = () => {
+  const [template, setTemplate] = useState<Exercise[]>([]);
+
+  const { setWorkoutExercises } = useWorkoutStore();
+
+  useEffect(() => {
+    setTemplate(EXERCISES_STUB);
+  }, []);
+
   const turnDateIntoString = (date: Date) => {
     const dayIndex = date.getDay();
     let day = 'Sunday';
@@ -90,6 +101,25 @@ const ExerciseTemplate = () => {
     return `${day}, ${month} ${date.getDate()}, ${date.getFullYear()} at ${hour}:${minute}`;
   };
 
+  const onPerformWorkoutPress = () => {
+    // Turn template from Exercise[] into ExerciseDisplay[]
+    const workoutExercises = template.map((exercise) => ({
+      ...exercise,
+      id: uuidv4(),
+      sets: exercise.sets.map((set) => ({
+        ...set,
+        id: uuidv4(),
+        completed: false,
+      })),
+    }));
+
+    // Set the workoutExercises in the store
+    setWorkoutExercises(() => workoutExercises);
+
+    // Navigate to the workout screen
+    router.replace('/new-workout' as Href);
+  };
+
   return (
     <SafeAreaView className="relative w-full h-full justify-start items-start bg-offWhite px-6 pt-8">
       <FlatList
@@ -109,7 +139,7 @@ const ExerciseTemplate = () => {
             </Text>
 
             <FlatList
-              data={EXERCISES_STUB}
+              data={template}
               keyExtractor={(item) => item.id}
               renderItem={({ item: exercise }) => (
                 <View className="w-full mb-8">
@@ -188,7 +218,9 @@ const ExerciseTemplate = () => {
               )}
             />
             <View className="w-full">
-              <FQButton>PERFORM WORKOUT</FQButton>
+              <FQButton onPress={onPerformWorkoutPress}>
+                PERFORM WORKOUT
+              </FQButton>
             </View>
           </View>
         }
@@ -197,4 +229,4 @@ const ExerciseTemplate = () => {
   );
 };
 
-export default ExerciseTemplate;
+export default WorkoutTemplate;
