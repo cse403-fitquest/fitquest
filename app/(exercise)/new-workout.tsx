@@ -462,6 +462,14 @@ const NewWorkout = () => {
     LayoutAnimation.configureNext(layoutAnimConfig);
   }, []);
 
+  const moveExercise = (fromIndex: number, toIndex: number) => {
+    const updatedExercises = [...workoutExercises];
+    const [removed] = updatedExercises.splice(fromIndex, 1);
+    updatedExercises.splice(toIndex, 0, removed);
+
+    setWorkoutExercises(() => updatedExercises);
+  };
+
   const onFinishWorkoutPress = () => {
     // Check if there are no completed sets
     let hasCompletedSets = false;
@@ -649,7 +657,12 @@ const NewWorkout = () => {
                     </Text>
                     <View className="flex-row">
                       {exerciseIndex !== 0 ? (
-                        <TouchableOpacity className="p-1">
+                        <TouchableOpacity
+                          className="p-1"
+                          onPress={() =>
+                            moveExercise(exerciseIndex, exerciseIndex - 1)
+                          }
+                        >
                           <Ionicons
                             name="chevron-up-outline"
                             style={{
@@ -660,7 +673,12 @@ const NewWorkout = () => {
                         </TouchableOpacity>
                       ) : null}
                       {exerciseIndex !== workoutExercises.length - 1 ? (
-                        <TouchableOpacity className="p-1">
+                        <TouchableOpacity
+                          className="p-1"
+                          onPress={() =>
+                            moveExercise(exerciseIndex, exerciseIndex + 1)
+                          }
+                        >
                           <Ionicons
                             name="chevron-down-outline"
                             style={{
