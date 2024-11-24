@@ -65,6 +65,13 @@ const AddExercises = () => {
     ),
   };
 
+  const armExercisesSection = {
+    title: 'Arms',
+    data: exercises.filter(
+      (exercise) => exercise.muscleGroup === MuscleGroup.ARMS,
+    ),
+  };
+
   const legsExercisesSection = {
     title: 'Legs',
     data: exercises.filter(
@@ -91,6 +98,7 @@ const AddExercises = () => {
       return [
         chestExercisesSection,
         backExercisesSection,
+        armExercisesSection,
         legsExercisesSection,
         coreExercisesSection,
         cardioExercisesSection,
@@ -112,6 +120,13 @@ const AddExercises = () => {
       title: 'Back',
       data: filteredExercises.filter(
         (exercise) => exercise.muscleGroup === MuscleGroup.BACK,
+      ),
+    };
+
+    const filteredArmExercisesSection = {
+      title: 'Arms',
+      data: filteredExercises.filter(
+        (exercise) => exercise.muscleGroup === MuscleGroup.ARMS,
       ),
     };
 
@@ -139,6 +154,7 @@ const AddExercises = () => {
     return [
       filteredChestExercisesSection,
       filteredBackExercisesSection,
+      filteredArmExercisesSection,
       filteredLegsExercisesSection,
       filteredCoreExercisesSection,
       filteredCardioExercisesSection,
@@ -148,8 +164,8 @@ const AddExercises = () => {
   return (
     <SafeAreaView className="relative w-full h-full justify-start items-start bg-offWhite">
       {selectedExerciseIds.length > 0 ? (
-        <TouchableOpacity className="absolute bottom-10 right-10">
-          <View className="flex-row justify-center items-center bg-blue w-16 h-16 rounded-full">
+        <TouchableOpacity className="absolute bottom-10 right-10 z-50">
+          <View className="flex-row justify-center items-center bg-blue w-16 h-16 rounded-full shadow shadow-black">
             <Ionicons name="checkmark" size={30} color="white" />
           </View>
         </TouchableOpacity>
@@ -166,7 +182,7 @@ const AddExercises = () => {
             </TouchableOpacity>
             <Text className="text-3xl font-medium mb-2">Add exercises</Text>
 
-            <Text className="text-md font-medium">ALL EXERCISES</Text>
+            {/* <Text className="text-md font-medium">ALL EXERCISES</Text> */}
 
             <TextInput
               placeholder="Search exercises"
@@ -216,6 +232,7 @@ const AddExercises = () => {
           </View>
         )}
         ItemSeparatorComponent={() => <View className="h-4" />}
+        ListFooterComponent={() => <View className="h-10" />}
       />
     </SafeAreaView>
   );
