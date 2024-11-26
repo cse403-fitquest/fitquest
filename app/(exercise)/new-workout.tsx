@@ -760,13 +760,13 @@ const SetItem: React.FC<{
             <View
               className={clsx('w-6 h-6 rounded justify-center items-center', {
                 'bg-blue': set.completed,
-                'bg-gray': !set.completed,
+                'bg-white border border': !set.completed,
               })}
             >
               <Ionicons
                 name="checkmark-outline"
                 style={{
-                  color: 'white',
+                  color: `${set.completed ? 'white' : 'black'}`,
                   fontSize: 16,
                 }}
               />
