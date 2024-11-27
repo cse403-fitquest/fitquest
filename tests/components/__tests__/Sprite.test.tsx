@@ -12,7 +12,7 @@ describe('Sprite', () => {
       expect(getByTestId('Sprite').props.source).toEqual(
         //require(`@/assets/sprites/${id}.png`),
         // add 512 to the end of the file name
-        require(`@/assets/sprites/${id}512.png`),
+        require(`@/assets/sprites/${id}.png`),
       );
     });
   });
