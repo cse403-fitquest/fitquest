@@ -5,6 +5,7 @@ import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const questThemes = {
   '1': {
@@ -12,7 +13,7 @@ const questThemes = {
       {
         name: 'Green Slime',
         maxHealth: 100,
-        health: 100,
+        health: 10,
         power: 15,
         speed: 10,
         spriteId: AnimatedSpriteID.SLIME_GREEN,
@@ -20,7 +21,7 @@ const questThemes = {
       {
         name: 'Blue Slime',
         maxHealth: 100,
-        health: 100,
+        health: 10,
         power: 15,
         speed: 10,
         spriteId: AnimatedSpriteID.SLIME_BLUE,
@@ -28,7 +29,7 @@ const questThemes = {
       {
         name: 'Red Slime',
         maxHealth: 100,
-        health: 100,
+        health: 10,
         power: 15,
         speed: 10,
         spriteId: AnimatedSpriteID.SLIME_RED,
@@ -218,12 +219,16 @@ const Combat = () => {
     resetCombatState();
   }, []);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (modalType === 'victory') {
-      setPlayer((prev) => ({
-        ...prev,
-        exp: 0 + expGained,
-      }));
+      // Update user experience in the store
+      if (user) {
+        const updatedUser = {
+          ...user,
+          exp: (user.exp || 0) + expGained,
+        };
+        useUserStore.getState().setUser(updatedUser);
+      }
 
       router.replace(`/(tabs)/quest`);
     } else {
@@ -348,8 +353,23 @@ const Combat = () => {
   };
 
   const handleVictory = async () => {
-    const exp = Math.floor(Math.random() * 20) + 30;
+    // Calculate exp based on monster type and boss status
+    const baseExp = isBossFight ? 50 : 30;
+    const randomBonus = Math.floor(Math.random() * 20);
+    const exp = baseExp + randomBonus;
+
     setExpGained(exp);
+
+    // Update the quest's boss defeated status if this was a boss fight
+    if (isBossFight) {
+      const updatedQuest = await AsyncStorage.getItem('activeQuest');
+      if (updatedQuest) {
+        const quest = JSON.parse(updatedQuest);
+        quest.bossDefeated = true;
+        await AsyncStorage.setItem('activeQuest', JSON.stringify(quest));
+      }
+    }
+
     setModalType('victory');
     setShowVictoryModal(true);
   };
@@ -407,6 +427,12 @@ const Combat = () => {
     const baseMonsterDamage = monster.power;
     const monsterDamage = getRandomDamage(baseMonsterDamage);
 
+    // Add initial delay before monster attacks
+    await delay(1000);
+
+    setMonsterSpriteState(SpriteState.ATTACK_1);
+    await delay(500);
+
     setPlayer((prev) => ({
       ...prev,
       health: Math.max(0, prev.health - monsterDamage),
@@ -417,8 +443,9 @@ const Combat = () => {
       `${monster.name} dealt ${monsterDamage} damage!`,
     ]);
 
-    setMonsterSpriteState(SpriteState.ATTACK_1);
+    // Add additional delay after damage is dealt
     await delay(500);
+
     setMonsterSpriteState(SpriteState.IDLE);
 
     if (player.health - monsterDamage <= 0) {
@@ -427,11 +454,11 @@ const Combat = () => {
       return;
     }
 
-    // Advance turn after monster action
+    // Final delay before ending turn
+    await delay(500);
+
     setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
     setIsAnimating(false);
-
-    // No cooldown decrement here, as it's the monster's turn
   };
 
   // Add this useEffect to watch for turns
