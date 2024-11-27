@@ -29,21 +29,21 @@ import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
 import { printExerciseDisplays } from '@/utils/workout';
 
-const SET_COLUMN_WIDTH = 40;
+const SET_COLUMN_WIDTH = 28;
 // const PREVIOUS_COLUMN_WIDTH = 68;
 
 export const getTagColumnWidth = (tag: ExerciseTag) => {
   switch (tag) {
     case ExerciseTag.WEIGHT:
-      return 80;
+      return 100;
     case ExerciseTag.REPS:
       return 80;
     case ExerciseTag.DISTANCE:
-      return 80;
+      return 100;
     case ExerciseTag.TIME:
       return 80;
     default:
-      return 80;
+      return 100;
   }
 };
 
@@ -83,11 +83,11 @@ const NewWorkout = () => {
   const turnTagIntoString = (tag: ExerciseTag) => {
     switch (tag) {
       case ExerciseTag.WEIGHT:
-        return 'WEIGHT';
+        return 'WEIGHT (lbs)';
       case ExerciseTag.REPS:
         return 'REPS';
       case ExerciseTag.DISTANCE:
-        return 'DISTANCE';
+        return 'DISTANCE (m)';
       case ExerciseTag.TIME:
         return 'TIME';
     }
@@ -692,6 +692,24 @@ const SetItem: React.FC<{
     }),
   ).current;
 
+  const convertSecondsToMMSS = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    let minutesString = minutes.toString();
+    let remainingSecondsString = remainingSeconds.toString();
+
+    if (minutes < 10) {
+      minutesString = `0${minutes}`;
+    }
+
+    if (remainingSeconds < 10) {
+      remainingSecondsString = `0${remainingSeconds}`;
+    }
+
+    return `${minutesString}:${remainingSecondsString}`;
+  };
+
   const windowWidth = Dimensions.get('window').width;
 
   return (
@@ -739,9 +757,30 @@ const SetItem: React.FC<{
                 className={clsx('text-md text-center bg-white rounded', {
                   'mr-5': index !== exercise.tags.length - 1,
                 })}
-                onChangeText={(text) => {
-                  const newValue = text === '' ? 0 : parseInt(text);
-                  setValue(newValue);
+                // onChangeText={(text) => {
+                //   // const newValue = text === '' ? 0 : parseInt(text);
+                //   // setValue(newValue);
+                // }}
+                onChange={(e) => {
+                  // Get keystroke value
+                  const text = e.nativeEvent.text;
+
+                  // Shift the value to the rightmost side of the input string (mm:ss)
+                  const m2 = text.charAt(1);
+                  const s1 = text.charAt(3);
+                  const s2 = text.charAt(4);
+
+                  // Replace the value with the new value
+                  const newValue = `${m2}${s1}:${s2}${text.charAt(5)}`;
+
+                  // Parse the new value
+                  const minutes = parseInt(newValue.substring(0, 2));
+                  const seconds = parseInt(newValue.substring(3, 5));
+
+                  const totalSeconds = minutes * 60 + seconds;
+
+                  // const newValue = text === '' ? 0 : parseInt(text);
+                  setValue(totalSeconds);
                 }}
                 onEndEditing={() => {
                   onUpdateSet(tag, value);
@@ -749,7 +788,7 @@ const SetItem: React.FC<{
                 onBlur={() => {
                   onUpdateSet(tag, value);
                 }}
-                value={value.toString()}
+                value={convertSecondsToMMSS(value)}
               />
             );
           })}
