@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+// import { useUserStore } from '@/store/user';
 
 interface Quest {
   questId: string;
@@ -17,7 +18,6 @@ interface Quest {
   duration: number;
   createdAt?: '';
   expiredAt?: '';
-  bossDefeated: boolean; // New flag for boss defeat status
 }
 
 interface ActiveQuest {
@@ -194,6 +194,17 @@ const Quest = () => {
 
         setActiveQuest(updatedQuest);
         AsyncStorage.setItem('activeQuest', JSON.stringify(updatedQuest));
+      } else {
+        Alert.alert(
+          'Quest Complete!',
+          'Congratulations! You have completed the quest!',
+          [{ text: 'OK' }],
+        );
+        AsyncStorage.removeItem('activeQuest');
+        setActiveQuest(null);
+        setCurrentNodeIndex(0);
+        setVisualProgress(0);
+        setShowAbandonModal(false);
       }
     }
   };
@@ -207,7 +218,6 @@ const Quest = () => {
   };
 
   const renderMilestoneNodes = (quest: ActiveQuest, progress: number) => {
-    // Add a starting point (initial node)
     const startingPoint = 'start';
     const nextMilestones = getNextMilestones(
       {
@@ -220,12 +230,10 @@ const Quest = () => {
         spriteId: quest.spriteId,
         createdAt: '',
         expiredAt: '',
-        bossDefeated: false,
       },
       progress,
     );
 
-    // Add the "start" node as the first milestone visually
     const visualMilestones = [startingPoint, ...nextMilestones];
 
     const percentage = calculateQuestPercentage(quest, progress);
@@ -270,7 +278,6 @@ const Quest = () => {
                   />
                 </View>
               ) : (
-                // Display normal fight sprite for all other nodes
                 <View style={{ width: 32, height: 32 }}>
                   <AnimatedSprite
                     id={
