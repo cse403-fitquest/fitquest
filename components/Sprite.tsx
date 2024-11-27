@@ -14,69 +14,69 @@ export const Sprite: FC<ISprite> = ({ id, width, height }) => {
   switch (id) {
     // Tier 1 equipment
     case SpriteID.T1_DAGGER:
-      spriteSource = require('@/assets/sprites/t1_dagger.png');
+      spriteSource = require('@/assets/sprites/t1_dagger512.png');
       break;
     case SpriteID.T1_SWORD:
-      spriteSource = require('@/assets/sprites/t1_sword.png');
+      spriteSource = require('@/assets/sprites/t1_sword512.png');
       break;
     case SpriteID.T1_RING:
-      spriteSource = require('@/assets/sprites/t1_ring.png');
+      spriteSource = require('@/assets/sprites/t1_ring512.png');
       break;
     case SpriteID.T1_HELM:
-      spriteSource = require('@/assets/sprites/t1_helm.png');
+      spriteSource = require('@/assets/sprites/t1_helm512.png');
       break;
     case SpriteID.T1_SHIELD:
-      spriteSource = require('@/assets/sprites/t1_shield.png');
+      spriteSource = require('@/assets/sprites/t1_shield512.png');
       break;
     case SpriteID.T1_HEAVY_ARMOR:
-      spriteSource = require('@/assets/sprites/t1_heavy_armor.png');
+      spriteSource = require('@/assets/sprites/t1_heavy_armor512.png');
       break;
 
     // Tier 2 equipment
     case SpriteID.T2_DAGGER:
-      spriteSource = require('@/assets/sprites/t2_dagger.png');
+      spriteSource = require('@/assets/sprites/t2_dagger512.png');
       break;
     case SpriteID.T2_SWORD:
-      spriteSource = require('@/assets/sprites/t2_sword.png');
+      spriteSource = require('@/assets/sprites/t2_sword512.png');
       break;
     case SpriteID.T2_HEAVY_ARMOR:
-      spriteSource = require('@/assets/sprites/t2_heavy_armor.png');
+      spriteSource = require('@/assets/sprites/t2_heavy_armor512.png');
       break;
 
     // Tier 3 equipment
     case SpriteID.T3_DAGGER:
-      spriteSource = require('@/assets/sprites/t3_dagger.png');
+      spriteSource = require('@/assets/sprites/t3_dagger512.png');
       break;
     case SpriteID.T3_SWORD:
-      spriteSource = require('@/assets/sprites/t3_sword.png');
+      spriteSource = require('@/assets/sprites/t3_sword512.png');
       break;
     case SpriteID.T3_HEAVY_ARMOR:
-      spriteSource = require('@/assets/sprites/t3_heavy_armor.png');
+      spriteSource = require('@/assets/sprites/t3_heavy_armor512.png');
       break;
 
     // Tier 4 equipment
     case SpriteID.T4_DAGGER:
-      spriteSource = require('@/assets/sprites/t4_dagger.png');
+      spriteSource = require('@/assets/sprites/t4_dagger512.png');
       break;
     case SpriteID.T4_SWORD:
-      spriteSource = require('@/assets/sprites/t4_sword.png');
+      spriteSource = require('@/assets/sprites/t4_sword512.png');
       break;
     case SpriteID.T4_HEAVY_ARMOR:
-      spriteSource = require('@/assets/sprites/t4_heavy_armor.png');
+      spriteSource = require('@/assets/sprites/t4_heavy_armor512.png');
       break;
 
     case SpriteID.HEALTH_POTION_SMALL:
-      spriteSource = require('@/assets/sprites/health_potion_small.png');
+      spriteSource = require('@/assets/sprites/health_potion_small512.png');
       break;
     case SpriteID.HEALTH_POTION_MEDIUM:
-      spriteSource = require('@/assets/sprites/health_potion_medium.png');
+      spriteSource = require('@/assets/sprites/health_potion_medium512.png');
       break;
     case SpriteID.HEALTH_POTION_LARGE:
-      spriteSource = require('@/assets/sprites/health_potion_large.png');
+      spriteSource = require('@/assets/sprites/health_potion_large512.png');
       break;
 
     default:
-      spriteSource = require('@/assets/sprites/t1_ring.png');
+      spriteSource = require('@/assets/sprites/t1_ring512.png');
       break;
   }
 
