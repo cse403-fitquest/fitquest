@@ -5,7 +5,6 @@ import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const questThemes = {
   '1': {
@@ -13,25 +12,25 @@ const questThemes = {
       {
         name: 'Green Slime',
         maxHealth: 100,
-        health: 10,
+        health: 100,
         power: 15,
-        speed: 10,
+        speed: 20,
         spriteId: AnimatedSpriteID.SLIME_GREEN,
       },
       {
         name: 'Blue Slime',
         maxHealth: 100,
-        health: 10,
+        health: 100,
         power: 15,
-        speed: 10,
+        speed: 20,
         spriteId: AnimatedSpriteID.SLIME_BLUE,
       },
       {
         name: 'Red Slime',
         maxHealth: 100,
-        health: 10,
+        health: 100,
         power: 15,
-        speed: 10,
+        speed: 20,
         spriteId: AnimatedSpriteID.SLIME_RED,
       },
     ],
@@ -219,16 +218,12 @@ const Combat = () => {
     resetCombatState();
   }, []);
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (modalType === 'victory') {
-      // Update user experience in the store
-      if (user) {
-        const updatedUser = {
-          ...user,
-          exp: (user.exp || 0) + expGained,
-        };
-        useUserStore.getState().setUser(updatedUser);
-      }
+      setPlayer((prev) => ({
+        ...prev,
+        exp: 0 + expGained,
+      }));
 
       router.replace(`/(tabs)/quest`);
     } else {
@@ -353,23 +348,8 @@ const Combat = () => {
   };
 
   const handleVictory = async () => {
-    // Calculate exp based on monster type and boss status
-    const baseExp = isBossFight ? 50 : 30;
-    const randomBonus = Math.floor(Math.random() * 20);
-    const exp = baseExp + randomBonus;
-
+    const exp = Math.floor(Math.random() * 20) + 30;
     setExpGained(exp);
-
-    // Update the quest's boss defeated status if this was a boss fight
-    if (isBossFight) {
-      const updatedQuest = await AsyncStorage.getItem('activeQuest');
-      if (updatedQuest) {
-        const quest = JSON.parse(updatedQuest);
-        quest.bossDefeated = true;
-        await AsyncStorage.setItem('activeQuest', JSON.stringify(quest));
-      }
-    }
-
     setModalType('victory');
     setShowVictoryModal(true);
   };
@@ -472,6 +452,25 @@ const Combat = () => {
     }
   }, [currentTurnIndex, turnQueue, isAnimating]);
 
+  // Update the getChargePercentage function
+  const getChargePercentage = (entityId: string) => {
+    // If it's currently this entity's turn, return 100%
+    if (turnQueue[currentTurnIndex]?.id === entityId) {
+      return 100;
+    }
+
+    // Find the next turn index for this entity
+    const nextTurnIndex = turnQueue.findIndex(
+      (turn, index) => index > currentTurnIndex && turn.id === entityId,
+    );
+
+    if (nextTurnIndex === -1) return 0;
+
+    // Calculate percentage based on turns until next action
+    const turnsUntilNext = nextTurnIndex - currentTurnIndex;
+    return Math.max(0, ((5 - turnsUntilNext) / 5) * 100);
+  };
+
   return (
     <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
       <View className="h-2 bg-gray-200 rounded-full mb-12">
@@ -491,6 +490,14 @@ const Combat = () => {
                 className="h-full bg-green"
                 style={{
                   width: `${(monster.health / monster.maxHealth!) * 100}%`,
+                }}
+              />
+            </View>
+            <View className="w-full h-2 bg-gray rounded-full mt-1 overflow-hidden">
+              <View
+                className="h-full bg-blue"
+                style={{
+                  width: `${getChargePercentage('monster')}%`,
                 }}
               />
             </View>
@@ -526,6 +533,14 @@ const Combat = () => {
                 className="h-full bg-green"
                 style={{
                   width: `${(player.health / initialPlayer.health) * 100}%`,
+                }}
+              />
+            </View>
+            <View className="w-full h-2 bg-gray rounded-full mt-1 overflow-hidden">
+              <View
+                className="h-full bg-blue"
+                style={{
+                  width: `${getChargePercentage(player.id)}%`,
                 }}
               />
             </View>
