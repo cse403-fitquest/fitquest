@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
-import { useUserStore } from '@/store/user';
+// import { useUserStore } from '@/store/user';
 
 interface Quest {
   questId: string;
@@ -197,51 +197,18 @@ const Quest = () => {
         AsyncStorage.setItem('activeQuest', JSON.stringify(updatedQuest));
       } else {
         // Quest is complete - all milestones reached
-        completeQuest(activeQuest);
+        Alert.alert(
+          'Quest Complete!',
+          'Congratulations! You have completed the quest!',
+          [{ text: 'OK' }],
+        );
+        AsyncStorage.removeItem('activeQuest');
+        setActiveQuest(null);
+        setCurrentNodeIndex(0);
+        setVisualProgress(0);
+        setShowAbandonModal(false);
       }
     }
-  };
-
-  const completeQuest = async (quest: ActiveQuest) => {
-    // Calculate total experience gained
-    const experienceGained = calculateExperience(quest);
-
-    // Update user experience in the store
-    const { user, setUser } = useUserStore.getState();
-    if (user) {
-      const updatedUser = {
-        ...user,
-        exp: (user.exp || 0) + experienceGained,
-      };
-      setUser(updatedUser);
-    }
-
-    // Clean up quest data
-    await AsyncStorage.removeItem('activeQuest');
-    setActiveQuest(null);
-    setCurrentNodeIndex(0);
-    setVisualProgress(0);
-    setShowAbandonModal(false);
-
-    // Show completion alert
-    Alert.alert(
-      'Quest Complete!',
-      `Congratulations! You've gained ${experienceGained} experience points!`,
-      [{ text: 'OK' }],
-    );
-  };
-
-  const calculateExperience = (quest: ActiveQuest) => {
-    // Base experience for completing all milestones
-    const baseExp = quest.milestones.length * 10;
-
-    // Bonus for defeating the boss
-    const bossBonus = quest.bossDefeated ? 50 : 0;
-
-    // Bonus for completing within time limit (if implemented)
-    const timeBonus = 0; // Add time-based bonus logic if needed
-
-    return baseExp + bossBonus + timeBonus;
   };
 
   const calculateQuestPercentage = (quest: ActiveQuest, progress: number) => {

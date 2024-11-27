@@ -14,7 +14,7 @@ const questThemes = {
         maxHealth: 100,
         health: 100,
         power: 15,
-        speed: 20,
+        speed: 10,
         spriteId: AnimatedSpriteID.SLIME_GREEN,
       },
       {
@@ -22,7 +22,7 @@ const questThemes = {
         maxHealth: 100,
         health: 100,
         power: 15,
-        speed: 20,
+        speed: 10,
         spriteId: AnimatedSpriteID.SLIME_BLUE,
       },
       {
@@ -140,7 +140,6 @@ const Combat = () => {
 
   const [showVictoryModal, setShowVictoryModal] = useState(false);
   const [modalType, setModalType] = useState<'victory' | 'defeat'>('victory');
-  const [expGained, setExpGained] = useState(0);
 
   const [isBossFight] = useState(() => {
     return isBoss === 'true';
@@ -220,11 +219,6 @@ const Combat = () => {
 
   const handleContinue = () => {
     if (modalType === 'victory') {
-      setPlayer((prev) => ({
-        ...prev,
-        exp: 0 + expGained,
-      }));
-
       router.replace(`/(tabs)/quest`);
     } else {
       router.replace('/(tabs)/quest');
@@ -348,8 +342,6 @@ const Combat = () => {
   };
 
   const handleVictory = async () => {
-    const exp = Math.floor(Math.random() * 20) + 30;
-    setExpGained(exp);
     setModalType('victory');
     setShowVictoryModal(true);
   };
@@ -495,7 +487,7 @@ const Combat = () => {
             </View>
             <View className="w-full h-2 bg-gray rounded-full mt-1 overflow-hidden">
               <View
-                className="h-full bg-blue"
+                className="h-full bg-yellow"
                 style={{
                   width: `${getChargePercentage('monster')}%`,
                 }}
@@ -538,7 +530,7 @@ const Combat = () => {
             </View>
             <View className="w-full h-2 bg-gray rounded-full mt-1 overflow-hidden">
               <View
-                className="h-full bg-blue"
+                className="h-full bg-yellow"
                 style={{
                   width: `${getChargePercentage(player.id)}%`,
                 }}
@@ -658,15 +650,6 @@ const Combat = () => {
                       />
                     </View>
                   </View>
-                </View>
-
-                <View className="mb-8">
-                  <Text className="text-lg text-center">
-                    EXP GAIN:{' '}
-                    <Text className="text-yellow-500 font-bold">
-                      {expGained} XP
-                    </Text>
-                  </Text>
                 </View>
               </>
             ) : (
