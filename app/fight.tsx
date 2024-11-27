@@ -90,9 +90,9 @@ const Combat = () => {
   const initialPlayer = {
     id: user?.id || '',
     name: user?.profileInfo.username || 'Player',
-    health: (user?.attributes.health || 6) * 20, // Scale health to 20 HP per point (default to 6 for testing)
-    power: (user?.attributes.power || 15) * 2, // Use user data for power
-    speed: user?.attributes.speed || 15, // Use user data for speed
+    health: (user?.attributes.health || 6) * 20,
+    power: (user?.attributes.power || 15) * 2,
+    speed: user?.attributes.speed || 15,
   };
 
   const getNewMonster = () => {
@@ -111,15 +111,15 @@ const Combat = () => {
     if (isBoss === 'true') {
       const scaledMonster = {
         ...currentQuest.boss,
-        health: currentQuest.boss.health * 20, // Scale monster health to 20 HP per point
+        health: currentQuest.boss.health * 20,
       };
-      return { ...scaledMonster }; // Use scaled monster
+      return { ...scaledMonster };
     } else {
       const randomMonster =
         currentQuest.normalMonsters[
           Math.floor(Math.random() * currentQuest.normalMonsters.length)
         ];
-      return { ...randomMonster, health: randomMonster.health * 20 }; // Scale normal monster health
+      return { ...randomMonster, health: randomMonster.health * 20 };
     }
   });
   const [combatLog, setCombatLog] = useState<string[]>([]);
@@ -157,9 +157,8 @@ const Combat = () => {
     let playerNextTurn = 0;
     let monsterNextTurn = 0;
 
-    const totalTurnsToCalculate = 20; // Arbitrary number to ensure enough turns are generated
+    const totalTurnsToCalculate = 20;
 
-    // Determine who should act first based on speed
     if (playerSpeed >= monsterSpeed) {
       playerNextTurn = 0;
       monsterNextTurn = 1 / monsterSpeed;
@@ -280,15 +279,12 @@ const Combat = () => {
       return;
     }
 
-    // Wait for animation to complete
     await delay(500);
 
-    // Advance turn after player action
     setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
     setIsAnimating(false);
     setPlayerSpriteState(SpriteState.IDLE);
 
-    // Decrement cooldowns only on player's turn
     if (strongAttackCooldown > 0) {
       setStrongAttackCooldown((prev) => prev - 1);
     }
@@ -313,11 +309,9 @@ const Combat = () => {
     setPotions((prev) => ({ ...prev, [type]: prev[type] - 1 }));
     setCombatLog((prev) => [...prev, `You healed for ${healAmount} HP!`]);
 
-    // Advance turn after player action
     setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Monster's turn
     const monsterDamage = monster.power;
     setPlayer((prev) => ({
       ...prev,
@@ -336,7 +330,6 @@ const Combat = () => {
       setStrongAttackCooldown((prev) => prev - 1);
     }
 
-    // Advance turn after monster action
     setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
     setIsAnimating(false);
   };
@@ -355,12 +348,12 @@ const Combat = () => {
     if (user) {
       setPlayer((prev) => ({
         ...prev,
-        health: (user.attributes.health || 6) * 20, // Ensure health is scaled when user data changes
+        health: (user.attributes.health || 6) * 20,
         power: (user.attributes.power || 15) * 2,
         speed: user.attributes.speed || 15,
       }));
     }
-  }, [user]); // Update player stats when user data changes
+  }, [user]);
 
   const renderTurnOrder = () => (
     <View className="flex-row justify-center items-center space-x-2 mb-4 p-2 bg-gray-800 rounded-lg shadow-md">
@@ -391,7 +384,6 @@ const Combat = () => {
     </View>
   );
 
-  // Add this new function for monster attacks
   const handleMonsterTurn = async () => {
     if (isAnimating || turnQueue[currentTurnIndex].isPlayer) return;
 
@@ -399,7 +391,6 @@ const Combat = () => {
     const baseMonsterDamage = monster.power;
     const monsterDamage = getRandomDamage(baseMonsterDamage);
 
-    // Add initial delay before monster attacks
     await delay(1000);
 
     setMonsterSpriteState(SpriteState.ATTACK_1);
@@ -415,7 +406,6 @@ const Combat = () => {
       `${monster.name} dealt ${monsterDamage} damage!`,
     ]);
 
-    // Add additional delay after damage is dealt
     await delay(500);
 
     setMonsterSpriteState(SpriteState.IDLE);
@@ -426,39 +416,33 @@ const Combat = () => {
       return;
     }
 
-    // Final delay before ending turn
     await delay(500);
 
     setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
     setIsAnimating(false);
   };
 
-  // Add this useEffect to watch for turns
   useEffect(() => {
     if (turnQueue.length && !isAnimating) {
       if (turnQueue[currentTurnIndex].isPlayer) {
-        // Player's turn logic can be handled by UI interactions
+        // Player turn
       } else {
         handleMonsterTurn();
       }
     }
   }, [currentTurnIndex, turnQueue, isAnimating]);
 
-  // Update the getChargePercentage function
   const getChargePercentage = (entityId: string) => {
-    // If it's currently this entity's turn, return 100%
     if (turnQueue[currentTurnIndex]?.id === entityId) {
       return 100;
     }
 
-    // Find the next turn index for this entity
     const nextTurnIndex = turnQueue.findIndex(
       (turn, index) => index > currentTurnIndex && turn.id === entityId,
     );
 
     if (nextTurnIndex === -1) return 0;
 
-    // Calculate percentage based on turns until next action
     const turnsUntilNext = nextTurnIndex - currentTurnIndex;
     return Math.max(0, ((5 - turnsUntilNext) / 5) * 100);
   };

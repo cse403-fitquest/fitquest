@@ -18,7 +18,6 @@ interface Quest {
   duration: number;
   createdAt?: '';
   expiredAt?: '';
-  bossDefeated: boolean; // New flag for boss defeat status
 }
 
 interface ActiveQuest {
@@ -196,7 +195,6 @@ const Quest = () => {
         setActiveQuest(updatedQuest);
         AsyncStorage.setItem('activeQuest', JSON.stringify(updatedQuest));
       } else {
-        // Quest is complete - all milestones reached
         Alert.alert(
           'Quest Complete!',
           'Congratulations! You have completed the quest!',
@@ -220,7 +218,6 @@ const Quest = () => {
   };
 
   const renderMilestoneNodes = (quest: ActiveQuest, progress: number) => {
-    // Add a starting point (initial node)
     const startingPoint = 'start';
     const nextMilestones = getNextMilestones(
       {
@@ -233,12 +230,10 @@ const Quest = () => {
         spriteId: quest.spriteId,
         createdAt: '',
         expiredAt: '',
-        bossDefeated: false,
       },
       progress,
     );
 
-    // Add the "start" node as the first milestone visually
     const visualMilestones = [startingPoint, ...nextMilestones];
 
     const percentage = calculateQuestPercentage(quest, progress);
@@ -283,7 +278,6 @@ const Quest = () => {
                   />
                 </View>
               ) : (
-                // Display normal fight sprite for all other nodes
                 <View style={{ width: 32, height: 32 }}>
                   <AnimatedSprite
                     id={
