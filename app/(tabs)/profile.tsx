@@ -484,10 +484,10 @@ const Profile = () => {
   const handleUpdateProfile = async () => {
     if (!user) return;
 
-    if (!username.trim() || username.trim().length < 3) {
+    if (!username.trim() || username.trim().length < 4) {
       Alert.alert(
         'Validation Error',
-        'Username must be at least 3 characters long.',
+        'Username must be at least 4 characters long.',
       );
       return;
     }
