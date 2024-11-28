@@ -88,4 +88,9 @@ export enum AnimatedSpriteID {
   CHOMPBUG_GREEN = 'chompbug_green',
   CHOMPBUG_RED = 'chompbug_red',
   CHOMPBUG_BLACK = 'chompbug_black',
+  SLUG_GREEN = 'slug_green',
+  SLUG_PURPLE = 'slug_purple',
+  WEREWOLF_BROWN = 'werewolf_brown',
+  BEAR_BROWN = 'bear_brown',
+  BEAR_BLUE = 'bear_blue',
 }
