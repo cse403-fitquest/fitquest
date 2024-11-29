@@ -640,7 +640,7 @@ const Combat = () => {
                     </View>
                     <View className="relative right-[25px]">
                       <AnimatedSprite
-                        id={AnimatedSpriteID.SLIME_GREEN}
+                        id={monster.spriteId}
                         state={SpriteState.DAMAGED}
                         direction="left"
                         width={150}
