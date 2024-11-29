@@ -1,5 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { SafeAreaView, View, Text, Pressable, Modal } from 'react-native';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  Pressable,
+  Modal,
+  Dimensions,
+  Animated,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
@@ -355,34 +363,126 @@ const Combat = () => {
     }
   }, [user]);
 
-  const renderTurnOrder = () => (
-    <View className="flex-row justify-center items-center space-x-2 mb-4 p-2 bg-gray-800 rounded-lg shadow-md">
-      {[...Array(5)].map((_, index) => {
-        const turn = turnQueue[currentTurnIndex + index];
-        if (!turn) return null;
+  const getChargePercentage = (entityId: string) => {
+    if (turnQueue[currentTurnIndex]?.id === entityId) {
+      return 100;
+    }
 
-        return (
-          <View
-            key={index}
-            className={`w-14 h-14 rounded-lg ${
-              index === 0
-                ? 'border-4 border-yellow-400 bg-yellow-100'
-                : 'border border-gray-500 bg-gray-700'
-            } justify-center items-center overflow-hidden shadow-sm`}
-          >
-            <View className="scale-[0.6]">
+    if (
+      currentTurnIndex > 0 &&
+      turnQueue[currentTurnIndex - 1]?.id === entityId
+    ) {
+      return 0;
+    }
+
+    const nextTurnIndex = turnQueue.findIndex(
+      (turn, index) => index > currentTurnIndex && turn.id === entityId,
+    );
+
+    if (nextTurnIndex === -1) return 0;
+
+    const turnsUntilNext = nextTurnIndex - currentTurnIndex;
+    return Math.max(0, ((5 - turnsUntilNext) / 5) * 100);
+  };
+
+  const playerPosition = useRef(new Animated.Value(0)).current;
+  const monsterPosition = useRef(new Animated.Value(0)).current;
+
+  const animateSpriteToPosition = (
+    animatedValue: Animated.Value,
+    toValue: number,
+  ) => {
+    Animated.timing(animatedValue, {
+      toValue,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  useEffect(() => {
+    const playerCharge = getChargePercentage(player.id);
+    animateSpriteToPosition(playerPosition, playerCharge);
+
+    const monsterCharge = getChargePercentage('monster');
+    animateSpriteToPosition(monsterPosition, monsterCharge);
+  }, [currentTurnIndex, turnQueue]);
+
+  const renderTurnOrder = () => {
+    return (
+      <View className="mb-4">
+        <View className="h-24 rounded-xl p-4">
+          <View className="h-full relative flex-row items-center">
+            <View className="absolute left-4 right-4 top-2/3 h-[5px] bg-yellow">
+              <View className="absolute top-[-3px] left-0 w-[6px] h-[12px] bg-yellow rounded-full" />
+              <View className="absolute top-[-3px] right-0 w-[6px] h-[12px] bg-yellow rounded-full" />
+            </View>
+
+            <Animated.View
+              style={{
+                position: 'absolute',
+                left: playerPosition.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: ['4%', '82%'],
+                }),
+                top: '50%',
+                transform: [
+                  { translateY: -24 },
+                  { translateX: 0 },
+                  {
+                    scale:
+                      turnQueue[currentTurnIndex]?.id === player.id ? 1.25 : 1,
+                  },
+                ],
+                zIndex: turnQueue[currentTurnIndex]?.id === player.id ? 2 : 1,
+              }}
+            >
               <AnimatedSprite
-                id={turn.isPlayer ? user?.spriteID : monster.spriteId}
+                id={user?.spriteID}
                 width={48}
                 height={48}
-                state={SpriteState.IDLE}
+                state={
+                  turnQueue[currentTurnIndex]?.id === player.id
+                    ? SpriteState.ATTACK_2
+                    : SpriteState.IDLE
+                }
               />
-            </View>
+            </Animated.View>
+
+            <Animated.View
+              style={{
+                position: 'absolute',
+                left: monsterPosition.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: ['4%', '82%'],
+                }),
+                top: '50%',
+                transform: [
+                  { translateY: -24 },
+                  { translateX: 0 },
+                  {
+                    scale:
+                      turnQueue[currentTurnIndex]?.id === 'monster' ? 1.25 : 1,
+                  },
+                ],
+                zIndex: turnQueue[currentTurnIndex]?.id === 'monster' ? 2 : 1,
+              }}
+            >
+              <AnimatedSprite
+                id={monster.spriteId}
+                width={48}
+                height={48}
+                state={
+                  turnQueue[currentTurnIndex]?.id === 'monster'
+                    ? SpriteState.ATTACK_2
+                    : SpriteState.IDLE
+                }
+              />
+            </Animated.View>
           </View>
-        );
-      })}
-    </View>
-  );
+        </View>
+      </View>
+    );
+  };
 
   const handleMonsterTurn = async () => {
     if (isAnimating || turnQueue[currentTurnIndex].isPlayer) return;
@@ -432,20 +532,11 @@ const Combat = () => {
     }
   }, [currentTurnIndex, turnQueue, isAnimating]);
 
-  const getChargePercentage = (entityId: string) => {
-    if (turnQueue[currentTurnIndex]?.id === entityId) {
-      return 100;
-    }
-
-    const nextTurnIndex = turnQueue.findIndex(
-      (turn, index) => index > currentTurnIndex && turn.id === entityId,
-    );
-
-    if (nextTurnIndex === -1) return 0;
-
-    const turnsUntilNext = nextTurnIndex - currentTurnIndex;
-    return Math.max(0, ((5 - turnsUntilNext) / 5) * 100);
-  };
+  const spriteSize = useMemo(() => {
+    const { width } = Dimensions.get('window');
+    const spriteSize = width / 3;
+    return spriteSize;
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
@@ -457,77 +548,64 @@ const Combat = () => {
 
       {renderTurnOrder()}
 
-      <View className="flex-1">
-        <View className="flex-row justify-between items-start mb-[-30px] -mt-12">
-          <View className="w-1/2 pl-4 mt-20 ml-[-12]">
-            <Text className="text-lg font-bold mb-1">{monster.name}</Text>
-            <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
-              <View
-                className="h-full bg-green"
-                style={{
-                  width: `${(monster.health / monster.maxHealth!) * 100}%`,
-                }}
-              />
+      <View className="flex-1 px-6 justify-center items-center h-full">
+        <View className="h-[300px] w-full mb-40">
+          <View className="flex-row justify-between items-start mb-[10px]">
+            <View className="w-1/2 pr-4">
+              <Text className="text-lg font-bold mb-1">{monster.name}</Text>
+              <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
+                <View
+                  className="h-full bg-green"
+                  style={{
+                    width: `${(monster.health / monster.maxHealth!) * 100}%`,
+                  }}
+                />
+              </View>
+              <Text className="text-sm mt-1">
+                HP: {monster.health}/
+                {isBossFight ? currentQuest.boss.health : monster.maxHealth}
+              </Text>
             </View>
-            <View className="w-full h-2 bg-gray rounded-full mt-1 overflow-hidden">
-              <View
-                className="h-full bg-yellow"
-                style={{
-                  width: `${getChargePercentage('monster')}%`,
-                }}
-              />
-            </View>
-            <Text className="text-sm mt-1">
-              HP: {monster.health}/
-              {isBossFight ? currentQuest.boss.health : monster.maxHealth}
-            </Text>
-          </View>
 
-          <View className="w-1/2 items-center ">
-            <AnimatedSprite
-              id={monster.spriteId}
-              width={256}
-              height={256}
-              state={monsterSpriteState}
-            />
+            <View className="w-1/2 items-end left-5">
+              <AnimatedSprite
+                id={monster.spriteId}
+                width={spriteSize}
+                height={spriteSize}
+                state={monsterSpriteState}
+                direction="left"
+              />
+            </View>
           </View>
-        </View>
-        <View className="flex-row justify-between items-center mb-15 ">
-          <View className="w-10 items-start ml-[-30px] ">
-            <AnimatedSprite
-              id={user?.spriteID}
-              width={256}
-              height={256}
-              state={playerSpriteState}
-            />
-          </View>
+          <View className="flex-row justify-between items-center">
+            <View className="w-1/2 items-start right-5">
+              <AnimatedSprite
+                id={user?.spriteID}
+                width={spriteSize}
+                height={spriteSize}
+                state={playerSpriteState}
+              />
+            </View>
 
-          <View className="w-1/2 pl-4">
-            <Text className="text-lg font-bold mb-1 ">{player.name}</Text>
-            <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
-              <View
-                className="h-full bg-green"
-                style={{
-                  width: `${(player.health / initialPlayer.health) * 100}%`,
-                }}
-              />
+            <View className="w-1/2 pl-4">
+              <Text className="text-lg font-bold mb-1 ">{player.name}</Text>
+              <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
+                <View
+                  className="h-full bg-green"
+                  style={{
+                    width: `${(player.health / initialPlayer.health) * 100}%`,
+                  }}
+                />
+              </View>
+              <Text className="text-sm mt-1">
+                HP: {player.health}/{initialPlayer.health}
+              </Text>
             </View>
-            <View className="w-full h-2 bg-gray rounded-full mt-1 overflow-hidden">
-              <View
-                className="h-full bg-yellow"
-                style={{
-                  width: `${getChargePercentage(player.id)}%`,
-                }}
-              />
-            </View>
-            <Text className="text-sm mt-1">
-              HP: {player.health}/{initialPlayer.health}
-            </Text>
           </View>
         </View>
       </View>
 
-      <View className="mb-4 p-2 bg-white/80 rounded">
+      <View className="absolute left-6 w-full bottom-[170px] mb-4 p-2 bg-white/80 rounded">
         {combatLog.slice(-3).map((log, index) => (
           <Text key={index} className="text-sm mb-1">
             {log}
@@ -535,7 +613,7 @@ const Combat = () => {
         ))}
       </View>
 
-      <View className="flex-row">
+      <View className="absolute left-6 bottom-0 pb-8 flex-row w-full h-[160px]">
         <View className="flex-1 mr-2">
           <Text className="text-lg font-bold mb-2">MOVES</Text>
           <View className="space-y-2">
@@ -624,7 +702,7 @@ const Combat = () => {
                     </View>
                     <View className="relative right-[25px]">
                       <AnimatedSprite
-                        id={AnimatedSpriteID.SLIME_GREEN}
+                        id={monster.spriteId}
                         state={SpriteState.DAMAGED}
                         direction="left"
                         width={150}
@@ -655,7 +733,7 @@ const Combat = () => {
                     </View>
                     <View className="relative right-[15px] z-10">
                       <AnimatedSprite
-                        id={AnimatedSpriteID.SLIME_RED}
+                        id={monster.spriteId}
                         state={SpriteState.ATTACK_1}
                         direction="left"
                         width={150}
