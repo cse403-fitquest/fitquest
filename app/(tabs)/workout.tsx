@@ -12,7 +12,11 @@ import {
 import { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { addToUserWorkouts, secondsToMinutes, updateUserAfterExpGain } from '@/utils/workout';
+import {
+  addToUserWorkouts,
+  secondsToMinutes,
+  updateUserAfterExpGain,
+} from '@/utils/workout';
 import { updateEXP, updateWorkouts } from '@/services/workout';
 import { useUserStore } from '@/store/user';
 import FQModal from '@/components/FQModal';
@@ -20,7 +24,6 @@ import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { Exercise, ExerciseTag, WorkoutTemplate } from '@/types/workout';
 //import { ExerciseTag } from '@/types/user';
-
 
 const Workout = () => {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -47,62 +50,65 @@ const Workout = () => {
   const [timer, setTimer] = useState<ReturnType<typeof setInterval> | null>(
     null,
   );
-  
+
   //const fillerex: Exercise = { name: 'Bench Press', weight: 135, reps: 20, sets: 4, distance: 0, duration: 0, tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS] };
 
   const fillerexbench: Exercise = {
-    id: "sdofn",
+    id: 'sdoffgdn',
     name: 'Bench Press',
-    sets: [{id: "opijowiejfoiwn23049u203fj08n",
-      weight: 135,
-      reps: 500,
-      distance: 0,
-      time: 0,}
+    sets: [
+      {
+        id: 'opijowiejfoiwn23049u203fj08n',
+        weight: 135,
+        reps: 500,
+        distance: 0,
+        time: 0,
+      },
     ],
-    muscleGroup: "chest",
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS]
+    muscleGroup: 'chest',
+    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
   };
   const fillerexsquat: Exercise = {
-    id: "sdgjonsdofig",
-    muscleGroup: "legs",
+    id: 'sdgjonsdosdsfig',
+    muscleGroup: 'legs',
     name: 'Squat',
     sets: [],
     tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
   };
   const fillerexlandmine: Exercise = {
-    id: "sdgjonsdofig",
-    muscleGroup: "legs",
+    id: 'sdgjofgdnsdofig',
+    muscleGroup: 'legs',
     name: 'Landmine Press',
     sets: [],
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS]
+    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
   };
   const fillerexdeadlift: Exercise = {
-    id: "sdgjonsdofig",
-    muscleGroup: "legs",
+    id: 'sdgjonsd54gofig',
+    muscleGroup: 'legs',
     name: 'Deadlift',
     sets: [],
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS]
+    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
   };
   const fillerexpushup: Exercise = {
-    id: "sdgjonsdofig",
-    muscleGroup: "chest",
+    id: 'sdgjonafadfsdofig',
+    muscleGroup: 'chest',
     name: 'Push Up',
     sets: [],
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS]
+    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
   };
   const fillerexpulldown: Exercise = {
-    id: "sdgjonsdofig",
-    muscleGroup: "legs",
+    id: 'sdgjonsdfsfsfofig',
+    muscleGroup: 'legs',
     name: 'Lat Pulldown',
     sets: [],
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS]
+    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
   };
   const fillerexbicep: Exercise = {
-    id: "sdgjonsdofig",
-    muscleGroup: "biceps",
+    id: 'sdgjonsafscdofig',
+    muscleGroup: 'biceps',
     name: 'Bicep Curl',
     sets: [],
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS]
+    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
   };
   const fillerexercises: Exercise[] = [
     fillerexbench,
@@ -115,7 +121,7 @@ const Workout = () => {
   ];
 
   // const fillerworkout = [fillerex, fillerex, fillerex, fillerex];
-  const fillerworkoutsuggest: WorkoutTemplate= {
+  const fillerworkoutsuggest: WorkoutTemplate = {
     title: 'Whole Body Day',
     exercises: [fillerexpushup, fillerexbicep, fillerexsquat],
     startedAt: new Date(),
@@ -125,16 +131,18 @@ const Workout = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
-  const [savedTemplates, setSavedTemplates] = useState<WorkoutTemplate[]>(user.savedWorkouts);
-  const [suggestedTemplates /*setSuggestedTemplates*/] = useState<WorkoutTemplate[]>([
-    fillerworkoutsuggest,
-  ]);
+  const [savedTemplates, setSavedTemplates] = useState<WorkoutTemplate[]>(
+    user.savedWorkouts,
+  );
+  const [suggestedTemplates /*setSuggestedTemplates*/] = useState<
+    WorkoutTemplate[]
+  >([fillerworkoutsuggest]);
 
   const [currtitle, setTitle] = useState('new workout');
   //const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
-  const [editingTemplate, seteditingTemplate] = useState(false);
-  const [editedTemplate, seteditedTemplate] = useState<string>('');
+  const [, /*editingTemplate,*/ seteditingTemplate] = useState(false);
+  const [, /*editedTemplate,*/ seteditedTemplate] = useState<string>('');
   const [removeConfirmationVisible, setremoveConfirmationVisible] =
     useState(false);
 
@@ -190,21 +198,21 @@ const Workout = () => {
     // Return the found exercise
     return exercise;
   };
-  const findTemplateIndex = (title: string): number => {
-    // Find the index of the template by title
-    const index = savedTemplates.findIndex(
-      (template) => template.title === title,
-    );
+  // const findTemplateIndex = (title: string): number => {
+  //   // Find the index of the template by title
+  //   const index = savedTemplates.findIndex(
+  //     (template) => template.title === title,
+  //   );
 
-    // If index is -1, the template was not found, throw an error
-    // if (index === -1) {
-    //   throw new Error('Template with title "' + title + '" not found');
-    // }
+  //   // If index is -1, the template was not found, throw an error
+  //   // if (index === -1) {
+  //   //   throw new Error('Template with title "' + title + '" not found');
+  //   // }
 
-    console.log('Template: "' + title + '" found at index: ' + index);
-    // Return the index of the found template
-    return index;
-  };
+  //   console.log('Template: "' + title + '" found at index: ' + index);
+  //   // Return the index of the found template
+  //   return index;
+  // };
 
   const closeTemplateCreator = () => {
     console.log('template creator closed');
@@ -247,7 +255,8 @@ const Workout = () => {
   //   setViewedTemplate((prevViewed) => (prevViewed === index ? null : index));
   // };
   //old workout stuff
-  {/*setSavedTemplates((prevTemplates) => {
+  {
+    /*setSavedTemplates((prevTemplates) => {
       // const existingIndex = prevTemplates.findIndex(
       //   (template) => template.title === workout.title,
       // );
@@ -289,7 +298,8 @@ const Workout = () => {
     });
 
     setSelectedExercises([]);
-    setModalVisible(false);*/}
+    setModalVisible(false);*/
+  }
 
   //constructor for a Template
   const Template = ({
@@ -524,29 +534,33 @@ const Workout = () => {
   }) => {
     const saveWorkout = async () => {
       const oldUser = user;
-      const newWorkout: WorkoutTemplate = {title: chosenTitle, startedAt: new Date(), exercises: [], duration: 0}
+      const newWorkout: WorkoutTemplate = {
+        title: chosenTitle,
+        startedAt: new Date(),
+        exercises: [],
+        duration: 0,
+      };
       const userAfterTemplateAdd = addToUserWorkouts(user, newWorkout);
-  
+
       setUser(userAfterTemplateAdd);
-  
+
       const addTemplateResponse = await updateWorkouts(userID, newWorkout); //update user exp
-  
+
       if (addTemplateResponse.success) {
         console.log('workouts updated successfully');
       } else {
         console.error('Error updating workouts', addTemplateResponse.error);
-  
+
         // Revert user back to old user if update fails
         setUser(oldUser);
-  
+
         // Show error message
         Alert.alert('Error updating workouts');
       }
       seteditingTemplate(false);
-      setSavedTemplates(user.savedWorkouts)
+      setSavedTemplates(user.savedWorkouts);
       setSelectedExercises([]);
       setModalVisible(false);
-  
     };
     const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([
       ...exercises,
@@ -659,7 +673,7 @@ const Workout = () => {
                 <FlatList
                   data={selectedExercises}
                   keyExtractor={(item) => item.name}
-                  renderItem={({ item, index }) => (
+                  renderItem={({ item }) => (
                     <View style={templatestyles.exerciseItem}>
                       <TouchableOpacity
                         style={templatestyles.removeButton}
@@ -678,7 +692,6 @@ const Workout = () => {
                           updateExerciseWeight(index, +value)
                         }
                       />
-                      
                       <TextInput
                         style={templatestyles.input}
                         placeholder="Reps"
@@ -688,7 +701,6 @@ const Workout = () => {
                           updateExerciseReps(index, +value)
                         }
                       />
-                      
                       <TextInput
                         style={templatestyles.input}
                         placeholder="Sets"
@@ -722,9 +734,7 @@ const Workout = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={templatestyles.saveButton}
-            onPress={
-              saveWorkout
-            } // Save and close modal
+            onPress={saveWorkout} // Save and close modal
           >
             <Text style={templatestyles.closeButtonText}>
               Save to Templates
