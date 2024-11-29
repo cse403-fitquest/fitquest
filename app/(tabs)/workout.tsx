@@ -125,7 +125,7 @@ const Workout = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
-  const [savedTemplates, setSavedTemplates] = useState<WorkoutTemplate[]>([]);
+  const [savedTemplates, setSavedTemplates] = useState<WorkoutTemplate[]>(user.savedWorkouts);
   const [suggestedTemplates /*setSuggestedTemplates*/] = useState<WorkoutTemplate[]>([
     fillerworkoutsuggest,
   ]);
@@ -290,31 +290,6 @@ const Workout = () => {
 
     setSelectedExercises([]);
     setModalVisible(false);*/}
-  const saveWorkout = async () => {
-    const oldUser = user;
-    const newWorkout: WorkoutTemplate = {title: currtitle, startedAt: new Date(), exercises: [], duration: 0}
-    const userAfterTemplateAdd = addToUserWorkouts(user, newWorkout);
-
-    setUser(userAfterTemplateAdd);
-
-    const addTemplateResponse = await updateWorkouts(userID, newWorkout); //update user exp
-
-    if (addTemplateResponse.success) {
-      console.log('workouts updated successfully');
-    } else {
-      console.error('Error updating workouts', addTemplateResponse.error);
-
-      // Revert user back to old user if update fails
-      setUser(oldUser);
-
-      // Show error message
-      Alert.alert('Error updating workouts');
-    }
-    seteditingTemplate(false);
-    setSelectedExercises([]);
-    setModalVisible(false);
-
-  };
 
   //constructor for a Template
   const Template = ({
@@ -547,6 +522,32 @@ const Workout = () => {
     title: string;
     exercises: Exercise[];
   }) => {
+    const saveWorkout = async () => {
+      const oldUser = user;
+      const newWorkout: WorkoutTemplate = {title: chosenTitle, startedAt: new Date(), exercises: [], duration: 0}
+      const userAfterTemplateAdd = addToUserWorkouts(user, newWorkout);
+  
+      setUser(userAfterTemplateAdd);
+  
+      const addTemplateResponse = await updateWorkouts(userID, newWorkout); //update user exp
+  
+      if (addTemplateResponse.success) {
+        console.log('workouts updated successfully');
+      } else {
+        console.error('Error updating workouts', addTemplateResponse.error);
+  
+        // Revert user back to old user if update fails
+        setUser(oldUser);
+  
+        // Show error message
+        Alert.alert('Error updating workouts');
+      }
+      seteditingTemplate(false);
+      setSavedTemplates(user.savedWorkouts)
+      setSelectedExercises([]);
+      setModalVisible(false);
+  
+    };
     const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([
       ...exercises,
     ]); // Add this if it's local state
