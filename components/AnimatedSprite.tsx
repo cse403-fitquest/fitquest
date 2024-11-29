@@ -47,6 +47,15 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
     } else if (isMonsterSprite(id)) {
       return 5;
     } else if (isBossSprite(id)) {
+      if (id === AnimatedSpriteID.WEREWOLF_BROWN) {
+        return 9;
+      } else if (
+        id === AnimatedSpriteID.BEAR_BROWN ||
+        id === AnimatedSpriteID.BEAR_BLUE
+      ) {
+        return 8;
+      }
+
       return 6;
     } else {
       // Handle non uniform sprite sheets
@@ -155,6 +164,14 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
         return require('@/assets/sprites/animated/bosses/chompbug_red.png');
       case AnimatedSpriteID.CHOMPBUG_BLACK:
         return require('@/assets/sprites/animated/bosses/chompbug_black.png');
+      case AnimatedSpriteID.SLUG_GREEN:
+        return require('@/assets/sprites/animated/bosses/slug_green.png');
+      case AnimatedSpriteID.SLUG_PURPLE:
+        return require('@/assets/sprites/animated/bosses/slug_purple.png');
+      case AnimatedSpriteID.BEAR_BROWN:
+        return require('@/assets/sprites/animated/bosses/bear_brown.png');
+      case AnimatedSpriteID.BEAR_BLUE:
+        return require('@/assets/sprites/animated/bosses/bear_blue.png');
 
       default:
         return require('@/assets/sprites/animated/heroes/hero_01.png');
@@ -199,6 +216,37 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
           return 0;
       }
     } else if (isBossSprite(id)) {
+      if (id === AnimatedSpriteID.WEREWOLF_BROWN) {
+        switch (state) {
+          case SpriteState.ATTACK_1:
+            return 3;
+          case SpriteState.ATTACK_2:
+            return 4;
+          case SpriteState.DAMAGED:
+            return 7;
+          case SpriteState.DEATH:
+            return 8;
+          default:
+            return 0;
+        }
+      } else if (
+        id === AnimatedSpriteID.BEAR_BROWN ||
+        id === AnimatedSpriteID.BEAR_BLUE
+      ) {
+        switch (state) {
+          case SpriteState.ATTACK_1:
+            return 4;
+          case SpriteState.ATTACK_2:
+            return 5;
+          case SpriteState.DAMAGED:
+            return 6;
+          case SpriteState.DEATH:
+            return 7;
+          default:
+            return 0;
+        }
+      }
+
       switch (state) {
         case SpriteState.ATTACK_1:
           return 2;

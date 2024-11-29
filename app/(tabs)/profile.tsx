@@ -484,6 +484,27 @@ const Profile = () => {
   const handleUpdateProfile = async () => {
     if (!user) return;
 
+    if (!username.trim() || username.trim().length < 4) {
+      Alert.alert(
+        'Validation Error',
+        'Username must be at least 4 characters long.',
+      );
+      return;
+    }
+
+    const parsedHeight = parseFloat(height);
+    const parsedWeight = parseFloat(weight);
+
+    if (isNaN(parsedHeight) || parsedHeight <= 0) {
+      Alert.alert('Validation Error', 'Height must be a positive number.');
+      return;
+    }
+
+    if (isNaN(parsedWeight) || parsedWeight <= 0) {
+      Alert.alert('Validation Error', 'Weight must be a positive number.');
+      return;
+    }
+
     const updates = {
       profileInfo: {
         ...user.profileInfo,
@@ -511,6 +532,18 @@ const Profile = () => {
       Alert.alert('Error updating profile', response.error || '');
     }
 
+    setIsSettingsVisible(false);
+  };
+
+  const closeSettingsModal = () => {
+    // Reset the state to the user's actual profile info
+    setUsername(user?.profileInfo.username || '');
+    setHeight(user?.profileInfo.height?.toString() || '');
+    setWeight(user?.profileInfo.weight?.toString() || '');
+    setIsCurrentQuestPublic(
+      user?.privacySettings.isCurrentQuestPublic ?? false,
+    );
+    setIsLastWorkoutPublic(user?.privacySettings.isLastWorkoutPublic ?? false);
     setIsSettingsVisible(false);
   };
 
@@ -778,7 +811,7 @@ const Profile = () => {
 
       <FQModal
         visible={isSettingsVisible}
-        setVisible={setIsSettingsVisible}
+        setVisible={closeSettingsModal}
         title="Profile Settings"
         onConfirm={handleUpdateProfile}
         closeButton

@@ -162,7 +162,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      <StatusBar backgroundColor="#161622" style="light" />
+      <StatusBar backgroundColor="#F7F7F7" style="dark" />
     </>
   );
 }

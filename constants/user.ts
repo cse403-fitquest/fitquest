@@ -18,6 +18,7 @@ export const BASE_USER: User = {
   equippedItems: [],
   equipments: [],
   consumables: [],
+  savedWorkouts: [],
   privacySettings: {
     isLastWorkoutPublic: true,
     isCurrentQuestPublic: true,

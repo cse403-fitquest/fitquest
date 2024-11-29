@@ -78,7 +78,7 @@ In addition, it is good to have an editor to work with the code such as [VSCode]
 
 4. Setup device for development. Run on physical Android device using expo QR code or run on Android Emulator:
 
-   With an android device, the fastest way to use the app is to use your physical device through expo. Download and install Exp Go SDK 51 (https://expo.dev/go?sdkVersion=51&platform=android&device=true). When the app is running after completing step 2, scan the QR code given in the terminal in the Expo Go application.
+   With an android device, the fastest way to use the app is to use your physical device through expo. Download and install Expo Go SDK 51 (https://expo.dev/go?sdkVersion=51&platform=android&device=true). When the app is running after completing step 3, scan the QR code given in the terminal in the Expo Go application.
 
    Our app currently does not support iPhones, so using Expo Go with your iPhone will likely result in a crash or unintended bug(s).
 
