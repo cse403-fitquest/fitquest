@@ -1,6 +1,7 @@
 import { User } from '@/types/user';
 import { getUserExpThreshold } from './user';
-import { ExerciseDisplay, ExerciseTag } from '@/types/workout';
+import { ExerciseDisplay, ExerciseTag, WorkoutTemplate } from '@/types/workout';
+
 
 /* converts seconds to xminutes xseconds so for display purposes*/
 export const secondsToMinutes = (seconds: number) => {
@@ -35,6 +36,26 @@ export const updateUserAfterExpGain = (user: User, expGain: number): User => {
 
   return newUser;
 };
+
+export const addToUserWorkouts = (user: User, workout: WorkoutTemplate): User => {
+  const newUser: User = {...user};
+  //if the workout with same name is already in my templates
+  if (
+    user.savedWorkouts
+      .map((template) => template.title)
+      .includes(workout.title)
+  ) {
+    throw new Error(
+      'Workout with title: ' + workout.title + ' already exists',
+    );
+  }
+  console.log(
+    'Successfully added ' + workout.title + ' to saved templates',
+  );
+  newUser.savedWorkouts = [...user.savedWorkouts, workout];
+  return newUser;
+
+}
 
 // Helper function to print exercise display
 export const printExerciseDisplays = (exercises: ExerciseDisplay[]) => {

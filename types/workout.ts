@@ -34,7 +34,7 @@ export type ExerciseDisplay = Omit<Exercise, 'sets'> & {
   sets: ExerciseSetDisplay[];
 };
 
-export type Workout = {
+export type WorkoutTemplate = {
   title: string;
   startedAt: Date;
   duration: number;

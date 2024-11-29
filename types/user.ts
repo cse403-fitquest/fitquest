@@ -1,5 +1,6 @@
 import { AnimatedSpriteID } from '@/constants/sprite';
 import { APIResponse } from './general';
+import { WorkoutTemplate } from './workout';
 export type CreateUserResponse = APIResponse & {};
 
 export type GetUserResponse = APIResponse & {
@@ -26,7 +27,7 @@ export type User = {
   equippedItems: string[]; // Array of equipped equipment IDs
   equipments: string[]; // Array of all user's equipment IDs
   consumables: string[]; // Array of all user's consumables IDs
-  savedWorkoutTemplates: string[] // Array of all users' workout template IDs
+  savedWorkouts: WorkoutTemplate[]; // Array of all users' workout templates
   privacySettings: {
     isLastWorkoutPublic: boolean;
     isCurrentQuestPublic: boolean;
