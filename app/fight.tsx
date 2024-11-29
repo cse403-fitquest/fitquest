@@ -1,5 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { SafeAreaView, View, Text, Pressable, Modal } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  Pressable,
+  Modal,
+  Dimensions,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
@@ -447,6 +454,12 @@ const Combat = () => {
     return Math.max(0, ((5 - turnsUntilNext) / 5) * 100);
   };
 
+  const spriteSize = useMemo(() => {
+    const { width } = Dimensions.get('window');
+    const spriteSize = width / 3;
+    return spriteSize;
+  }, []);
+
   return (
     <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
       <View className="h-2 bg-gray-200 rounded-full mb-12">
@@ -457,77 +470,80 @@ const Combat = () => {
 
       {renderTurnOrder()}
 
-      <View className="flex-1">
-        <View className="flex-row justify-between items-start mb-[-30px] -mt-12">
-          <View className="w-1/2 pl-4 mt-20 ml-[-12]">
-            <Text className="text-lg font-bold mb-1">{monster.name}</Text>
-            <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
-              <View
-                className="h-full bg-green"
-                style={{
-                  width: `${(monster.health / monster.maxHealth!) * 100}%`,
-                }}
-              />
+      <View className="flex-1 px-6 justify-center items-center h-full">
+        <View className="h-[300px] w-full mb-40">
+          <View className="flex-row justify-between items-start mb-[10px]">
+            <View className="w-1/2 pr-4">
+              <Text className="text-lg font-bold mb-1">{monster.name}</Text>
+              <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
+                <View
+                  className="h-full bg-green"
+                  style={{
+                    width: `${(monster.health / monster.maxHealth!) * 100}%`,
+                  }}
+                />
+              </View>
+              <View className="w-full h-2 bg-gray rounded-full mt-1 overflow-hidden">
+                <View
+                  className="h-full bg-yellow"
+                  style={{
+                    width: `${getChargePercentage('monster')}%`,
+                  }}
+                />
+              </View>
+              <Text className="text-sm mt-1">
+                HP: {monster.health}/
+                {isBossFight ? currentQuest.boss.health : monster.maxHealth}
+              </Text>
             </View>
-            <View className="w-full h-2 bg-gray rounded-full mt-1 overflow-hidden">
-              <View
-                className="h-full bg-yellow"
-                style={{
-                  width: `${getChargePercentage('monster')}%`,
-                }}
-              />
-            </View>
-            <Text className="text-sm mt-1">
-              HP: {monster.health}/
-              {isBossFight ? currentQuest.boss.health : monster.maxHealth}
-            </Text>
-          </View>
 
-          <View className="w-1/2 items-center ">
-            <AnimatedSprite
-              id={monster.spriteId}
-              width={256}
-              height={256}
-              state={monsterSpriteState}
-            />
+            <View className="w-1/2 items-end left-5">
+              <AnimatedSprite
+                id={monster.spriteId}
+                width={spriteSize}
+                height={spriteSize}
+                state={monsterSpriteState}
+                direction="left"
+              />
+            </View>
           </View>
-        </View>
-        <View className="flex-row justify-between items-center mb-15 ">
-          <View className="w-10 items-start ml-[-30px] ">
-            <AnimatedSprite
-              id={user?.spriteID}
-              width={256}
-              height={256}
-              state={playerSpriteState}
-            />
-          </View>
+          <View className="flex-row justify-between items-center">
+            <View className="w-1/2 items-start right-5">
+              <AnimatedSprite
+                id={user?.spriteID}
+                width={spriteSize}
+                height={spriteSize}
+                state={playerSpriteState}
+              />
+            </View>
 
-          <View className="w-1/2 pl-4">
-            <Text className="text-lg font-bold mb-1 ">{player.name}</Text>
-            <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
-              <View
-                className="h-full bg-green"
-                style={{
-                  width: `${(player.health / initialPlayer.health) * 100}%`,
-                }}
-              />
+            <View className="w-1/2 pl-4">
+              <Text className="text-lg font-bold mb-1 ">{player.name}</Text>
+              <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
+                <View
+                  className="h-full bg-green"
+                  style={{
+                    width: `${(player.health / initialPlayer.health) * 100}%`,
+                  }}
+                />
+              </View>
+              <View className="w-full h-2 bg-gray rounded-full mt-1 overflow-hidden">
+                <View
+                  className="h-full bg-yellow"
+                  style={{
+                    width: `${getChargePercentage(player.id)}%`,
+                  }}
+                />
+              </View>
+              <Text className="text-sm mt-1">
+                HP: {player.health}/{initialPlayer.health}
+              </Text>
             </View>
-            <View className="w-full h-2 bg-gray rounded-full mt-1 overflow-hidden">
-              <View
-                className="h-full bg-yellow"
-                style={{
-                  width: `${getChargePercentage(player.id)}%`,
-                }}
-              />
-            </View>
-            <Text className="text-sm mt-1">
-              HP: {player.health}/{initialPlayer.health}
-            </Text>
           </View>
         </View>
       </View>
 
-      <View className="mb-4 p-2 bg-white/80 rounded">
+      <View className="absolute left-6 w-full bottom-[170px] mb-4 p-2 bg-white/80 rounded">
         {combatLog.slice(-3).map((log, index) => (
           <Text key={index} className="text-sm mb-1">
             {log}
@@ -535,7 +551,7 @@ const Combat = () => {
         ))}
       </View>
 
-      <View className="flex-row">
+      <View className="absolute left-6 bottom-0 pb-8 flex-row w-full h-[160px]">
         <View className="flex-1 mr-2">
           <Text className="text-lg font-bold mb-2">MOVES</Text>
           <View className="space-y-2">
@@ -624,7 +640,7 @@ const Combat = () => {
                     </View>
                     <View className="relative right-[25px]">
                       <AnimatedSprite
-                        id={AnimatedSpriteID.SLIME_GREEN}
+                        id={monster.spriteId}
                         state={SpriteState.DAMAGED}
                         direction="left"
                         width={150}
@@ -655,7 +671,7 @@ const Combat = () => {
                     </View>
                     <View className="relative right-[15px] z-10">
                       <AnimatedSprite
-                        id={AnimatedSpriteID.SLIME_RED}
+                        id={monster.spriteId}
                         state={SpriteState.ATTACK_1}
                         direction="left"
                         width={150}
