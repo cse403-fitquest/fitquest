@@ -558,7 +558,7 @@ const Workout = () => {
         Alert.alert('Error updating workouts');
       }
       seteditingTemplate(false);
-      setSavedTemplates(user.savedWorkouts);
+      setSavedTemplates(userAfterTemplateAdd.savedWorkouts);
       setSelectedExercises([]);
       setModalVisible(false);
     };
