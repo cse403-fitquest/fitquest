@@ -23,7 +23,10 @@ export type User = {
   exp: number;
   gold: number;
   attributePoints: number;
-  currentQuest: string;
+  currentQuest: {
+    id: string;
+    progress: Record<string, number>;
+  };
   equippedItems: string[]; // Array of equipped equipment IDs
   equipments: string[]; // Array of all user's equipment IDs
   consumables: string[]; // Array of all user's consumables IDs

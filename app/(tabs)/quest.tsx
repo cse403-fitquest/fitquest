@@ -145,10 +145,15 @@ const Quest = () => {
   const confirmAbandon = async () => {
     if (!user?.id) return;
     try {
-      const result = await updateUserProfile(user.id, { currentQuest: '' });
+      const result = await updateUserProfile(user.id, {
+        currentQuest: { id: '', progress: {} },
+      });
       if (result.success) {
         await AsyncStorage.removeItem('activeQuest');
-        setUser({ ...user, currentQuest: '' });
+        setUser({
+          ...user,
+          currentQuest: { id: '', progress: {} },
+        });
         setActiveQuest(null);
         setCurrentNodeIndex(0);
         setVisualProgress(0);
@@ -197,10 +202,13 @@ const Quest = () => {
     if (!user?.id) return;
     try {
       const result = await updateUserProfile(user.id, {
-        currentQuest: questId,
+        currentQuest: { id: questId, progress: {} },
       });
       if (result.success) {
-        setUser({ ...user, currentQuest: questId });
+        setUser({
+          ...user,
+          currentQuest: { id: questId, progress: {} },
+        });
       } else {
         throw new Error(result.error || 'Failed to update profile');
       }
@@ -210,28 +218,65 @@ const Quest = () => {
     }
   };
 
-  const handleAdvance = () => {
-    if (activeQuest) {
+  const handleAdvance = async () => {
+    if (activeQuest && user?.id) {
       const nextMilestone = activeQuest.milestones.find(
         (milestone) => milestone > activeQuest.progress,
       );
 
       if (nextMilestone) {
         const updatedQuest = { ...activeQuest, progress: nextMilestone };
-        const isBoss = nextMilestone === activeQuest.bossThreshold;
-        const uniqueKey = Date.now();
 
-        router.replace({
-          pathname: '/fight',
-          params: {
-            isBoss: isBoss ? 'true' : 'false',
-            questId: activeQuest.questID,
-            uniqueKey,
-          },
-        });
+        // Update the user's quest progress
+        const updatedProgress = {
+          ...user.currentQuest.progress,
+          [activeQuest.questID]: nextMilestone,
+        };
 
-        setActiveQuest(updatedQuest);
-        AsyncStorage.setItem('activeQuest', JSON.stringify(updatedQuest));
+        try {
+          const result = await updateUserProfile(user.id, {
+            currentQuest: {
+              id: activeQuest.questID,
+              progress: updatedProgress,
+            },
+          });
+
+          if (result.success) {
+            setUser({
+              ...user,
+              currentQuest: {
+                id: activeQuest.questID,
+                progress: updatedProgress,
+              },
+            });
+
+            const isBoss = nextMilestone === activeQuest.bossThreshold;
+            const uniqueKey = Date.now();
+
+            router.replace({
+              pathname: '/fight',
+              params: {
+                isBoss: isBoss ? 'true' : 'false',
+                questId: activeQuest.questID,
+                uniqueKey,
+              },
+            });
+
+            setActiveQuest(updatedQuest);
+            await AsyncStorage.setItem(
+              'activeQuest',
+              JSON.stringify(updatedQuest),
+            );
+          } else {
+            throw new Error(result.error || 'Failed to update progress');
+          }
+        } catch (error) {
+          console.error('Failed to update quest progress:', error);
+          Alert.alert(
+            'Error',
+            'Failed to update quest progress. Please try again.',
+          );
+        }
       } else {
         Alert.alert(
           'Quest Complete!',
