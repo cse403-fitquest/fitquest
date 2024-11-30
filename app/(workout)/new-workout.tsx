@@ -27,7 +27,11 @@ import {
 } from '@/types/workout';
 import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
-import { convertSecondsToMMSS, printExerciseDisplays } from '@/utils/workout';
+import {
+  convertSecondsToMMSS,
+  printExerciseDisplays,
+  updateUserAfterExpGain,
+} from '@/utils/workout';
 import { finishAndSaveWorkout } from '@/services/workout';
 import { useUserStore } from '@/store/user';
 
@@ -517,14 +521,21 @@ const NewWorkout = () => {
     // Print workout object
     printWorkout(newWorkout);
 
-    // Optimistic update to user's workout history
+    const userAfterExpGain = updateUserAfterExpGain(
+      user,
+      newWorkout.duration * 500,
+    );
+
+    // Optimistic update to user's workout history and exp
     const oldUser = user;
     setUser({
       ...user,
       workoutHistory: [newWorkout, ...user.workoutHistory],
+      exp: userAfterExpGain.exp,
+      attributePoints: userAfterExpGain.attributePoints,
     });
 
-    console.log('User workout history updated.');
+    console.log('User workout history and exp updated.');
 
     // Save workout object to BE
     // Update user exp

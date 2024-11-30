@@ -99,7 +99,7 @@ export const finishAndSaveWorkout: (
     });
 
     console.log(
-      'successfully added ' + newWorkout.title + 'to user workout history.',
+      'successfully added ' + newWorkout.title + ' to user workout history.',
     );
 
     return {
