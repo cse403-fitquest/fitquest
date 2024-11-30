@@ -6,7 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
-// import { useUserStore } from '@/store/user';
+import { useUserStore } from '@/store/user';
+import { updateUserProfile } from '@/services/user';
 
 interface Quest {
   questId: string;
@@ -91,12 +92,13 @@ const startQuest = async (
 };
 
 const Quest = () => {
-  const userID = 'user123';
+  // const userID = 'user123';
   const [activeQuest, setActiveQuest] = useState<ActiveQuest | null>(null);
   const [, setShowAbandonModal] = useState<boolean>(false);
   const router = useRouter();
   const [, setVisualProgress] = useState<number>(0);
   const [, setCurrentNodeIndex] = useState(0);
+  const { user, setUser } = useUserStore();
 
   useEffect(() => {
     const loadActiveQuest = async () => {
@@ -141,20 +143,31 @@ const Quest = () => {
   };
 
   const confirmAbandon = async () => {
-    await AsyncStorage.removeItem('activeQuest');
-    setActiveQuest(null);
-    setCurrentNodeIndex(0);
-    setVisualProgress(0);
-    setShowAbandonModal(false);
+    if (!user?.id) return;
+    try {
+      const result = await updateUserProfile(user.id, { currentQuest: '' });
+      if (result.success) {
+        await AsyncStorage.removeItem('activeQuest');
+        setUser({ ...user, currentQuest: '' });
+        setActiveQuest(null);
+        setCurrentNodeIndex(0);
+        setVisualProgress(0);
+        setShowAbandonModal(false);
+      } else {
+        throw new Error(result.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Failed to abandon quest:', error);
+      Alert.alert('Error', 'Failed to abandon quest. Please try again.');
+    }
   };
 
   function confirmAction(
     action: string,
     quest: Quest,
-    userID: string,
     setActiveQuest: (quest: ActiveQuest | null) => void,
   ) {
-    if (activeQuest?.questID === quest.questId) return; // Prevent starting the same quest
+    if (activeQuest?.questID === quest.questId) return;
 
     Alert.alert(
       `${action} Quest: ${quest.name}?`,
@@ -166,11 +179,36 @@ const Quest = () => {
         },
         {
           text: 'OK',
-          onPress: () => startQuest(userID, quest.questId, setActiveQuest),
+          onPress: async () => {
+            try {
+              await updateUserCurrentQuest(quest.questId);
+              await startQuest(user?.id || '', quest.questId, setActiveQuest);
+            } catch (error) {
+              console.error('Error starting quest:', error);
+              Alert.alert('Error', 'Failed to start quest. Please try again.');
+            }
+          },
         },
       ],
     );
   }
+
+  const updateUserCurrentQuest = async (questId: string) => {
+    if (!user?.id) return;
+    try {
+      const result = await updateUserProfile(user.id, {
+        currentQuest: questId,
+      });
+      if (result.success) {
+        setUser({ ...user, currentQuest: questId });
+      } else {
+        throw new Error(result.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Failed to update user current quest:', error);
+      Alert.alert('Error', 'Failed to update current quest. Please try again.');
+    }
+  };
 
   const handleAdvance = () => {
     if (activeQuest) {
@@ -367,12 +405,7 @@ const Quest = () => {
                     activeQuest?.questID === item.questId ? 'opacity-50' : ''
                   }`}
                   onPress={() =>
-                    confirmAction(
-                      'Start',
-                      item as Quest,
-                      userID,
-                      setActiveQuest,
-                    )
+                    confirmAction('Start', item as Quest, setActiveQuest)
                   }
                   disabled={activeQuest?.questID === item.questId}
                 >
