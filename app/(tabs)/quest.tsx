@@ -11,6 +11,7 @@ import { updateUserProfile } from '@/services/user';
 import { getAvailableQuests } from '@/services/quest';
 
 interface Quest {
+  monsters: AnimatedSpriteID[];
   questName: string;
   questId: string;
   questDescription?: '';
@@ -20,9 +21,21 @@ interface Quest {
   duration: number;
   createdAt?: '';
   expiredAt?: '';
+  boss: {
+    spriteId: AnimatedSpriteID;
+    health: number;
+    power: number;
+    speed: number;
+  };
 }
 
 interface ActiveQuest {
+  boss: {
+    spriteId: AnimatedSpriteID;
+    health: number;
+    power: number;
+    speed: number;
+  };
   questID: string;
   questName: string;
   progress: number;
@@ -55,7 +68,7 @@ const Quest = () => {
       const existingProgress = user?.currentQuest?.progress || {};
       const questProgress = existingProgress[questID] || 0;
 
-      const newActiveQuest = {
+      const newActiveQuest: ActiveQuest = {
         questID: selectedQuest.questId,
         questName: selectedQuest.questName,
         progress: questProgress,
@@ -64,6 +77,7 @@ const Quest = () => {
         bossThreshold: selectedQuest.bossThreshold,
         spriteId: selectedQuest.spriteId,
         bossDefeated: false,
+        boss: selectedQuest.boss,
       };
 
       await AsyncStorage.setItem('activeQuest', JSON.stringify(newActiveQuest));
@@ -309,23 +323,13 @@ const Quest = () => {
 
   const renderMilestoneNodes = (quest: ActiveQuest, progress: number) => {
     const startingPoint = 'start';
-    const nextMilestones = getNextMilestones(
-      {
-        questId: quest.questID,
-        questName: quest.questName,
-        milestones: quest.milestones,
-        bossThreshold: quest.bossThreshold,
-        duration: 0,
-        questDescription: '',
-        spriteId: quest.spriteId,
-        createdAt: '',
-        expiredAt: '',
-      },
-      progress,
+    const selectedQuest = availableQuests.find(
+      (q) => q.questId === quest.questID,
     );
 
-    console.log('nextMilestones', nextMilestones);
+    if (!selectedQuest) return null;
 
+    const nextMilestones = getNextMilestones(selectedQuest, progress);
     const visualMilestones = [startingPoint, ...nextMilestones];
 
     const percentage = calculateQuestPercentage(quest, progress);
@@ -338,70 +342,60 @@ const Quest = () => {
 
         <View
           className="flex-row justify-between items-center"
-          style={{ height: 120 }}
+          style={{ height: 60 }}
         >
-          {visualMilestones.map((milestone) => (
-            <View
-              key={milestone === 'start' ? 'start-node' : milestone}
-              className="items-center"
-            >
-              {milestone === 'start' ? (
-                <View
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 12,
-                    backgroundColor: '#D3D3D3',
-                    borderWidth: 2,
-                    borderColor: '#404040',
-                  }}
-                />
-              ) : milestone === quest.bossThreshold ? (
-                <View style={{ width: 48, height: 48 }}>
-                  <AnimatedSprite
-                    id={
-                      quest.questID === '1'
-                        ? AnimatedSpriteID.MINOTAUR_RED
-                        : AnimatedSpriteID.CHOMPBUG_GREEN
-                    }
-                    width={64}
-                    height={64}
-                    state={SpriteState.IDLE}
+          {visualMilestones.map((milestone) => {
+            const milestoneValue =
+              milestone === 'start' ? 0 : Number(milestone);
+            const isBossNode = milestoneValue === Number(quest.bossThreshold);
+
+            return (
+              <View
+                key={milestone === 'start' ? 'start-node' : milestone}
+                className="items-center"
+              >
+                {isBossNode ? (
+                  <View style={{ width: 70, height: 120 }}>
+                    <AnimatedSprite
+                      id={getQuestSprite(quest.questName)}
+                      width={85}
+                      height={85}
+                      state={SpriteState.IDLE}
+                    />
+                  </View>
+                ) : (
+                  <View
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      backgroundColor: '#D3D3D3',
+                      borderWidth: 2,
+                      borderColor: '#404040',
+                    }}
                   />
-                </View>
-              ) : (
-                <View style={{ width: 32, height: 32 }}>
-                  <AnimatedSprite
-                    id={
-                      quest.questID === '1'
-                        ? AnimatedSpriteID.SLIME_GREEN
-                        : AnimatedSpriteID.FIRE_SKULL_RED
-                    }
-                    width={32}
-                    height={32}
-                    state={SpriteState.IDLE}
-                  />
-                </View>
-              )}
-            </View>
-          ))}
+                )}
+              </View>
+            );
+          })}
         </View>
       </View>
     );
   };
 
+  const getQuestSprite = (questName: string): AnimatedSpriteID => {
+    switch (questName) {
+      case 'Hunt Red Minotaur':
+        return AnimatedSpriteID.MINOTAUR_RED;
+      case 'Hunt Green Chompbug':
+        return AnimatedSpriteID.CHOMPBUG_GREEN;
+      default:
+        return AnimatedSpriteID.SLIME_GREEN;
+    }
+  };
+
   const renderItem = ({ item, index }: { item: Quest; index: number }) => {
-    // Helper function to determine the correct sprite ID based on quest name
-    const getQuestSprite = (questName: string): AnimatedSpriteID => {
-      switch (questName) {
-        case 'Hunt Red Minotaur':
-          return AnimatedSpriteID.MINOTAUR_RED;
-        case 'Hunt Green Chompbug':
-          return AnimatedSpriteID.CHOMPBUG_GREEN;
-        default:
-          return AnimatedSpriteID.SLIME_GREEN;
-      }
-    };
+    console.log('item', getQuestSprite(item.questName));
 
     return (
       <TouchableOpacity

@@ -55,7 +55,8 @@ export const getAvailableQuests = async (): Promise<APIResponse> => {
  * Start a quest for a user
  */
 export const startQuest = async (
-userId: string, questId: string, setActiveQuest?: (quest: ActiveQuest | null) => void,
+  userId: string,
+  questId: string,
 ): Promise<QuestResponse> => {
   try {
     const questProgress: QuestProgress = {
