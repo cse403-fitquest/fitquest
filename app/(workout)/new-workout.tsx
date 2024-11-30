@@ -38,6 +38,8 @@ import { finishAndSaveWorkout } from '@/services/workout';
 import { useUserStore } from '@/store/user';
 import { Alert } from 'react-native';
 import { useGeneralStore } from '@/store/general';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { User } from '@/types/user';
 
 const SET_COLUMN_WIDTH = 28;
 // const PREVIOUS_COLUMN_WIDTH = 68;
@@ -71,12 +73,105 @@ const NewWorkout = () => {
   const workoutStartDate = new Date();
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSeconds((prev) => prev + 1);
-    }, 1000);
+    if (!user) return;
 
+    let interval: NodeJS.Timeout;
+
+    const getActiveWorkout = async () => {
+      const activeWorkoutString = await AsyncStorage.getItem(
+        `activeWorkout-${user.id}`,
+      );
+
+      console.log('Active workout string:', activeWorkoutString);
+
+      // AsyncStorage.removeItem(`activeWorkout-${user.id}`);
+
+      if (!activeWorkoutString) {
+        storeActiveWorkout();
+        return;
+      }
+
+      const activeWorkout: {
+        id: string;
+        name: string;
+        exercises: ExerciseDisplay[];
+        startedAt: Date;
+        isSuggested?: boolean;
+      } = JSON.parse(activeWorkoutString, (key, value) => {
+        if (key === 'startedAt') {
+          return new Date(value);
+        }
+        return value;
+      });
+
+      console.log('Active workout found:', activeWorkout);
+
+      setWorkout(() => activeWorkout);
+
+      // Calculate seconds since start
+      const secondsSinceStart = Math.floor(
+        (new Date().getTime() - activeWorkout.startedAt.getTime()) / 1000,
+      );
+
+      setSeconds(secondsSinceStart);
+
+      // Start interval
+      startInterval();
+    };
+
+    const storeActiveWorkout = () => {
+      const storedWorkout = { ...workout, startedAt: workoutStartDate };
+
+      // Verify that workout is valid
+      if (!storedWorkout) {
+        console.error('Workout not found');
+        return;
+      }
+
+      // Store active workout in async storage
+      AsyncStorage.setItem(
+        `activeWorkout-${user.id}`,
+        JSON.stringify(storedWorkout),
+      );
+
+      // Start internval
+      startInterval();
+    };
+
+    const startInterval = () => {
+      interval = setInterval(() => {
+        setSeconds((prev) => prev + 1);
+      }, 1000);
+    };
+
+    getActiveWorkout();
     return () => clearInterval(interval);
   }, []);
+
+  const updateActiveWorkout = async (
+    workout: {
+      id: string;
+      name: string;
+      exercises: ExerciseDisplay[];
+      startedAt: Date;
+      isSuggested?: boolean;
+    },
+    user: User,
+  ) => {
+    const storedWorkout = { ...workout };
+
+    // Verify that workout is valid
+    if (!storedWorkout) {
+      console.error('Workout not found');
+      return;
+    }
+
+    // Store active workout in async storage
+    AsyncStorage.setItem(
+      `activeWorkout-${user.id}`,
+      JSON.stringify(storedWorkout),
+    );
+  };
 
   const secondsToHHmmss = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -106,6 +201,11 @@ const NewWorkout = () => {
     exerciseID,
     setID,
   ) => {
+    if (!user) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     console.log('start toggling set', exerciseID, setID);
     const updatedExercises = workout.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
@@ -176,10 +276,23 @@ const NewWorkout = () => {
       exercises: updatedExercises,
     }));
 
+    updateActiveWorkout(
+      {
+        ...workout,
+        exercises: updatedExercises,
+      },
+      user,
+    );
+
     console.log('end toggling set');
   };
 
   const handleAddSet: (exerciseID: string) => void = (exerciseID) => {
+    if (!user) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     console.log('start adding set', exerciseID);
     const updatedExercises = workout.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
@@ -207,6 +320,14 @@ const NewWorkout = () => {
       ...workout,
       exercises: updatedExercises,
     }));
+
+    updateActiveWorkout(
+      {
+        ...workout,
+        exercises: updatedExercises,
+      },
+      user,
+    );
 
     console.log('end adding set');
   };
@@ -246,6 +367,11 @@ const NewWorkout = () => {
     tag: ExerciseTag,
     value: number,
   ) => void = (exerciseID, setID, tag, value) => {
+    if (!user) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     console.log('start updating set', exerciseID, setID, tag, value);
 
     // Valdiate value
@@ -293,6 +419,14 @@ const NewWorkout = () => {
       ...workout,
       exercises: updatedExercises,
     }));
+    updateActiveWorkout(
+      {
+        ...workout,
+        exercises: updatedExercises,
+      },
+      user,
+    );
+
     console.log('end updating set');
   };
 
@@ -306,6 +440,11 @@ const NewWorkout = () => {
   };
 
   const handleDeleteSet = useCallback((exerciseID: string, setID: string) => {
+    if (!user) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     console.log('start deleting set', exerciseID, setID);
 
     setWorkout((prevWorkout) => {
@@ -337,6 +476,14 @@ const NewWorkout = () => {
       printExerciseDisplays(updatedExercises);
       console.log('end deleting set');
 
+      updateActiveWorkout(
+        {
+          ...prevWorkout,
+          exercises: updatedExercises,
+        },
+        user,
+      );
+
       return {
         ...prevWorkout,
         exercises: updatedExercises,
@@ -348,6 +495,11 @@ const NewWorkout = () => {
   }, []);
 
   const moveExercise = (fromIndex: number, toIndex: number) => {
+    if (!user) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     const updatedExercises = [...workout.exercises];
     const [removed] = updatedExercises.splice(fromIndex, 1);
     updatedExercises.splice(toIndex, 0, removed);
@@ -356,6 +508,13 @@ const NewWorkout = () => {
       ...workout,
       exercises: updatedExercises,
     }));
+    updateActiveWorkout(
+      {
+        ...workout,
+        exercises: updatedExercises,
+      },
+      user,
+    );
   };
 
   const onFinishWorkoutPress = () => {
@@ -432,7 +591,12 @@ const NewWorkout = () => {
       ),
       confirmText: 'CANCEL WORKOUT',
       onConfirm: () => {
+        if (!user) {
+          console.error('User not found');
+          return;
+        }
         setModalVisible(false);
+        AsyncStorage.removeItem(`activeWorkout-${user.id}`);
         router.back();
       },
       cancelText: 'BACK',
@@ -535,6 +699,9 @@ const NewWorkout = () => {
       setUser(oldUser);
       return;
     }
+
+    // Clear active workout from async storage
+    AsyncStorage.removeItem(`activeWorkout-${user.id}`);
 
     // Redirect to workout screen
     router.replace('workout' as Href);

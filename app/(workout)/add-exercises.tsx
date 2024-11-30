@@ -3,6 +3,8 @@ import {
   BASE_EXERCISE_DISPLAY,
   MuscleGroup,
 } from '@/constants/workout';
+import { updateActiveWorkout } from '@/services/workout';
+import { useUserStore } from '@/store/user';
 import { useWorkoutStore } from '@/store/workout';
 import { Exercise, ExerciseDisplay, ExerciseSetDisplay } from '@/types/workout';
 import { printExerciseDisplays } from '@/utils/workout';
@@ -16,6 +18,7 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
@@ -30,6 +33,7 @@ const AddExercises = () => {
   const [search, setSearch] = useState('');
 
   const { setWorkout } = useWorkoutStore();
+  const { user } = useUserStore();
 
   useEffect(() => {
     setExercises(
@@ -186,6 +190,11 @@ const AddExercises = () => {
   }, [search, exercises, selectedExerciseIds]);
 
   const onCheckmarkPress = () => {
+    if (!user) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     const selectedExercises: ExerciseDisplay[] = exercises
       .filter((exercise) => selectedExerciseIds.includes(exercise.id))
       .map((exercise) => {
@@ -217,6 +226,14 @@ const AddExercises = () => {
         ...prevWorkout.exercises,
         ...selectedExercises,
       ] as ExerciseDisplay[];
+
+      updateActiveWorkout(
+        {
+          ...prevWorkout,
+          exercises: newExercises,
+        },
+        user,
+      );
 
       return {
         ...prevWorkout,

@@ -7,6 +7,7 @@ interface IWorkoutStore {
     id: string;
     name: string;
     exercises: ExerciseDisplay[];
+    startedAt: Date;
     isSuggested?: boolean;
   };
 
@@ -15,11 +16,13 @@ interface IWorkoutStore {
       id: string;
       name: string;
       exercises: ExerciseDisplay[];
+      startedAt: Date;
       isSuggested?: boolean;
     }) => {
       id: string;
       name: string;
       exercises: ExerciseDisplay[];
+      startedAt: Date;
       isSuggested?: boolean;
     },
   ) => void;
@@ -44,6 +47,7 @@ export const useWorkoutStore = create<IWorkoutStore>((set) => ({
     id: '',
     name: '',
     exercises: [],
+    startedAt: new Date(),
     isSuggested: false,
   },
 

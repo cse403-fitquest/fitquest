@@ -3,7 +3,9 @@ import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
 import { userConverter } from './user';
 import { addToUserWorkouts, updateUserAfterExpGain } from '@/utils/workout';
-import { Workout } from '@/types/workout';
+import { ExerciseDisplay, Workout } from '@/types/workout';
+import { User } from '@/types/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Function to handle the updating of exp
 /**
@@ -118,9 +120,8 @@ export const finishAndSaveWorkout: (
   }
 };
 
-// Function to handle the updating of workout templates
 /**
- * Purchase an item for the user.
+ * Save a workout template to the user's saved workout templates.
  * @param {string} userID - The user's unique ID.
  * @param {Workout} workout - The Workout to be added
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
@@ -222,4 +223,34 @@ export const deleteWorkoutTemplate = async (
       error: 'Error deleting workout template.',
     };
   }
+};
+
+/**
+ * Update the active workout in async storage.
+ * @param {Workout} workout - The active workout.
+ * @param {User} user - The user.
+ */
+export const updateActiveWorkout = async (
+  workout: {
+    id: string;
+    name: string;
+    exercises: ExerciseDisplay[];
+    startedAt: Date;
+    isSuggested?: boolean;
+  },
+  user: User,
+) => {
+  const storedWorkout = { ...workout };
+
+  // Verify that workout is valid
+  if (!storedWorkout) {
+    console.error('Workout not found');
+    return;
+  }
+
+  // Store active workout in async storage
+  AsyncStorage.setItem(
+    `activeWorkout-${user.id}`,
+    JSON.stringify(storedWorkout),
+  );
 };
