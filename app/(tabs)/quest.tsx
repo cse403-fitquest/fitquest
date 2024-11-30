@@ -52,31 +52,27 @@ const Quest = () => {
       (quest) => quest.questId === questID,
     );
     if (selectedQuest) {
-      const existingProgress = user?.currentQuest?.progress?.[questID] || 0;
+      const existingProgress = user?.currentQuest?.progress || {};
+      const questProgress = existingProgress[questID] || 0;
 
-      await AsyncStorage.setItem(
-        'activeQuest',
-        JSON.stringify({
-          questID: selectedQuest.questId,
-          questName: selectedQuest.questName,
-          progress: existingProgress,
-          milestones: selectedQuest.milestones,
-          timer: Date.now(),
-          bossThreshold: selectedQuest.bossThreshold,
-          spriteId: selectedQuest.spriteId,
-          bossDefeated: false,
-        }),
-      );
-      setActiveQuest({
+      const newActiveQuest = {
         questID: selectedQuest.questId,
         questName: selectedQuest.questName,
-        progress: existingProgress,
+        progress: questProgress,
         milestones: selectedQuest.milestones,
         timer: Date.now(),
         bossThreshold: selectedQuest.bossThreshold,
         spriteId: selectedQuest.spriteId,
         bossDefeated: false,
-      });
+      };
+
+      await AsyncStorage.setItem('activeQuest', JSON.stringify(newActiveQuest));
+      setActiveQuest(newActiveQuest);
+
+      if (user?.id) {
+        await updateUserCurrentQuest(questID, existingProgress);
+      }
+
       console.log(
         `Quest ${selectedQuest.questName} started for user ${userID}`,
       );
@@ -117,7 +113,7 @@ const Quest = () => {
         .slice(-5 + remainingMilestones.length);
       return [...completedMilestones, ...remainingMilestones];
     }
-
+    console.log('Boss Threshold:', quest.bossThreshold);
     return remainingMilestones.slice(0, 5);
   };
 
@@ -234,17 +230,17 @@ const Quest = () => {
 
   const handleAdvance = async () => {
     if (activeQuest && user?.id) {
+      const newProgress = activeQuest.progress + 50;
       const nextMilestone = activeQuest.milestones.find(
-        (milestone) => milestone > activeQuest.progress,
+        (milestone) => milestone >= newProgress,
       );
 
       if (nextMilestone) {
-        const updatedQuest = { ...activeQuest, progress: nextMilestone };
+        const updatedQuest = { ...activeQuest, progress: newProgress };
 
-        // Update the user's quest progress
         const updatedProgress = {
           ...user.currentQuest.progress,
-          [activeQuest.questID]: nextMilestone,
+          [activeQuest.questID]: newProgress,
         };
 
         try {
@@ -264,7 +260,7 @@ const Quest = () => {
               },
             });
 
-            const isBoss = nextMilestone === activeQuest.bossThreshold;
+            const isBoss = newProgress === activeQuest.bossThreshold;
             const uniqueKey = Date.now();
 
             router.replace({
@@ -307,11 +303,8 @@ const Quest = () => {
   };
 
   const calculateQuestPercentage = (quest: ActiveQuest, progress: number) => {
-    const totalMilestones = quest.milestones.length;
-    const completedMilestones = quest.milestones.filter(
-      (m) => m <= progress,
-    ).length;
-    return Math.round((completedMilestones / totalMilestones) * 100);
+    const finalMilestone = quest.milestones[quest.milestones.length - 1];
+    return Math.round((progress / finalMilestone) * 100);
   };
 
   const renderMilestoneNodes = (quest: ActiveQuest, progress: number) => {
@@ -330,6 +323,8 @@ const Quest = () => {
       },
       progress,
     );
+
+    console.log('nextMilestones', nextMilestones);
 
     const visualMilestones = [startingPoint, ...nextMilestones];
 
@@ -361,7 +356,7 @@ const Quest = () => {
                     borderColor: '#404040',
                   }}
                 />
-              ) : milestone === quest.bossThreshold && !quest.bossDefeated ? (
+              ) : milestone === quest.bossThreshold ? (
                 <View style={{ width: 48, height: 48 }}>
                   <AnimatedSprite
                     id={
@@ -388,11 +383,6 @@ const Quest = () => {
                   />
                 </View>
               )}
-              {milestone === 'start' ? (
-                <Text className="text-sm text-gray-500 mt-2 font-bold"></Text>
-              ) : milestone === quest.bossThreshold ? (
-                <Text className="text-sm text-red-500 mt-2 font-bold"></Text>
-              ) : null}
             </View>
           ))}
         </View>
