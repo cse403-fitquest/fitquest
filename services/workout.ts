@@ -173,3 +173,53 @@ export const saveWorkoutTemplate: (
     };
   }
 };
+
+/**
+ * Delete a workout template from the user's saved workout templates.
+ * @param {string} userID - The user's unique ID.
+ * @param {string} workoutID - The ID of the workout template to be deleted.
+ * @returns {APIResponse} Returns an APIResponse object.
+ */
+export const deleteWorkoutTemplate = async (
+  userID: string,
+  workoutID: string,
+) => {
+  try {
+    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
+      userConverter,
+    );
+
+    // Get user data
+    const userRef = doc(userCollection, userID);
+    const userSnap = await getDoc(userRef);
+    const userData = userSnap.data();
+
+    if (!userData) {
+      throw new Error('User data not found.');
+    }
+
+    const newWorkoutTemplates = userData.savedWorkoutTemplates.filter(
+      (workout) => workout.id !== workoutID,
+    );
+
+    await updateDoc(userRef, {
+      savedWorkoutTemplates: newWorkoutTemplates,
+    });
+
+    console.log('Successfully deleted workout template with id ' + workoutID);
+
+    return {
+      data: null,
+      success: true,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error deleting workout template:', error);
+
+    return {
+      data: null,
+      success: false,
+      error: 'Error deleting workout template.',
+    };
+  }
+};

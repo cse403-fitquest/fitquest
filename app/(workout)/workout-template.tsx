@@ -1,5 +1,7 @@
 import FQButton from '@/components/FQButton';
 import FQModal from '@/components/FQModal';
+import { deleteWorkoutTemplate } from '@/services/workout';
+import { useUserStore } from '@/store/user';
 import { useWorkoutStore } from '@/store/workout';
 import { ExerciseTag } from '@/types/workout';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const WorkoutTemplate = () => {
   const { workout } = useWorkoutStore();
+  const { user, setUser } = useUserStore();
 
   const [setModalVisible, setSetModalVisible] = useState(false);
   const [setModalContent, setSetModalContent] = useState<{
@@ -128,11 +131,39 @@ const WorkoutTemplate = () => {
       ),
       confirmText: 'DELETE',
       onConfirm: () => {
-        // Delete the template
+        handleDeleteTemplate();
+        setSetModalVisible(false);
       },
     });
 
     setSetModalVisible(true);
+  };
+
+  const handleDeleteTemplate = async () => {
+    // Delete the template
+    if (!user) return;
+
+    const updatedTemplates = user.savedWorkoutTemplates.filter(
+      (template) => template.id !== workout.id,
+    );
+
+    const oldUser = { ...user };
+    setUser({
+      ...user,
+      savedWorkoutTemplates: updatedTemplates,
+    });
+
+    // Update the user's saved workout templates
+    const response = await deleteWorkoutTemplate(user.id, workout.id);
+    if (!response.success) {
+      // Revert the changes
+      setUser(oldUser);
+      console.error('Error deleting workout template:', response.error);
+      return;
+    }
+
+    // Navigate back to the workout screen
+    router.back();
   };
 
   const onPerformWorkoutPress = () => {
