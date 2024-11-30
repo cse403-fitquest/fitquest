@@ -33,6 +33,13 @@ export type Exercise = {
 export type ExerciseDisplay = Omit<Exercise, 'sets'> & {
   sets: ExerciseSetDisplay[];
 };
+export type Workout = {
+  id: string;
+  title: string;
+  startedAt: Date;
+  duration: number;
+  exercises: Exercise[];
+};
 
 export type WorkoutTemplate = {
   title: string;

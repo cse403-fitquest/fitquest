@@ -464,6 +464,7 @@ const NewWorkout = () => {
 
     // Create workout object
     const workout: Workout = {
+      id: uuidv4(),
       title: workoutName,
       startedAt: workoutStartDate,
       duration: seconds,
