@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
-import { useCallback, useRef, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -27,29 +27,29 @@ import {
 } from '@/types/workout';
 import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
-import { printExerciseDisplays } from '@/utils/workout';
+import {
+  convertSecondsToMMSS,
+  getTagColumnWidth,
+  printExerciseDisplays,
+  turnTagIntoString,
+  updateUserAfterExpGain,
+} from '@/utils/workout';
+import { finishAndSaveWorkout } from '@/services/workout';
+import { useUserStore } from '@/store/user';
+import { Alert } from 'react-native';
+import { useGeneralStore } from '@/store/general';
 
-const SET_COLUMN_WIDTH = 40;
+const SET_COLUMN_WIDTH = 28;
 // const PREVIOUS_COLUMN_WIDTH = 68;
 
-export const getTagColumnWidth = (tag: ExerciseTag) => {
-  switch (tag) {
-    case ExerciseTag.WEIGHT:
-      return 80;
-    case ExerciseTag.REPS:
-      return 80;
-    case ExerciseTag.DISTANCE:
-      return 80;
-    case ExerciseTag.TIME:
-      return 80;
-    default:
-      return 80;
-  }
-};
-
 const NewWorkout = () => {
-  const { workoutName, setWorkoutName, workoutExercises, setWorkoutExercises } =
-    useWorkoutStore();
+  const { workout, setWorkout } = useWorkoutStore();
+
+  const [seconds, setSeconds] = useState(0);
+
+  const { user, setUser } = useUserStore();
+
+  const { setLoading } = useGeneralStore();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState<{
@@ -70,22 +70,118 @@ const NewWorkout = () => {
 
   const workoutStartDate = new Date();
 
-  const turnTagIntoString = (tag: ExerciseTag) => {
-    switch (tag) {
-      case ExerciseTag.WEIGHT:
-        return 'WEIGHT';
-      case ExerciseTag.REPS:
-        return 'REPS';
-      case ExerciseTag.DISTANCE:
-        return 'DISTANCE';
-      case ExerciseTag.TIME:
-        return 'TIME';
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSeconds((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const secondsToHHmmss = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+
+    let hoursString = hours.toString();
+    let minutesString = minutes.toString();
+    let remainingSecondsString = remainingSeconds.toString();
+
+    if (hours < 10) {
+      hoursString = `0${hours}`;
     }
+
+    if (minutes < 10) {
+      minutesString = `0${minutes}`;
+    }
+
+    if (remainingSeconds < 10) {
+      remainingSecondsString = `0${remainingSeconds}`;
+    }
+
+    return `${hoursString}:${minutesString}:${remainingSecondsString}`;
+  };
+
+  const handleToggleCompleteSet: (exerciseID: string, setID: string) => void = (
+    exerciseID,
+    setID,
+  ) => {
+    console.log('start toggling set', exerciseID, setID);
+    const updatedExercises = workout.exercises.map((exercise) => {
+      if (exercise.id === exerciseID) {
+        return {
+          ...exercise,
+          sets: exercise.sets.map((set) => {
+            if (set.id === setID) {
+              // If set is empty, do nothing
+              if (
+                set.distance === 0 &&
+                set.time === 0 &&
+                set.reps === 0 &&
+                set.weight === 0
+              ) {
+                return set;
+              }
+
+              // If exercise includes reps, check if reps is 0
+              if (exercise.tags.includes(ExerciseTag.REPS) && set.reps === 0) {
+                return set;
+              }
+
+              // If exercise includes distance and nothing else, check if distance is 0
+              if (
+                exercise.tags.includes(ExerciseTag.DISTANCE) &&
+                set.distance === 0 &&
+                exercise.tags.length === 1
+              ) {
+                return set;
+              }
+
+              // If exercise includes time and nothing else, check if time is 0
+              if (
+                exercise.tags.includes(ExerciseTag.TIME) &&
+                set.time === 0 &&
+                exercise.tags.length === 1
+              ) {
+                return set;
+              }
+
+              // If exercise includes both distance and time, check if both are 0
+              if (
+                exercise.tags.includes(ExerciseTag.DISTANCE) &&
+                exercise.tags.includes(ExerciseTag.TIME) &&
+                set.distance === 0 &&
+                set.time === 0
+              ) {
+                return set;
+              }
+
+              return {
+                ...set,
+                completed: !set.completed,
+              };
+            }
+
+            return set;
+          }),
+        };
+      }
+
+      return exercise;
+    });
+
+    printExerciseDisplays(updatedExercises);
+    setWorkout(() => ({
+      ...workout,
+      exercises: updatedExercises,
+    }));
+
+    console.log('end toggling set');
   };
 
   const handleAddSet: (exerciseID: string) => void = (exerciseID) => {
     console.log('start adding set', exerciseID);
-    const updatedExercises = workoutExercises.map((exercise) => {
+    const updatedExercises = workout.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
           ...exercise,
@@ -107,7 +203,10 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkoutExercises(() => updatedExercises);
+    setWorkout(() => ({
+      ...workout,
+      exercises: updatedExercises,
+    }));
 
     console.log('end adding set');
   };
@@ -154,7 +253,7 @@ const NewWorkout = () => {
       value = 0;
     }
 
-    const updatedExercises = workoutExercises.map((exercise) => {
+    const updatedExercises = workout.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
           ...exercise,
@@ -190,14 +289,17 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkoutExercises(() => updatedExercises);
+    setWorkout(() => ({
+      ...workout,
+      exercises: updatedExercises,
+    }));
     console.log('end updating set');
   };
 
   const layoutAnimConfig = {
     duration: 300,
     delete: {
-      duration: 200,
+      duration: 100,
       type: LayoutAnimation.Types.easeInEaseOut,
       property: LayoutAnimation.Properties.opacity,
     },
@@ -206,8 +308,8 @@ const NewWorkout = () => {
   const handleDeleteSet = useCallback((exerciseID: string, setID: string) => {
     console.log('start deleting set', exerciseID, setID);
 
-    setWorkoutExercises((prevWorkoutExercises) => {
-      const updatedExercisesWithDeletedSet = prevWorkoutExercises.map(
+    setWorkout((prevWorkout) => {
+      const updatedExercisesWithDeletedSet = prevWorkout.exercises.map(
         (exercise) => {
           if (exercise.id === exerciseID) {
             if (exercise.sets.length === 1) {
@@ -235,7 +337,10 @@ const NewWorkout = () => {
       printExerciseDisplays(updatedExercises);
       console.log('end deleting set');
 
-      return updatedExercises;
+      return {
+        ...prevWorkout,
+        exercises: updatedExercises,
+      };
     });
 
     // after removing the item, we start animation
@@ -243,25 +348,70 @@ const NewWorkout = () => {
   }, []);
 
   const moveExercise = (fromIndex: number, toIndex: number) => {
-    const updatedExercises = [...workoutExercises];
+    const updatedExercises = [...workout.exercises];
     const [removed] = updatedExercises.splice(fromIndex, 1);
     updatedExercises.splice(toIndex, 0, removed);
 
-    setWorkoutExercises(() => updatedExercises);
+    setWorkout(() => ({
+      ...workout,
+      exercises: updatedExercises,
+    }));
   };
 
-  const onSaveTemplatePress = () => {
+  const onFinishWorkoutPress = () => {
+    // Check if there are no completed sets
+    let hasCompletedSets = false;
+    for (const exercise of workout.exercises) {
+      for (const set of exercise.sets) {
+        if (set.completed) {
+          hasCompletedSets = true;
+          break;
+        }
+      }
+    }
+
+    if (!hasCompletedSets) {
+      setModalContent({
+        title: 'No Completed Sets',
+        content: (
+          <View className="w-full justify-start items-start pt-3 pb-1">
+            <Text>
+              There are no completed sets. Are you sure you want to finish? This
+              will amount to cancelling this workout
+            </Text>
+          </View>
+        ),
+        confirmText: 'CANCEL WORKOUT',
+        onConfirm: () => {
+          setModalVisible(false);
+          // Cancel workout
+          router.back();
+        },
+        cancelText: 'CANCEL',
+      });
+
+      setModalVisible(true);
+      return;
+    }
+
+    const expGain = seconds * 500;
+
     setModalContent({
-      title: 'Save template?',
+      title: 'Finished?',
       content: (
         <View className="w-full justify-start items-start pt-3 pb-1">
-          <Text>Are you sure you wish to save this template?</Text>
+          <Text className="mb-3">All uncompleted sets will be discarded.</Text>
+
+          <Text className="text-md font-bold">
+            EXP GAIN:{' '}
+            <Text className="text-yellow font-bold">{expGain} XP</Text>
+          </Text>
         </View>
       ),
-      confirmText: 'SAVE TEMPLATE',
+      confirmText: 'FINISH WORKOUT',
       onConfirm: () => {
+        handleFinishWorkout(seconds);
         setModalVisible(false);
-        handleSaveTemplate();
       },
       cancelText: 'CANCEL',
     });
@@ -269,37 +419,125 @@ const NewWorkout = () => {
     setModalVisible(true);
   };
 
-  const handleSaveTemplate = () => {
-    // Turn Execises with SetDisplay into Exercises with Set (no completed field)
-    const exercises: Exercise[] = workoutExercises.map((exercise) => {
+  const onCancelWorkoutPress = () => {
+    setModalContent({
+      title: 'Cancel Workout?',
+      content: (
+        <View className="w-full justify-start items-start pt-3 pb-1">
+          <Text>
+            Are you sure you want to cancel and discard this workout? This
+            cannot be undone.
+          </Text>
+        </View>
+      ),
+      confirmText: 'CANCEL WORKOUT',
+      onConfirm: () => {
+        setModalVisible(false);
+        router.back();
+      },
+      cancelText: 'BACK',
+      onCancel: () => {
+        setModalVisible(false);
+      },
+    });
+
+    setModalVisible(true);
+  };
+
+  const handleFinishWorkout = async (seconds: number) => {
+    if (!user) {
+      console.error('User not found');
+      return;
+    }
+
+    setLoading(true);
+
+    // Filter out sets that are not completed
+    const exercisesWithCompletedSets = workout.exercises.map((exercise) => {
       return {
         ...exercise,
-        sets: exercise.sets.map((set) => {
-          return {
-            id: set.id,
-            weight: set.weight,
-            reps: set.reps,
-            distance: set.distance,
-            time: set.time,
-          };
+        sets: exercise.sets.filter((set) => {
+          // Check if set is completed
+          if (!set.completed) {
+            return false;
+          }
+          return true;
         }),
       };
     });
 
+    // Remove exercises with no completed sets
+    const exercisesThatHasCompletedSets = exercisesWithCompletedSets.filter(
+      (exercise) => exercise.sets.length > 0,
+    );
+
+    // Turn Execises with SetDisplay into Exercises with Set (no completed field)
+    const exercises: Exercise[] = exercisesThatHasCompletedSets.map(
+      (exercise) => {
+        return {
+          ...exercise,
+          sets: exercise.sets.map((set) => {
+            return {
+              id: set.id,
+              weight: set.weight,
+              reps: set.reps,
+              distance: set.distance,
+              time: set.time,
+            };
+          }),
+        };
+      },
+    );
+
     // Create workout object
-    const workout: Workout = {
-      title: workoutName,
+    const newWorkout: Workout = {
+      id: uuidv4(),
+      title: workout.name,
       startedAt: workoutStartDate,
-      duration: 0,
+      duration: seconds,
       exercises: exercises,
     };
 
     // Print workout object
-    printWorkout(workout);
+    printWorkout(newWorkout);
 
-    // TODO: Save workout object to database and update store
+    const userAfterExpGain = updateUserAfterExpGain(
+      user,
+      newWorkout.duration * 500,
+    );
 
-    router.back();
+    // Optimistic update to user's workout history and exp
+    const oldUser = user;
+    setUser({
+      ...user,
+      workoutHistory: [newWorkout, ...user.workoutHistory],
+      exp: userAfterExpGain.exp,
+      attributePoints: userAfterExpGain.attributePoints,
+    });
+
+    console.log('User workout history and exp updated.');
+
+    // Save workout object to BE
+    // Update user exp
+    const finishAndSaveWorkoutResponse = await finishAndSaveWorkout(
+      user.id,
+      newWorkout,
+    );
+
+    setLoading(false);
+
+    if (!finishAndSaveWorkoutResponse.success) {
+      Alert.alert(
+        'Error finishing and saving workout:',
+        finishAndSaveWorkoutResponse.error || 'An error occurred.',
+      );
+      // Revert to old user
+      setUser(oldUser);
+      return;
+    }
+
+    // Redirect to workout screen
+    router.replace('workout' as Href);
   };
 
   return (
@@ -318,27 +556,28 @@ const NewWorkout = () => {
 
       <ScrollView className="w-full">
         <View className="relative w-full justify-start items-start px-6 pt-8">
-          <View className="w-full flex-row justify-between items-center mb-5">
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={35} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onSaveTemplatePress} className="p-1">
-              <Text className="text-blue text-lg font-semibold">
-                SAVE TEMPLATE
-              </Text>
+          <View className="w-full flex-row justify-end">
+            <TouchableOpacity onPress={onFinishWorkoutPress} className="p-1">
+              <Text className="text-blue text-lg font-semibold">FINISH</Text>
             </TouchableOpacity>
           </View>
           <TextInput
-            className="w-full text-lg font-semibold mb-8"
-            onChangeText={(text) => setWorkoutName(text)}
-            value={workoutName}
+            className="w-full text-lg font-semibold mb-2"
+            onChangeText={(text) =>
+              setWorkout((prev) => ({ ...prev, name: text }))
+            }
+            value={workout.name}
             defaultValue={''}
           />
+          <Text className="text-grayDark text-sm mb-8">
+            {secondsToHHmmss(seconds)}
+          </Text>
+
           {/* Exercises here */}
         </View>
         <View className="relative w-full justify-start items-start">
           <FlatList
-            data={workoutExercises}
+            data={workout.exercises}
             scrollEnabled={false}
             style={{ width: '100%' }}
             keyExtractor={(exercise) => exercise.id}
@@ -366,7 +605,7 @@ const NewWorkout = () => {
                           />
                         </TouchableOpacity>
                       ) : null}
-                      {exerciseIndex !== workoutExercises.length - 1 ? (
+                      {exerciseIndex !== workout.exercises.length - 1 ? (
                         <TouchableOpacity
                           className="p-1"
                           onPress={() =>
@@ -395,6 +634,9 @@ const NewWorkout = () => {
                           exercise={exercise}
                           set={set}
                           setIndex={setIndex}
+                          onCompleteSet={() =>
+                            handleToggleCompleteSet(exercise.id, set.id)
+                          }
                           onUpdateSet={(tag, value) =>
                             handleUpdateSet(exercise.id, set.id, tag, value)
                           }
@@ -460,6 +702,11 @@ const NewWorkout = () => {
               ADD EXERCISE
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={onCancelWorkoutPress}>
+            <Text className="text-red-500 text-lg font-semibold">
+              CANCEL WORKOUT
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -472,9 +719,10 @@ const SetItem: React.FC<{
   exercise: ExerciseDisplay;
   set: ExerciseSetDisplay;
   setIndex: number;
+  onCompleteSet: () => void;
   onUpdateSet: (tag: ExerciseTag, value: number) => void;
   onDeleteSet: () => void;
-}> = ({ exercise, set, setIndex, onUpdateSet, onDeleteSet }) => {
+}> = ({ exercise, set, setIndex, onCompleteSet, onUpdateSet, onDeleteSet }) => {
   const translateX = useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
@@ -555,9 +803,41 @@ const SetItem: React.FC<{
                 className={clsx('text-md text-center bg-white rounded', {
                   'mr-5': index !== exercise.tags.length - 1,
                 })}
-                onChangeText={(text) => {
-                  const newValue = text === '' ? 0 : parseInt(text);
-                  setValue(newValue);
+                onChange={(e) => {
+                  // Get keystroke value
+                  const text = e.nativeEvent.text;
+
+                  if (tag !== ExerciseTag.TIME) {
+                    // Parse the new value
+                    const newValue = text === '' ? 0 : parseInt(text);
+
+                    if (isNaN(newValue)) {
+                      setValue(0);
+                      return;
+                    }
+
+                    setValue(newValue);
+                    return;
+                  }
+
+                  // Handle set for time
+
+                  // Shift the value to the rightmost side of the input string (mm:ss)
+                  const m2 = text.charAt(1);
+                  const s1 = text.charAt(3);
+                  const s2 = text.charAt(4);
+
+                  // Replace the value with the new value
+                  const newValue = `${m2}${s1}:${s2}${text.charAt(5)}`;
+
+                  // Parse the new value
+                  const minutes = parseInt(newValue.substring(0, 2));
+                  const seconds = parseInt(newValue.substring(3, 5));
+
+                  const totalSeconds = minutes * 60 + seconds;
+
+                  // const newValue = text === '' ? 0 : parseInt(text);
+                  setValue(totalSeconds);
                 }}
                 onEndEditing={() => {
                   onUpdateSet(tag, value);
@@ -565,10 +845,33 @@ const SetItem: React.FC<{
                 onBlur={() => {
                   onUpdateSet(tag, value);
                 }}
-                value={value.toString()}
+                value={
+                  tag === ExerciseTag.TIME
+                    ? convertSecondsToMMSS(value)
+                    : value.toString()
+                }
               />
             );
           })}
+          <TouchableOpacity
+            className="ml-auto p-1"
+            onPress={() => onCompleteSet()}
+          >
+            <View
+              className={clsx('w-6 h-6 rounded justify-center items-center', {
+                'bg-blue': set.completed,
+                'bg-white border border': !set.completed,
+              })}
+            >
+              <Ionicons
+                name="checkmark-outline"
+                style={{
+                  color: `${set.completed ? 'white' : 'black'}`,
+                  fontSize: 16,
+                }}
+              />
+            </View>
+          </TouchableOpacity>
         </View>
         <View
           className="absolute h-full justify-center items-start bg-red-500"

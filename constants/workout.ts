@@ -1,4 +1,9 @@
-import { Exercise, ExerciseDisplay, ExerciseTag } from '@/types/workout';
+import {
+  Exercise,
+  ExerciseDisplay,
+  ExerciseTag,
+  Workout,
+} from '@/types/workout';
 
 export const BASE_EXERCISE_DISPLAY: ExerciseDisplay = {
   id: '',
@@ -388,5 +393,405 @@ export const ALL_EXERCISES_STUB: Exercise[] = [
     muscleGroup: MuscleGroup.CARDIO,
     tags: [ExerciseTag.TIME],
     sets: [],
+  },
+];
+
+export const SUGGESTED_TEMPLATES: Workout[] = [
+  {
+    id: '-1',
+    title: 'Heart Health',
+    startedAt: new Date(),
+    duration: 30,
+    exercises: [
+      {
+        id: '0',
+        name: 'Jogging',
+        muscleGroup: 'Cardio',
+        tags: [ExerciseTag.DISTANCE, ExerciseTag.TIME],
+        sets: [
+          {
+            id: '0',
+            weight: 0,
+            reps: 0,
+            distance: 5,
+            time: 30,
+          },
+          {
+            id: '1',
+            weight: 0,
+            reps: 0,
+            distance: 5,
+            time: 30,
+          },
+        ],
+      },
+      {
+        id: '1',
+        name: 'Jump Rope',
+        muscleGroup: 'Cardio',
+        tags: [ExerciseTag.TIME],
+        sets: [
+          {
+            id: '0',
+            weight: 0,
+            reps: 0,
+            distance: 0,
+            time: 60,
+          },
+          {
+            id: '1',
+            weight: 0,
+            reps: 0,
+            distance: 0,
+            time: 60,
+          },
+        ],
+      },
+      {
+        id: '2',
+        name: 'Walking',
+        muscleGroup: 'Cardio',
+        tags: [ExerciseTag.DISTANCE, ExerciseTag.TIME],
+        sets: [
+          {
+            id: '0',
+            weight: 0,
+            reps: 0,
+            distance: 0,
+            time: 60,
+          },
+          {
+            id: '1',
+            weight: 0,
+            reps: 0,
+            distance: 0,
+            time: 60,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '0',
+    title: 'Full Body Workout',
+    startedAt: new Date(),
+    duration: 60,
+    exercises: [
+      {
+        id: '0',
+        name: 'Squat',
+        muscleGroup: 'Legs',
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '0',
+            weight: 0,
+            reps: 10,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '1',
+            weight: 0,
+            reps: 8,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 6,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+      {
+        id: '1',
+        name: 'Bench Press',
+        muscleGroup: 'Chest',
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '0',
+            weight: 0,
+            reps: 10,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '1',
+            weight: 0,
+            reps: 8,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 6,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+      {
+        id: '2',
+        name: 'Deadlift',
+        muscleGroup: 'Back',
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '0',
+            weight: 0,
+            reps: 5,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '1',
+            weight: 0,
+            reps: 5,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 5,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+      {
+        id: '3',
+        name: 'Shoulder Press',
+        muscleGroup: 'Shoulders',
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '0',
+            weight: 0,
+            reps: 10,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '1',
+            weight: 0,
+            reps: 8,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 6,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '1',
+    title: 'Chest Day',
+    startedAt: new Date(),
+    duration: 60,
+    exercises: [
+      {
+        id: '1',
+        name: 'Bench Press',
+        muscleGroup: 'Chest',
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '1',
+            weight: 0,
+            reps: 10,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 8,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+      {
+        id: '2',
+        name: 'Incline Bench Press',
+        muscleGroup: 'Chest',
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '1',
+            weight: 0,
+            reps: 10,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 8,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+      {
+        id: '3',
+        name: 'Decline Bench Press',
+        muscleGroup: 'Chest',
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '1',
+            weight: 0,
+            reps: 10,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 8,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+      {
+        id: '4',
+        name: 'Push Up',
+        muscleGroup: 'Chest',
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '1',
+            weight: 0,
+            reps: 10,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 8,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '2',
+    title: 'Back Day',
+    startedAt: new Date(),
+    duration: 60,
+    exercises: [
+      {
+        id: '6',
+        name: 'Deadlift',
+        muscleGroup: MuscleGroup.BACK,
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '1',
+            weight: 0,
+            reps: 5,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 5,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '3',
+            weight: 0,
+            reps: 5,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+      {
+        id: '7',
+        name: 'Lat Pulldown',
+        muscleGroup: MuscleGroup.BACK,
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '1',
+            weight: 0,
+            reps: 10,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 8,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+      {
+        id: '8',
+        name: 'Row (Barbell)',
+        muscleGroup: MuscleGroup.BACK,
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '1',
+            weight: 0,
+            reps: 10,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 8,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+      {
+        id: '10',
+        name: 'Bicep Curl',
+        muscleGroup: MuscleGroup.ARMS,
+        tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
+        sets: [
+          {
+            id: '1',
+            weight: 0,
+            reps: 10,
+            distance: 0,
+            time: 0,
+          },
+          {
+            id: '2',
+            weight: 0,
+            reps: 8,
+            distance: 0,
+            time: 0,
+          },
+        ],
+      },
+    ],
   },
 ];

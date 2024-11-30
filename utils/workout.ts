@@ -1,10 +1,28 @@
 import { User } from '@/types/user';
 import { getUserExpThreshold } from './user';
-import { ExerciseDisplay, ExerciseTag, WorkoutTemplate } from '@/types/workout';
+import { ExerciseDisplay, ExerciseTag, Workout } from '@/types/workout';
 
 /* converts seconds to xminutes xseconds so for display purposes*/
 export const secondsToMinutes = (seconds: number) => {
   return Math.floor(seconds / 60) + 'm' + (seconds % 60) + 's';
+};
+
+export const convertSecondsToMMSS = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  let minutesString = minutes.toString();
+  let remainingSecondsString = remainingSeconds.toString();
+
+  if (minutes < 10) {
+    minutesString = `0${minutes}`;
+  }
+
+  if (remainingSeconds < 10) {
+    remainingSecondsString = `0${remainingSeconds}`;
+  }
+
+  return `${minutesString}:${remainingSecondsString}`;
 };
 
 export const addToTemplate = () => {};
@@ -36,10 +54,35 @@ export const updateUserAfterExpGain = (user: User, expGain: number): User => {
   return newUser;
 };
 
-export const addToUserWorkouts = (
-  user: User,
-  workout: WorkoutTemplate,
-): User => {
+export const getTagColumnWidth = (tag: ExerciseTag) => {
+  switch (tag) {
+    case ExerciseTag.WEIGHT:
+      return 100;
+    case ExerciseTag.REPS:
+      return 80;
+    case ExerciseTag.DISTANCE:
+      return 100;
+    case ExerciseTag.TIME:
+      return 80;
+    default:
+      return 100;
+  }
+};
+
+export const turnTagIntoString = (tag: ExerciseTag) => {
+  switch (tag) {
+    case ExerciseTag.WEIGHT:
+      return 'WEIGHT (lbs)';
+    case ExerciseTag.REPS:
+      return 'REPS';
+    case ExerciseTag.DISTANCE:
+      return 'DISTANCE (ft)';
+    case ExerciseTag.TIME:
+      return 'TIME';
+  }
+};
+
+export const addToUserWorkouts = (user: User, workout: Workout): User => {
   const newUser: User = { ...user };
   //if the workout with same name is already in my templates
   if (
@@ -47,8 +90,27 @@ export const addToUserWorkouts = (
   ) {
     throw new Error('Workout with title: ' + workout.title + ' already exists');
   }
+
+  let found = false;
+  // If no workout is found, add the workout to the user's savedWorkoutTemplates
+  if (newUser.savedWorkoutTemplates.find((w) => w.id === workout.id)) {
+    found = true;
+  }
+
+  if (found) {
+    // Update the workout if it already exists
+    newUser.savedWorkoutTemplates = newUser.savedWorkoutTemplates.map((w) =>
+      w.id === workout.id ? workout : w,
+    );
+
+    console.log('Successfully edited ' + workout.title + ' to saved templates');
+
+    return newUser;
+  }
+
   console.log('Successfully added ' + workout.title + ' to saved templates');
-  newUser.savedWorkouts = [...user.savedWorkouts, workout];
+
+  newUser.savedWorkoutTemplates = [...user.savedWorkoutTemplates, workout];
   return newUser;
 };
 

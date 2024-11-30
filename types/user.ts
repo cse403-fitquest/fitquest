@@ -1,6 +1,6 @@
 import { AnimatedSpriteID } from '@/constants/sprite';
 import { APIResponse } from './general';
-import { WorkoutTemplate } from './workout';
+import { Workout, WorkoutTemplate } from './workout';
 export type CreateUserResponse = APIResponse & {};
 
 export type GetUserResponse = APIResponse & {
@@ -23,11 +23,16 @@ export type User = {
   exp: number;
   gold: number;
   attributePoints: number;
-  currentQuest: string;
+  currentQuest: {
+    id: string;
+    progress: Record<string, number>;
+  };
   equippedItems: string[]; // Array of equipped equipment IDs
   equipments: string[]; // Array of all user's equipment IDs
   consumables: string[]; // Array of all user's consumables IDs
   savedWorkouts: WorkoutTemplate[]; // Array of all users' workout templates
+  savedWorkoutTemplates: Workout[];
+  workoutHistory: Workout[];
   privacySettings: {
     isLastWorkoutPublic: boolean;
     isCurrentQuestPublic: boolean;

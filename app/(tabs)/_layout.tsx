@@ -7,10 +7,12 @@ import { useUserStore } from '@/store/user';
 import { useEffect } from 'react';
 import { fetchItems, setItemsInDB } from '@/services/item';
 import { useItemStore } from '@/store/item';
-import { Alert } from 'react-native';
+import { Alert, View } from 'react-native';
 import { MOCK_ITEMS } from '@/constants/item';
 import { useSocialStore } from '@/store/social';
 import { getUserFriends } from '@/services/social';
+import { getUserExpThreshold } from '@/utils/user';
+import { fillMissingUserFields, updateAllUsersInDB } from '@/services/user';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -49,6 +51,30 @@ export default function TabLayout() {
       }
     };
 
+    // Fill missing user fields in DB (for testing)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _setUserMissingFields = async () => {
+      console.log('Filling missing user fields');
+      const fillMissingUserFieldsResponse = await fillMissingUserFields();
+
+      if (!fillMissingUserFieldsResponse.success) {
+        if (fillMissingUserFieldsResponse.error)
+          Alert.alert('Error', fillMissingUserFieldsResponse.error);
+      }
+    };
+
+    // Set all user fields in DB (for testing)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _setUserFields = async () => {
+      console.log('Setting user fields in DB');
+      const setUserFieldsResponse = await updateAllUsersInDB();
+
+      if (!setUserFieldsResponse.success) {
+        if (setUserFieldsResponse.error)
+          Alert.alert('Error', setUserFieldsResponse.error);
+      }
+    };
+
     const fetchUserFriends = async () => {
       console.log('Fetching user friends');
 
@@ -66,12 +92,25 @@ export default function TabLayout() {
     };
 
     // _setItemsData();
+    // _setUserFields();
+    // fillMissingUserFields();
     fetchItemsData();
     fetchUserFriends();
   }, []);
 
   return (
     <>
+      <View
+        className="absolute z-10 bottom-[58px] left-0 bg-yellow h-[5px] bg-purple"
+        style={{ width: '100%' }}
+      >
+        <View
+          className="h-full bg-yellow"
+          style={{
+            width: `${(user.exp / getUserExpThreshold(user)) * 100}%`,
+          }}
+        />
+      </View>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor:
@@ -124,7 +163,7 @@ export default function TabLayout() {
             title: 'Quest',
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
-                name={focused ? 'help' : 'help-outline'}
+                name={focused ? 'alert-outline' : 'alert-outline'}
                 color={color}
                 size={27}
               />

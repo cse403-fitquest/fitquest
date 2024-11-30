@@ -29,7 +29,7 @@ const AddExercises = () => {
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
   const [search, setSearch] = useState('');
 
-  const { setWorkoutExercises } = useWorkoutStore();
+  const { setWorkout } = useWorkoutStore();
 
   useEffect(() => {
     setExercises(
@@ -203,6 +203,7 @@ const AddExercises = () => {
           id: uuidv4(),
           tags: exercise.tags,
           name: exercise.name,
+          muscleGroup: exercise.muscleGroup,
           sets: [firstSet],
         };
 
@@ -211,13 +212,16 @@ const AddExercises = () => {
 
     printExerciseDisplays(selectedExercises);
 
-    setWorkoutExercises((prevExercises) => {
+    setWorkout((prevWorkout) => {
       const newExercises = [
-        ...prevExercises,
+        ...prevWorkout.exercises,
         ...selectedExercises,
       ] as ExerciseDisplay[];
 
-      return newExercises;
+      return {
+        ...prevWorkout,
+        exercises: newExercises,
+      };
     });
 
     router.back();

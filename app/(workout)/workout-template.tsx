@@ -1,19 +1,21 @@
 import FQButton from '@/components/FQButton';
 import FQModal from '@/components/FQModal';
-import { EXERCISES_STUB } from '@/constants/workout';
+import { deleteWorkoutTemplate } from '@/services/workout';
+import { useGeneralStore } from '@/store/general';
+import { useUserStore } from '@/store/user';
 import { useWorkoutStore } from '@/store/workout';
-import { Exercise, ExerciseTag } from '@/types/workout';
+import { ExerciseTag } from '@/types/workout';
 import { Ionicons } from '@expo/vector-icons';
 import { Href, router } from 'expo-router';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { Text, TouchableOpacity, View, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 
 const WorkoutTemplate = () => {
-  const [template, setTemplate] = useState<Exercise[]>([]);
-
-  const { setWorkoutName, setWorkoutExercises } = useWorkoutStore();
+  const { workout } = useWorkoutStore();
+  const { user, setUser } = useUserStore();
+  const { setLoading } = useGeneralStore();
 
   const [setModalVisible, setSetModalVisible] = useState(false);
   const [setModalContent, setSetModalContent] = useState<{
@@ -28,9 +30,9 @@ const WorkoutTemplate = () => {
     onConfirm: () => {},
   });
 
-  useEffect(() => {
-    setTemplate(EXERCISES_STUB);
-  }, []);
+  // useEffect(() => {
+  //   setTemplate(EXERCISES_STUB);
+  // }, []);
 
   const turnDateIntoString = (date: Date) => {
     const dayIndex = date.getDay();
@@ -116,21 +118,6 @@ const WorkoutTemplate = () => {
   };
 
   const onEditTemplatePress = () => {
-    // Set workout name
-    setWorkoutName('Sample Template Name 1');
-
-    // Turn template from Exercise[] into ExerciseDisplay[]
-    const workoutExercises = template.map((exercise) => ({
-      ...exercise,
-      sets: exercise.sets.map((set) => ({
-        ...set,
-        completed: false,
-      })),
-    }));
-
-    // Set the workoutExercises in the store
-    setWorkoutExercises(() => workoutExercises);
-
     // Navigate to the edit template screen
     router.push('/edit-workout-template' as Href);
   };
@@ -146,31 +133,47 @@ const WorkoutTemplate = () => {
       ),
       confirmText: 'DELETE',
       onConfirm: () => {
-        // Delete the template
+        handleDeleteTemplate();
+        setSetModalVisible(false);
       },
     });
 
     setSetModalVisible(true);
   };
 
+  const handleDeleteTemplate = async () => {
+    // Delete the template
+    if (!user) return;
+
+    setLoading(true);
+
+    const updatedTemplates = user.savedWorkoutTemplates.filter(
+      (template) => template.id !== workout.id,
+    );
+
+    const oldUser = { ...user };
+    setUser({
+      ...user,
+      savedWorkoutTemplates: updatedTemplates,
+    });
+
+    // Update the user's saved workout templates
+    const response = await deleteWorkoutTemplate(user.id, workout.id);
+
+    setLoading(false);
+
+    if (!response.success) {
+      // Revert the changes
+      setUser(oldUser);
+      console.error('Error deleting workout template:', response.error);
+      return;
+    }
+
+    // Navigate back to the workout screen
+    router.back();
+  };
+
   const onPerformWorkoutPress = () => {
-    // Set workout name
-    setWorkoutName('Sample Template Name 1');
-
-    // Turn template from Exercise[] into ExerciseDisplay[]
-    const workoutExercises = template.map((exercise) => ({
-      ...exercise,
-      id: uuidv4(),
-      sets: exercise.sets.map((set) => ({
-        ...set,
-        id: uuidv4(),
-        completed: false,
-      })),
-    }));
-
-    // Set the workoutExercises in the store
-    setWorkoutExercises(() => workoutExercises);
-
     // Navigate to the workout screen
     router.push('/new-workout' as Href);
   };
@@ -201,26 +204,30 @@ const WorkoutTemplate = () => {
                 <Ionicons name="arrow-back" size={35} color="black" />
               </TouchableOpacity>
               <View className="flex-row items-center">
-                <TouchableOpacity
-                  className="mr-5"
-                  onPress={onEditTemplatePress}
-                >
+                <TouchableOpacity onPress={onEditTemplatePress}>
                   <Text className="font-semibold text-blue p-1">EDIT</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onDeleteTemplatePress}>
-                  <Text className="font-semibold text-red-500 p-1">DELETE</Text>
-                </TouchableOpacity>
+                {!workout.isSuggested ? (
+                  <TouchableOpacity
+                    className="ml-5"
+                    onPress={onDeleteTemplatePress}
+                  >
+                    <Text className="font-semibold text-red-500 p-1">
+                      DELETE
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
               </View>
             </View>
             <Text className="w-full text-3xl font-semibold mb-2">
-              Sample Template Name 1
+              {workout.name}
             </Text>
             <Text className="text-grayDark text-sm mb-8">
               {turnDateIntoString(new Date())}
             </Text>
 
             <FlatList
-              data={template}
+              data={workout.exercises}
               keyExtractor={(item) => item.id}
               renderItem={({ item: exercise }) => (
                 <View className="w-full mb-8">
