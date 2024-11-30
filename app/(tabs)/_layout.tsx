@@ -7,10 +7,11 @@ import { useUserStore } from '@/store/user';
 import { useEffect } from 'react';
 import { fetchItems, setItemsInDB } from '@/services/item';
 import { useItemStore } from '@/store/item';
-import { Alert } from 'react-native';
+import { Alert, View } from 'react-native';
 import { MOCK_ITEMS } from '@/constants/item';
 import { useSocialStore } from '@/store/social';
 import { getUserFriends } from '@/services/social';
+import { getUserExpThreshold } from '@/utils/user';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -72,6 +73,17 @@ export default function TabLayout() {
 
   return (
     <>
+      <View
+        className="absolute z-10 bottom-[58px] left-0 bg-yellow h-[5px] bg-purple"
+        style={{ width: '100%' }}
+      >
+        <View
+          className="h-full bg-yellow"
+          style={{
+            width: `${(user.exp / getUserExpThreshold(user)) * 100}%`,
+          }}
+        />
+      </View>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor:
@@ -124,7 +136,7 @@ export default function TabLayout() {
             title: 'Quest',
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
-                name={focused ? 'help' : 'help-outline'}
+                name={focused ? 'alert-outline' : 'alert-outline'}
                 color={color}
                 size={27}
               />
