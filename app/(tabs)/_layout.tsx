@@ -12,6 +12,7 @@ import { MOCK_ITEMS } from '@/constants/item';
 import { useSocialStore } from '@/store/social';
 import { getUserFriends } from '@/services/social';
 import { getUserExpThreshold } from '@/utils/user';
+import { fillMissingUserFields, updateAllUsersInDB } from '@/services/user';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -50,6 +51,30 @@ export default function TabLayout() {
       }
     };
 
+    // Fill missing user fields in DB (for testing)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _setUserMissingFields = async () => {
+      console.log('Filling missing user fields');
+      const fillMissingUserFieldsResponse = await fillMissingUserFields();
+
+      if (!fillMissingUserFieldsResponse.success) {
+        if (fillMissingUserFieldsResponse.error)
+          Alert.alert('Error', fillMissingUserFieldsResponse.error);
+      }
+    };
+
+    // Set all user fields in DB (for testing)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _setUserFields = async () => {
+      console.log('Setting user fields in DB');
+      const setUserFieldsResponse = await updateAllUsersInDB();
+
+      if (!setUserFieldsResponse.success) {
+        if (setUserFieldsResponse.error)
+          Alert.alert('Error', setUserFieldsResponse.error);
+      }
+    };
+
     const fetchUserFriends = async () => {
       console.log('Fetching user friends');
 
@@ -67,6 +92,8 @@ export default function TabLayout() {
     };
 
     // _setItemsData();
+    // _setUserFields();
+    // fillMissingUserFields();
     fetchItemsData();
     fetchUserFriends();
   }, []);

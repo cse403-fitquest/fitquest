@@ -3,7 +3,7 @@ import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
 import { userConverter } from './user';
 import { addToUserWorkouts, updateUserAfterExpGain } from '@/utils/workout';
-import { WorkoutTemplate } from '@/types/workout';
+import { Workout } from '@/types/workout';
 
 // Function to handle the updating of exp
 /**
@@ -62,16 +62,72 @@ export const updateEXP: (
   }
 };
 
+/**
+ * Finish and save workout to the user's history.
+ * @param {string} userID - The user's unique ID.
+ * @param {Workout} workout - The Workout to be added
+ * @returns {Promise<APIResponse>} Returns an APIResponse object.
+ */
+export const finishAndSaveWorkout: (
+  userID: string,
+  workout: Workout,
+) => Promise<APIResponse> = async (userID, workout) => {
+  try {
+    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
+      userConverter,
+    );
+
+    // Get user data
+    const userRef = doc(userCollection, userID);
+    const userSnap = await getDoc(userRef);
+    const userData = userSnap.data();
+
+    if (!userData) {
+      throw new Error('User data not found.');
+    }
+
+    const newWorkout = workout;
+    const expGain = newWorkout.duration * 500;
+
+    // Get new user exp amount
+    const userAfterExpGain = updateUserAfterExpGain(userData, expGain);
+
+    await updateDoc(userRef, {
+      workoutHistory: [newWorkout, ...userData.workoutHistory],
+      exp: userAfterExpGain.exp,
+      attributePoints: userAfterExpGain.attributePoints,
+    });
+
+    console.log(
+      'successfully added ' + newWorkout.title + 'to user workout history.',
+    );
+
+    return {
+      data: null,
+      success: true,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error saving workout:', error);
+
+    return {
+      data: null,
+      success: false,
+      error: 'Error saving workout.',
+    };
+  }
+};
+
 // Function to handle the updating of workout templates
 /**
  * Purchase an item for the user.
  * @param {string} userID - The user's unique ID.
- * @param {WorkoutTemplate} workout - The Workout to be added
+ * @param {Workout} workout - The Workout to be added
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
 export const updateWorkouts: (
   userID: string,
-  workout: WorkoutTemplate,
+  workout: Workout,
 ) => Promise<APIResponse> = async (userID, workout) => {
   try {
     // // Re-add this potion after demo is done
@@ -97,7 +153,7 @@ export const updateWorkouts: (
     const userAfterWorkoutAdd = addToUserWorkouts(userData, newWorkout);
 
     await updateDoc(userRef, {
-      savedWorkouts: userAfterWorkoutAdd.savedWorkouts,
+      savedWorkoutTemplates: userAfterWorkoutAdd.savedWorkoutTemplates,
     });
 
     console.log('successfully added ' + newWorkout.title + 'to user workouts.');

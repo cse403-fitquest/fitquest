@@ -4,38 +4,27 @@ import {
   TouchableOpacity,
   StyleSheet,
   View,
-  // Modal,
-  TextInput,
-  Alert,
   Modal,
 } from 'react-native';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import {
-  addToUserWorkouts,
-  secondsToMinutes,
-  updateUserAfterExpGain,
-} from '@/utils/workout';
-import { updateEXP, updateWorkouts } from '@/services/workout';
 import { useUserStore } from '@/store/user';
 import FQModal from '@/components/FQModal';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
-import { Exercise, ExerciseTag, WorkoutTemplate } from '@/types/workout';
+import { Exercise, WorkoutTemplate } from '@/types/workout';
 import FQButton from '@/components/FQButton';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/colors';
 import { SUGGESTED_TEMPLATES } from '@/constants/workout';
+import { Href, router } from 'expo-router';
+import { useWorkoutStore } from '@/store/workout';
 //import { ExerciseTag } from '@/types/user';
 
 const Workout = () => {
-  const [isWorkoutActive, setIsWorkoutActive] = useState(false);
-  const [secondsElapsed, setSecondsElapsed] = useState(0);
-
-  const { user, setUser } = useUserStore();
+  const { user } = useUserStore();
   const [expGainModalVisible, setExpGainModalVisible] = useState(false);
-  const [expGainModalData, setExpGainModalData] = useState<{
+  const [expGainModalData] = useState<{
     type: 'levelUp' | 'expGain';
     title: string;
     expGain: number;
@@ -50,97 +39,20 @@ const Workout = () => {
   if (!user) {
     throw new Error('User data not found.');
   }
-  const userID = user.id;
-  const [timer, setTimer] = useState<ReturnType<typeof setInterval> | null>(
-    null,
-  );
 
-  //const fillerex: Exercise = { name: 'Bench Press', weight: 135, reps: 20, sets: 4, distance: 0, duration: 0, tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS] };
+  const [timer] = useState<ReturnType<typeof setInterval> | null>(null);
 
-  const fillerexbench: Exercise = {
-    id: 'sdoffgdn',
-    name: 'Bench Press',
-    sets: [
-      {
-        id: 'opijowiejfoiwn23049u203fj08n',
-        weight: 135,
-        reps: 500,
-        distance: 0,
-        time: 0,
-      },
-    ],
-    muscleGroup: 'chest',
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
-  };
-  const fillerexsquat: Exercise = {
-    id: 'sdgjonsdosdsfig',
-    muscleGroup: 'legs',
-    name: 'Squat',
-    sets: [],
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
-  };
-  const fillerexlandmine: Exercise = {
-    id: 'sdgjofgdnsdofig',
-    muscleGroup: 'legs',
-    name: 'Landmine Press',
-    sets: [],
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
-  };
-  const fillerexdeadlift: Exercise = {
-    id: 'sdgjonsd54gofig',
-    muscleGroup: 'legs',
-    name: 'Deadlift',
-    sets: [],
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
-  };
-  const fillerexpushup: Exercise = {
-    id: 'sdgjonafadfsdofig',
-    muscleGroup: 'chest',
-    name: 'Push Up',
-    sets: [],
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
-  };
-  const fillerexpulldown: Exercise = {
-    id: 'sdgjonsdfsfsfofig',
-    muscleGroup: 'legs',
-    name: 'Lat Pulldown',
-    sets: [],
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
-  };
-  const fillerexbicep: Exercise = {
-    id: 'sdgjonsafscdofig',
-    muscleGroup: 'biceps',
-    name: 'Bicep Curl',
-    sets: [],
-    tags: [ExerciseTag.WEIGHT, ExerciseTag.REPS],
-  };
-  const fillerexercises: Exercise[] = [
-    fillerexbench,
-    fillerexbicep,
-    fillerexdeadlift,
-    fillerexlandmine,
-    fillerexpulldown,
-    fillerexpushup,
-    fillerexsquat,
-  ];
+  const { setWorkoutName, setWorkoutExercises } = useWorkoutStore();
 
-  // const fillerworkout = [fillerex, fillerex, fillerex, fillerex];
-  const fillerworkoutsuggest: WorkoutTemplate = {
-    title: 'Whole Body Day',
-    exercises: [fillerexpushup, fillerexbicep, fillerexsquat],
-    startedAt: new Date(),
-    duration: 500,
-  };
   //const suggestedTemplates: Template[] = [fillerworkoutsuggest];
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
+  const [, /*modalVisible*/ setModalVisible] = useState(false);
+  const [, /*selectedExercises*/ setSelectedExercises] = useState<Exercise[]>(
+    [],
+  );
   const [savedTemplates, setSavedTemplates] = useState<WorkoutTemplate[]>(
     user.savedWorkouts,
   );
-  const [suggestedTemplates /*setSuggestedTemplates*/] = useState<
-    WorkoutTemplate[]
-  >([fillerworkoutsuggest]);
 
   const [currtitle, setTitle] = useState('new workout');
   //const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -181,53 +93,6 @@ const Workout = () => {
   //     updatedExercises[index].sets = value;
   //   }
   //   setSelectedExercises(updatedExercises);
-  // };
-
-  //finds exercise in exercises with name name
-  const findExercise = (name: string, exercises: Exercise[]) => {
-    if (!exercises.map((exercise) => exercise.name).includes(name)) {
-      throw new Error('Exercise with name ' + name + ' not found');
-    }
-    // Find the exercise by name in the exercises array
-    const exercise = exercises.find((exercise) => exercise.name === name);
-
-    // If exercise is not found, throw an error
-    if (!exercise) {
-      throw new Error(
-        'Exercise with name ' + name + ' not found in exercises list',
-      );
-    }
-
-    console.log('exercise: ' + exercise.name + ' found');
-    // Return the found exercise
-    return exercise;
-  };
-  // const findTemplateIndex = (title: string): number => {
-  //   // Find the index of the template by title
-  //   const index = savedTemplates.findIndex(
-  //     (template) => template.title === title,
-  //   );
-
-  //   // If index is -1, the template was not found, throw an error
-  //   // if (index === -1) {
-  //   //   throw new Error('Template with title "' + title + '" not found');
-  //   // }
-
-  //   console.log('Template: "' + title + '" found at index: ' + index);
-  //   // Return the index of the found template
-  //   return index;
-  // };
-
-  const closeTemplateCreator = () => {
-    console.log('template creator closed');
-    setSelectedExercises([]);
-    seteditingTemplate(false);
-    setModalVisible(false);
-  };
-
-  // const openTemplate = () => {
-  //   setSelectedExercises(selectedExercises);
-  //   setTitle(title);
   // };
 
   const exerciseToString = (exercise: Exercise) => {
@@ -431,86 +296,6 @@ const Workout = () => {
         )}
       </View>
     );
-  };
-
-  // to swap between starting and stopping workouts
-  const toggleWorkout = () => {
-    if (isWorkoutActive) {
-      stopWorkout();
-    } else {
-      startWorkout();
-    }
-    //setIsWorkoutActive(!isWorkoutActive);
-    console.log(
-      isWorkoutActive
-        ? 'workout ended, final time: ' + secondsToMinutes(secondsElapsed)
-        : 'workout started',
-    );
-  };
-
-  // when workout is started
-  const startWorkout = () => {
-    if (!isWorkoutActive) {
-      setIsWorkoutActive(true);
-      setSecondsElapsed(0); // Reset the timer whenever a new workout starts
-      const newTimer = setInterval(() => {
-        setSecondsElapsed((prevSeconds) => prevSeconds + 1);
-      }, 1000);
-      setTimer(newTimer); // Store the timer ID
-    }
-  };
-
-  // when workout is stopped
-  const stopWorkout = async () => {
-    if (isWorkoutActive) {
-      setIsWorkoutActive(false);
-      if (timer) {
-        const oldUser = user;
-        const expGain = secondsElapsed * 500;
-        const userAfterExpGain = updateUserAfterExpGain(user, expGain);
-
-        setUser(userAfterExpGain);
-
-        clearInterval(timer); // Stop the timer
-        setTimer(null); // Clear the timer ID
-
-        if (oldUser.attributePoints < userAfterExpGain.attributePoints) {
-          setExpGainModalData({
-            type: 'levelUp',
-            title: 'You have leveled up!',
-            expGain: expGain,
-            description:
-              'You have leveled up. Go to your profile screen to allocate your attribute points.',
-          });
-        } else {
-          setExpGainModalData({
-            type: 'expGain',
-            title: 'You gained EXP!',
-            expGain: expGain,
-            description: 'You have gained experience points!',
-          });
-        }
-
-        setExpGainModalVisible(true);
-
-        const updateExpResponse = await updateEXP(userID, secondsElapsed); //update user exp
-
-        if (updateExpResponse.success) {
-          console.log('Exp updated successfully');
-        } else {
-          console.error('Error updating exp', updateExpResponse.error);
-
-          // Revert user back to old user if update fails
-          setUser(oldUser);
-
-          // Close the level up modal if it was opened
-          setExpGainModalVisible(false);
-
-          // Show error message
-          Alert.alert('Error updating exp');
-        }
-      }
-    }
   };
 
   useEffect(() => {
@@ -812,7 +597,18 @@ const Workout = () => {
                   QUICK START
                 </Text>
                 <View>
-                  <FQButton>START AN EMPTY WORKOUT</FQButton>
+                  <FQButton
+                    onPress={() => {
+                      console.log('Start an empty workout');
+
+                      setWorkoutName('Empty Workout');
+                      setWorkoutExercises(() => []);
+
+                      router.push('/new-workout' as Href);
+                    }}
+                  >
+                    START AN EMPTY WORKOUT
+                  </FQButton>
                 </View>
               </View>
 
@@ -851,7 +647,7 @@ const Workout = () => {
 
               {/* Suggested Templates Section */}
               <View className="w-full">
-                <Text className="text-xl text-grayDark font-bold mb-2">
+                <Text className="text-xl text-grayDark font-bold mb-5">
                   SUGGESTED TEMPLATES
                 </Text>
                 <FlatList
@@ -859,9 +655,15 @@ const Workout = () => {
                   keyExtractor={(_, index) => `template-${index}`}
                   renderItem={({ item: workoutTemplate }) => (
                     <View className="bg-white p-4 border-gray border rounded shadow-md shadow-black">
-                      <Text className="text-lg font-semibold">
-                        {workoutTemplate.title}
-                      </Text>
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-lg font-semibold mb-2">
+                          {workoutTemplate.title}
+                        </Text>
+                        <TouchableOpacity>
+                          <Ionicons name="pencil-outline" size={15} />
+                        </TouchableOpacity>
+                      </View>
+
                       {workoutTemplate.exercises.map((exercise) => (
                         <Text key={exercise.id}>
                           {exercise.sets.length}x {exercise.name}

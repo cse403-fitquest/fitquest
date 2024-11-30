@@ -1,5 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
+import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -28,6 +28,8 @@ import {
 import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
 import { printExerciseDisplays } from '@/utils/workout';
+import { finishAndSaveWorkout } from '@/services/workout';
+import { useUserStore } from '@/store/user';
 
 const SET_COLUMN_WIDTH = 28;
 // const PREVIOUS_COLUMN_WIDTH = 68;
@@ -52,6 +54,8 @@ const NewWorkout = () => {
     useWorkoutStore();
 
   const [seconds, setSeconds] = useState(0);
+
+  const { user, setUser } = useUserStore();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState<{
@@ -143,10 +147,30 @@ const NewWorkout = () => {
                 return set;
               }
 
-              // If exercise includes distance, check if distance is 0
+              // If exercise includes distance and nothing else, check if distance is 0
               if (
                 exercise.tags.includes(ExerciseTag.DISTANCE) &&
-                set.distance === 0
+                set.distance === 0 &&
+                exercise.tags.length === 1
+              ) {
+                return set;
+              }
+
+              // If exercise includes time and nothing else, check if time is 0
+              if (
+                exercise.tags.includes(ExerciseTag.TIME) &&
+                set.time === 0 &&
+                exercise.tags.length === 1
+              ) {
+                return set;
+              }
+
+              // If exercise includes both distance and time, check if both are 0
+              if (
+                exercise.tags.includes(ExerciseTag.DISTANCE) &&
+                exercise.tags.includes(ExerciseTag.TIME) &&
+                set.distance === 0 &&
+                set.time === 0
               ) {
                 return set;
               }
@@ -424,8 +448,13 @@ const NewWorkout = () => {
     setModalVisible(true);
   };
 
-  const handleFinishWorkout = (seconds: number) => {
-    // Filter out  sets that are not completed
+  const handleFinishWorkout = async (seconds: number) => {
+    if (!user) {
+      console.error('User not found');
+      return;
+    }
+
+    // Filter out sets that are not completed
     const exercisesWithCompletedSets = workoutExercises.map((exercise) => {
       return {
         ...exercise,
@@ -474,9 +503,34 @@ const NewWorkout = () => {
     // Print workout object
     printWorkout(workout);
 
-    // TODO: Save workout object
-    // TODO: Update user exp
-    // TODO: Redirect to workout screen
+    // Optimistic update to user's workout history
+    const oldUser = user;
+    setUser({
+      ...user,
+      workoutHistory: [workout, ...user.workoutHistory],
+    });
+
+    console.log('User workout history updated.');
+
+    // Save workout object to BE
+    // Update user exp
+    const finishAndSaveWorkoutResponse = await finishAndSaveWorkout(
+      user.id,
+      workout,
+    );
+
+    if (!finishAndSaveWorkoutResponse.success) {
+      console.error(
+        'Error finishing and saving workout:',
+        finishAndSaveWorkoutResponse.error,
+      );
+      // Revert to old user
+      setUser(oldUser);
+      return;
+    }
+
+    // Redirect to workout screen
+    router.back();
   };
 
   return (
@@ -758,13 +812,24 @@ const SetItem: React.FC<{
                 className={clsx('text-md text-center bg-white rounded', {
                   'mr-5': index !== exercise.tags.length - 1,
                 })}
-                // onChangeText={(text) => {
-                //   // const newValue = text === '' ? 0 : parseInt(text);
-                //   // setValue(newValue);
-                // }}
                 onChange={(e) => {
                   // Get keystroke value
                   const text = e.nativeEvent.text;
+
+                  if (tag !== ExerciseTag.TIME) {
+                    // Parse the new value
+                    const newValue = text === '' ? 0 : parseInt(text);
+
+                    if (isNaN(newValue)) {
+                      setValue(0);
+                      return;
+                    }
+
+                    setValue(newValue);
+                    return;
+                  }
+
+                  // Handle set for time
 
                   // Shift the value to the rightmost side of the input string (mm:ss)
                   const m2 = text.charAt(1);
@@ -789,7 +854,11 @@ const SetItem: React.FC<{
                 onBlur={() => {
                   onUpdateSet(tag, value);
                 }}
-                value={convertSecondsToMMSS(value)}
+                value={
+                  tag === ExerciseTag.TIME
+                    ? convertSecondsToMMSS(value)
+                    : value.toString()
+                }
               />
             );
           })}

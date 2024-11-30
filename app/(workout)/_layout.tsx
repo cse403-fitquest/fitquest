@@ -1,10 +1,16 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
-const ExerciseLayout = () => {
+const WorkoutLayout = () => {
   return (
     <>
       <Stack>
+        <Stack.Screen
+          name="new-workout"
+          options={{
+            headerShown: false,
+          }}
+        />
         <Stack.Screen
           name="workout-template"
           options={{
@@ -13,12 +19,6 @@ const ExerciseLayout = () => {
         />
         <Stack.Screen
           name="edit-workout-template"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="new-workout"
           options={{
             headerShown: false,
           }}
@@ -36,4 +36,4 @@ const ExerciseLayout = () => {
   );
 };
 
-export default ExerciseLayout;
+export default WorkoutLayout;

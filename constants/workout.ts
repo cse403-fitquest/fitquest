@@ -398,8 +398,82 @@ export const ALL_EXERCISES_STUB: Exercise[] = [
 
 export const SUGGESTED_TEMPLATES: Workout[] = [
   {
+    id: '-1',
+    title: 'Heart Health',
+    startedAt: new Date(),
+    duration: 30,
+    exercises: [
+      {
+        id: '0',
+        name: 'Jogging',
+        muscleGroup: 'Cardio',
+        tags: [ExerciseTag.DISTANCE, ExerciseTag.TIME],
+        sets: [
+          {
+            id: '0',
+            weight: 0,
+            reps: 0,
+            distance: 5,
+            time: 30,
+          },
+          {
+            id: '1',
+            weight: 0,
+            reps: 0,
+            distance: 5,
+            time: 30,
+          },
+        ],
+      },
+      {
+        id: '1',
+        name: 'Jump Rope',
+        muscleGroup: 'Cardio',
+        tags: [ExerciseTag.TIME],
+        sets: [
+          {
+            id: '0',
+            weight: 0,
+            reps: 0,
+            distance: 0,
+            time: 60,
+          },
+          {
+            id: '1',
+            weight: 0,
+            reps: 0,
+            distance: 0,
+            time: 60,
+          },
+        ],
+      },
+      {
+        id: '2',
+        name: 'Walking',
+        muscleGroup: 'Cardio',
+        tags: [ExerciseTag.DISTANCE, ExerciseTag.TIME],
+        sets: [
+          {
+            id: '0',
+            weight: 0,
+            reps: 0,
+            distance: 0,
+            time: 60,
+          },
+          {
+            id: '1',
+            weight: 0,
+            reps: 0,
+            distance: 0,
+            time: 60,
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: '0',
-    title: 'Full Body',
+    title: 'Full Body Workout',
     startedAt: new Date(),
     duration: 60,
     exercises: [

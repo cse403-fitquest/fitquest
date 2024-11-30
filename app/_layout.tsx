@@ -73,7 +73,7 @@ export default function RootLayout() {
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="(exercise)" options={{ headerShown: false }} />
+      <Stack.Screen name="(workout)" options={{ headerShown: false }} />
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="allocate-points" options={{ headerShown: false }} />
       <Stack.Screen name="fight" options={{ headerShown: false }} />

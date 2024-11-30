@@ -203,6 +203,7 @@ const AddExercises = () => {
           id: uuidv4(),
           tags: exercise.tags,
           name: exercise.name,
+          muscleGroup: exercise.muscleGroup,
           sets: [firstSet],
         };
 

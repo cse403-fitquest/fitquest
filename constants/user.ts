@@ -14,11 +14,16 @@ export const BASE_USER: User = {
   attributes: { power: 5, speed: 5, health: 5 },
   exp: 0,
   gold: 100,
-  currentQuest: '',
+  currentQuest: {
+    id: '',
+    progress: {},
+  },
   equippedItems: [],
   equipments: [],
   consumables: [],
   savedWorkouts: [],
+  savedWorkoutTemplates: [],
+  workoutHistory: [],
   privacySettings: {
     isLastWorkoutPublic: true,
     isCurrentQuestPublic: true,
