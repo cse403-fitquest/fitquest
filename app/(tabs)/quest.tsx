@@ -8,10 +8,11 @@ import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { useUserStore } from '@/store/user';
 import { updateUserProfile } from '@/services/user';
+import { getAvailableQuests } from '@/services/quest';
 
 interface Quest {
+  questName: string;
   questId: string;
-  name: string;
   questDescription?: '';
   spriteId: AnimatedSpriteID;
   milestones: number[];
@@ -32,39 +33,6 @@ interface ActiveQuest {
   bossDefeated: boolean;
 }
 
-export const quests = [
-  {
-    questId: '1',
-    name: 'Hunt Red Minotaur',
-    questDescription: '',
-    spriteId: AnimatedSpriteID.MINOTAUR_RED,
-    milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),
-    bossThreshold: 500,
-    duration: 7 * 24 * 60 * 60 * 1000,
-    createdAt: '',
-    expiredAt: '',
-  },
-  {
-    questId: '2',
-    name: 'Hunt Green Chompbug',
-    questDescription: '',
-    spriteId: AnimatedSpriteID.CHOMPBUG_GREEN,
-    milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),
-    bossThreshold: 500,
-    duration: 7 * 24 * 60 * 60 * 1000,
-    createdAt: '',
-    expiredAt: '',
-  },
-];
-
-const questData: {
-  activeQuests: Record<string, ActiveQuest>;
-  questProgress: Record<string, number>;
-} = {
-  activeQuests: {},
-  questProgress: {},
-};
-
 const Quest = () => {
   // const userID = 'user123';
   const [activeQuest, setActiveQuest] = useState<ActiveQuest | null>(null);
@@ -73,42 +41,68 @@ const Quest = () => {
   const [, setVisualProgress] = useState<number>(0);
   const [, setCurrentNodeIndex] = useState(0);
   const { user, setUser } = useUserStore();
+  const [availableQuests, setAvailableQuests] = useState<Quest[]>([]);
 
   const startQuest = async (
     userID: string,
     questID: string,
     setActiveQuest: (quest: ActiveQuest | null) => void,
   ) => {
-    const selectedQuest = quests.find((quest) => quest.questId === questID);
+    const selectedQuest = availableQuests.find(
+      (quest) => quest.questId === questID,
+    );
     if (selectedQuest) {
       const existingProgress = user?.currentQuest?.progress?.[questID] || 0;
 
-      questData.activeQuests[userID] = {
+      await AsyncStorage.setItem(
+        'activeQuest',
+        JSON.stringify({
+          questID: selectedQuest.questId,
+          questName: selectedQuest.questName,
+          progress: existingProgress,
+          milestones: selectedQuest.milestones,
+          timer: Date.now(),
+          bossThreshold: selectedQuest.bossThreshold,
+          spriteId: selectedQuest.spriteId,
+          bossDefeated: false,
+        }),
+      );
+      setActiveQuest({
         questID: selectedQuest.questId,
-        questName: selectedQuest.name,
+        questName: selectedQuest.questName,
         progress: existingProgress,
         milestones: selectedQuest.milestones,
         timer: Date.now(),
         bossThreshold: selectedQuest.bossThreshold,
         spriteId: selectedQuest.spriteId,
         bossDefeated: false,
-      };
-      await AsyncStorage.setItem(
-        'activeQuest',
-        JSON.stringify(questData.activeQuests[userID]),
+      });
+      console.log(
+        `Quest ${selectedQuest.questName} started for user ${userID}`,
       );
-      setActiveQuest(questData.activeQuests[userID]);
-      console.log(`Quest ${selectedQuest.name} started for user ${userID}`);
     }
   };
 
   useEffect(() => {
+    const loadQuests = async () => {
+      const result = await getAvailableQuests();
+      console.log('loadQuests');
+      console.log(result);
+      if (result.success && result.data) {
+        setAvailableQuests(
+          (result.data as { quests: Quest[] }).quests?.slice(0, 2) || [],
+        );
+      }
+    };
+
     const loadActiveQuest = async () => {
       const storedQuest = await AsyncStorage.getItem('activeQuest');
       if (storedQuest) {
         setActiveQuest(JSON.parse(storedQuest));
       }
     };
+
+    loadQuests();
     loadActiveQuest();
   }, []);
 
@@ -183,7 +177,7 @@ const Quest = () => {
     if (activeQuest?.questID === quest.questId) return;
 
     Alert.alert(
-      `${action} Quest: ${quest.name}?`,
+      `${action} Quest: ${quest.questName}?`,
       `Are you sure you want to ${action.toLowerCase()} this quest?`,
       [
         {
@@ -325,7 +319,7 @@ const Quest = () => {
     const nextMilestones = getNextMilestones(
       {
         questId: quest.questID,
-        name: quest.questName,
+        questName: quest.questName,
         milestones: quest.milestones,
         bossThreshold: quest.bossThreshold,
         duration: 0,
@@ -406,6 +400,56 @@ const Quest = () => {
     );
   };
 
+  const renderItem = ({ item, index }: { item: Quest; index: number }) => {
+    // Helper function to determine the correct sprite ID based on quest name
+    const getQuestSprite = (questName: string): AnimatedSpriteID => {
+      switch (questName) {
+        case 'Hunt Red Minotaur':
+          return AnimatedSpriteID.MINOTAUR_RED;
+        case 'Hunt Green Chompbug':
+          return AnimatedSpriteID.CHOMPBUG_GREEN;
+        default:
+          return AnimatedSpriteID.SLIME_GREEN;
+      }
+    };
+
+    return (
+      <TouchableOpacity
+        key={index}
+        className={`bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between ${
+          activeQuest?.questID === item.questId ? 'opacity-50' : ''
+        }`}
+        onPress={() => confirmAction('Start', item as Quest, setActiveQuest)}
+        disabled={activeQuest?.questID === item.questId}
+      >
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Text
+              className={`text-lg font-semibold ${
+                activeQuest?.questID === item.questId ? 'text-gray-500' : ''
+              }`}
+            >
+              {item.questName}
+            </Text>
+            {item.questDescription && (
+              <Text className="text-sm text-gray-600 mt-1">
+                {item.questDescription}
+              </Text>
+            )}
+          </View>
+          <View style={{ width: 85, height: 85 }}>
+            <AnimatedSprite
+              id={getQuestSprite(item.questName)}
+              width={85}
+              height={85}
+              state={SpriteState.IDLE}
+            />
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView className={`flex-1 bg-offWhite `}>
       <FlatList
@@ -462,42 +506,11 @@ const Quest = () => {
               QUEST BOARD
             </Text>
             <FlatList
-              data={quests}
-              renderItem={({ item, index }) => (
-                <TouchableOpacity
-                  key={index}
-                  className={`bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between ${
-                    activeQuest?.questID === item.questId ? 'opacity-50' : ''
-                  }`}
-                  onPress={() =>
-                    confirmAction('Start', item as Quest, setActiveQuest)
-                  }
-                  disabled={activeQuest?.questID === item.questId}
-                >
-                  <View className="flex-row items-center justify-between">
-                    <Text
-                      className={`text-lg font-semibold ${
-                        activeQuest?.questID === item.questId
-                          ? 'text-gray-500'
-                          : ''
-                      }`}
-                    >
-                      {item.name}
-                    </Text>
-                    <View style={{ width: 85, height: 165 }}>
-                      <AnimatedSprite
-                        id={item.spriteId}
-                        width={120}
-                        height={120}
-                        state={SpriteState.IDLE}
-                      />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              )}
+              data={availableQuests}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.questId}
               ListHeaderComponent={null}
               ListFooterComponent={null}
-              keyExtractor={(_, index) => index.toString()}
             />
           </View>
         }

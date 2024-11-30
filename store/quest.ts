@@ -1,25 +1,20 @@
+import { Quest } from '@/types/quest';
 import { create } from 'zustand';
-import { Quest, QuestProgress } from '@/types/quest';
 
-interface QuestStore {
-  currentQuest: QuestProgress | null;
+interface IQuestStore {
   availableQuests: Quest[];
-  setCurrentQuest: (quest: QuestProgress | null) => void;
+  currentQuest: Quest | null;
+
   setAvailableQuests: (quests: Quest[]) => void;
-  updateQuestProgress: (progress: number) => void;
+  setCurrentQuest: (quest: Quest | null) => void;
   resetQuest: () => void;
 }
 
-export const useQuestStore = create<QuestStore>((set) => ({
-  currentQuest: null,
+export const useQuestStore = create<IQuestStore>((set) => ({
   availableQuests: [],
-  setCurrentQuest: (quest) => set({ currentQuest: quest }),
+  currentQuest: null,
+
   setAvailableQuests: (quests) => set({ availableQuests: quests }),
-  updateQuestProgress: (progress) =>
-    set((state) => ({
-      currentQuest: state.currentQuest
-        ? { ...state.currentQuest, progress }
-        : null,
-    })),
+  setCurrentQuest: (quest) => set({ currentQuest: quest }),
   resetQuest: () => set({ currentQuest: null }),
 }));
