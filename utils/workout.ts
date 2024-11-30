@@ -54,6 +54,34 @@ export const updateUserAfterExpGain = (user: User, expGain: number): User => {
   return newUser;
 };
 
+export const getTagColumnWidth = (tag: ExerciseTag) => {
+  switch (tag) {
+    case ExerciseTag.WEIGHT:
+      return 100;
+    case ExerciseTag.REPS:
+      return 80;
+    case ExerciseTag.DISTANCE:
+      return 100;
+    case ExerciseTag.TIME:
+      return 80;
+    default:
+      return 100;
+  }
+};
+
+export const turnTagIntoString = (tag: ExerciseTag) => {
+  switch (tag) {
+    case ExerciseTag.WEIGHT:
+      return 'WEIGHT (lbs)';
+    case ExerciseTag.REPS:
+      return 'REPS';
+    case ExerciseTag.DISTANCE:
+      return 'DISTANCE (ft)';
+    case ExerciseTag.TIME:
+      return 'TIME';
+  }
+};
+
 export const addToUserWorkouts = (user: User, workout: Workout): User => {
   const newUser: User = { ...user };
   //if the workout with same name is already in my templates

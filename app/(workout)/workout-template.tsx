@@ -1,6 +1,7 @@
 import FQButton from '@/components/FQButton';
 import FQModal from '@/components/FQModal';
 import { deleteWorkoutTemplate } from '@/services/workout';
+import { useGeneralStore } from '@/store/general';
 import { useUserStore } from '@/store/user';
 import { useWorkoutStore } from '@/store/workout';
 import { ExerciseTag } from '@/types/workout';
@@ -14,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const WorkoutTemplate = () => {
   const { workout } = useWorkoutStore();
   const { user, setUser } = useUserStore();
+  const { setLoading } = useGeneralStore();
 
   const [setModalVisible, setSetModalVisible] = useState(false);
   const [setModalContent, setSetModalContent] = useState<{
@@ -143,6 +145,8 @@ const WorkoutTemplate = () => {
     // Delete the template
     if (!user) return;
 
+    setLoading(true);
+
     const updatedTemplates = user.savedWorkoutTemplates.filter(
       (template) => template.id !== workout.id,
     );
@@ -155,6 +159,9 @@ const WorkoutTemplate = () => {
 
     // Update the user's saved workout templates
     const response = await deleteWorkoutTemplate(user.id, workout.id);
+
+    setLoading(false);
+
     if (!response.success) {
       // Revert the changes
       setUser(oldUser);

@@ -27,32 +27,25 @@ import {
 } from '@/types/workout';
 import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
-import { convertSecondsToMMSS, printExerciseDisplays } from '@/utils/workout';
+import {
+  convertSecondsToMMSS,
+  getTagColumnWidth,
+  printExerciseDisplays,
+  turnTagIntoString,
+} from '@/utils/workout';
 import { useUserStore } from '@/store/user';
 import { saveWorkoutTemplate } from '@/services/workout';
+import { useGeneralStore } from '@/store/general';
 
 const SET_COLUMN_WIDTH = 40;
 // const PREVIOUS_COLUMN_WIDTH = 68;
-
-export const getTagColumnWidth = (tag: ExerciseTag) => {
-  switch (tag) {
-    case ExerciseTag.WEIGHT:
-      return 80;
-    case ExerciseTag.REPS:
-      return 80;
-    case ExerciseTag.DISTANCE:
-      return 80;
-    case ExerciseTag.TIME:
-      return 80;
-    default:
-      return 80;
-  }
-};
 
 const NewWorkout = () => {
   const { workout, setWorkout } = useWorkoutStore();
 
   const { user, setUser } = useUserStore();
+
+  const { setLoading } = useGeneralStore();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState<{
@@ -72,19 +65,6 @@ const NewWorkout = () => {
   );
 
   const workoutStartDate = new Date();
-
-  const turnTagIntoString = (tag: ExerciseTag) => {
-    switch (tag) {
-      case ExerciseTag.WEIGHT:
-        return 'WEIGHT';
-      case ExerciseTag.REPS:
-        return 'REPS';
-      case ExerciseTag.DISTANCE:
-        return 'DISTANCE';
-      case ExerciseTag.TIME:
-        return 'TIME';
-    }
-  };
 
   const handleAddSet: (exerciseID: string) => void = (exerciseID) => {
     console.log('start adding set', exerciseID);
@@ -289,6 +269,8 @@ const NewWorkout = () => {
   const handleSaveTemplate = async () => {
     if (!user) return;
 
+    setLoading(true);
+
     // Turn Execises with SetDisplay into Exercises with Set (no completed field)
     const exercises: Exercise[] = workout.exercises.map((exercise) => {
       return {
@@ -346,6 +328,8 @@ const NewWorkout = () => {
       user.id,
       workoutTemplate,
     );
+
+    setLoading(false);
 
     if (saveWorkoutTemplateResponse.success) {
       console.log('Successfully saved workout template');

@@ -1,11 +1,14 @@
 import { FIREBASE_AUTH } from '@/firebaseConfig';
 import { getUser } from '@/services/user';
+import { useGeneralStore } from '@/store/general';
 import { useUserStore } from '@/store/user';
 import { useFonts } from 'expo-font';
 import { Href, router, Slot, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -18,6 +21,8 @@ export default function RootLayout() {
   });
 
   const { setUser } = useUserStore();
+
+  const { loading } = useGeneralStore();
 
   useEffect(() => {
     // Setup observer to reroute user based on auth state change
@@ -69,15 +74,23 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="(workout)" options={{ headerShown: false }} />
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="allocate-points" options={{ headerShown: false }} />
-      <Stack.Screen name="fight" options={{ headerShown: false }} />
-      <Stack.Screen name="+not-found" />
-    </Stack>
+    <>
+      {loading ? (
+        <View className="absolute z-10 w-full h-full bg-black opacity-50 justify-center items-center">
+          <ActivityIndicator size={100} color="white" />
+          <StatusBar style="light" />
+        </View>
+      ) : null}
+      <Stack>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(workout)" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="allocate-points" options={{ headerShown: false }} />
+        <Stack.Screen name="fight" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+    </>
   );
 }

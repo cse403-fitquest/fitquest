@@ -29,29 +29,18 @@ import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
 import {
   convertSecondsToMMSS,
+  getTagColumnWidth,
   printExerciseDisplays,
+  turnTagIntoString,
   updateUserAfterExpGain,
 } from '@/utils/workout';
 import { finishAndSaveWorkout } from '@/services/workout';
 import { useUserStore } from '@/store/user';
+import { Alert } from 'react-native';
+import { useGeneralStore } from '@/store/general';
 
 const SET_COLUMN_WIDTH = 28;
 // const PREVIOUS_COLUMN_WIDTH = 68;
-
-export const getTagColumnWidth = (tag: ExerciseTag) => {
-  switch (tag) {
-    case ExerciseTag.WEIGHT:
-      return 100;
-    case ExerciseTag.REPS:
-      return 80;
-    case ExerciseTag.DISTANCE:
-      return 100;
-    case ExerciseTag.TIME:
-      return 80;
-    default:
-      return 100;
-  }
-};
 
 const NewWorkout = () => {
   const { workout, setWorkout } = useWorkoutStore();
@@ -59,6 +48,8 @@ const NewWorkout = () => {
   const [seconds, setSeconds] = useState(0);
 
   const { user, setUser } = useUserStore();
+
+  const { setLoading } = useGeneralStore();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState<{
@@ -86,19 +77,6 @@ const NewWorkout = () => {
 
     return () => clearInterval(interval);
   }, []);
-
-  const turnTagIntoString = (tag: ExerciseTag) => {
-    switch (tag) {
-      case ExerciseTag.WEIGHT:
-        return 'WEIGHT (lbs)';
-      case ExerciseTag.REPS:
-        return 'REPS';
-      case ExerciseTag.DISTANCE:
-        return 'DISTANCE (m)';
-      case ExerciseTag.TIME:
-        return 'TIME';
-    }
-  };
 
   const secondsToHHmmss = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -472,6 +450,8 @@ const NewWorkout = () => {
       return;
     }
 
+    setLoading(true);
+
     // Filter out sets that are not completed
     const exercisesWithCompletedSets = workout.exercises.map((exercise) => {
       return {
@@ -544,10 +524,12 @@ const NewWorkout = () => {
       newWorkout,
     );
 
+    setLoading(false);
+
     if (!finishAndSaveWorkoutResponse.success) {
-      console.error(
+      Alert.alert(
         'Error finishing and saving workout:',
-        finishAndSaveWorkoutResponse.error,
+        finishAndSaveWorkoutResponse.error || 'An error occurred.',
       );
       // Revert to old user
       setUser(oldUser);
@@ -555,7 +537,7 @@ const NewWorkout = () => {
     }
 
     // Redirect to workout screen
-    router.back();
+    router.replace('workout' as Href);
   };
 
   return (
