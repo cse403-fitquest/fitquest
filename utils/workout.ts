@@ -7,6 +7,24 @@ export const secondsToMinutes = (seconds: number) => {
   return Math.floor(seconds / 60) + 'm' + (seconds % 60) + 's';
 };
 
+export const convertSecondsToMMSS = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  let minutesString = minutes.toString();
+  let remainingSecondsString = remainingSeconds.toString();
+
+  if (minutes < 10) {
+    minutesString = `0${minutes}`;
+  }
+
+  if (remainingSeconds < 10) {
+    remainingSecondsString = `0${remainingSeconds}`;
+  }
+
+  return `${minutesString}:${remainingSecondsString}`;
+};
+
 export const addToTemplate = () => {};
 export const removeFromTemplate = () => {};
 export const submitTemplate = () => {};

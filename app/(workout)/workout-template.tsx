@@ -197,15 +197,19 @@ const WorkoutTemplate = () => {
                 <Ionicons name="arrow-back" size={35} color="black" />
               </TouchableOpacity>
               <View className="flex-row items-center">
-                <TouchableOpacity
-                  className="mr-5"
-                  onPress={onEditTemplatePress}
-                >
+                <TouchableOpacity onPress={onEditTemplatePress}>
                   <Text className="font-semibold text-blue p-1">EDIT</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onDeleteTemplatePress}>
-                  <Text className="font-semibold text-red-500 p-1">DELETE</Text>
-                </TouchableOpacity>
+                {!workout.isSuggested ? (
+                  <TouchableOpacity
+                    className="ml-5"
+                    onPress={onDeleteTemplatePress}
+                  >
+                    <Text className="font-semibold text-red-500 p-1">
+                      DELETE
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
               </View>
             </View>
             <Text className="w-full text-3xl font-semibold mb-2">

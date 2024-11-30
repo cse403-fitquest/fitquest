@@ -80,6 +80,29 @@ const WorkoutScreen = () => {
     router.push('/workout-template' as Href);
   };
 
+  const onSuggestedWorkoutTemplateClick = (workoutTemplate: Workout) => {
+    console.log('Suggested workout template clicked');
+
+    const workoutExercises: ExerciseDisplay[] = workoutTemplate.exercises.map(
+      (exercise) => ({
+        ...exercise,
+        sets: exercise.sets.map((set) => ({
+          ...set,
+          completed: false,
+        })) as ExerciseSetDisplay[],
+      }),
+    );
+
+    setWorkout(() => ({
+      id: uuidv4(), // Generate a new ID for the workout if it's a suggested template
+      name: workoutTemplate.title,
+      exercises: workoutExercises,
+      isSuggested: true,
+    }));
+
+    router.push('/workout-template' as Href);
+  };
+
   return (
     <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
       <FQModal
@@ -201,7 +224,13 @@ const WorkoutScreen = () => {
                     data={SUGGESTED_TEMPLATES}
                     keyExtractor={(workout) => workout.id}
                     renderItem={({ item: workoutTemplate }) => (
-                      <Template workoutTemplate={workoutTemplate} />
+                      <TouchableOpacity
+                        onPress={() =>
+                          onSuggestedWorkoutTemplateClick(workoutTemplate)
+                        }
+                      >
+                        <Template workoutTemplate={workoutTemplate} />
+                      </TouchableOpacity>
                     )}
                     ItemSeparatorComponent={() => <View className="h-5"></View>}
                     nestedScrollEnabled={true}
@@ -223,9 +252,9 @@ const Template: FC<{ workoutTemplate: Workout }> = ({ workoutTemplate }) => {
         <Text className="text-lg font-semibold mb-2">
           {workoutTemplate.title}
         </Text>
-        <TouchableOpacity>
+        {/* <TouchableOpacity>
           <Ionicons name="pencil-outline" size={15} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <FlatList

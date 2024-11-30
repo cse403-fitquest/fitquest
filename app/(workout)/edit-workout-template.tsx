@@ -27,7 +27,7 @@ import {
 } from '@/types/workout';
 import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
-import { printExerciseDisplays } from '@/utils/workout';
+import { convertSecondsToMMSS, printExerciseDisplays } from '@/utils/workout';
 import { useUserStore } from '@/store/user';
 import { saveWorkoutTemplate } from '@/services/workout';
 
@@ -615,9 +615,41 @@ const SetItem: React.FC<{
                 className={clsx('text-md text-center bg-white rounded', {
                   'mr-5': index !== exercise.tags.length - 1,
                 })}
-                onChangeText={(text) => {
-                  const newValue = text === '' ? 0 : parseInt(text);
-                  setValue(newValue);
+                onChange={(e) => {
+                  // Get keystroke value
+                  const text = e.nativeEvent.text;
+
+                  if (tag !== ExerciseTag.TIME) {
+                    // Parse the new value
+                    const newValue = text === '' ? 0 : parseInt(text);
+
+                    if (isNaN(newValue)) {
+                      setValue(0);
+                      return;
+                    }
+
+                    setValue(newValue);
+                    return;
+                  }
+
+                  // Handle set for time
+
+                  // Shift the value to the rightmost side of the input string (mm:ss)
+                  const m2 = text.charAt(1);
+                  const s1 = text.charAt(3);
+                  const s2 = text.charAt(4);
+
+                  // Replace the value with the new value
+                  const newValue = `${m2}${s1}:${s2}${text.charAt(5)}`;
+
+                  // Parse the new value
+                  const minutes = parseInt(newValue.substring(0, 2));
+                  const seconds = parseInt(newValue.substring(3, 5));
+
+                  const totalSeconds = minutes * 60 + seconds;
+
+                  // const newValue = text === '' ? 0 : parseInt(text);
+                  setValue(totalSeconds);
                 }}
                 onEndEditing={() => {
                   onUpdateSet(tag, value);
@@ -625,7 +657,11 @@ const SetItem: React.FC<{
                 onBlur={() => {
                   onUpdateSet(tag, value);
                 }}
-                value={value.toString()}
+                value={
+                  tag === ExerciseTag.TIME
+                    ? convertSecondsToMMSS(value)
+                    : value.toString()
+                }
               />
             );
           })}

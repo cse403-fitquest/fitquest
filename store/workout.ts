@@ -7,6 +7,7 @@ interface IWorkoutStore {
     id: string;
     name: string;
     exercises: ExerciseDisplay[];
+    isSuggested?: boolean;
   };
 
   setWorkout: (
@@ -14,10 +15,12 @@ interface IWorkoutStore {
       id: string;
       name: string;
       exercises: ExerciseDisplay[];
+      isSuggested?: boolean;
     }) => {
       id: string;
       name: string;
       exercises: ExerciseDisplay[];
+      isSuggested?: boolean;
     },
   ) => void;
 
@@ -41,6 +44,7 @@ export const useWorkoutStore = create<IWorkoutStore>((set) => ({
     id: '',
     name: '',
     exercises: [],
+    isSuggested: false,
   },
 
   setWorkout: (fn) => set((state) => ({ workout: fn(state.workout) })),

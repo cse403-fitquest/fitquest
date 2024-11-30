@@ -27,7 +27,7 @@ import {
 } from '@/types/workout';
 import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
-import { printExerciseDisplays } from '@/utils/workout';
+import { convertSecondsToMMSS, printExerciseDisplays } from '@/utils/workout';
 import { finishAndSaveWorkout } from '@/services/workout';
 import { useUserStore } from '@/store/user';
 
@@ -50,8 +50,7 @@ export const getTagColumnWidth = (tag: ExerciseTag) => {
 };
 
 const NewWorkout = () => {
-  const { workoutName, setWorkoutName, workoutExercises, setWorkoutExercises } =
-    useWorkoutStore();
+  const { workout, setWorkout } = useWorkoutStore();
 
   const [seconds, setSeconds] = useState(0);
 
@@ -126,7 +125,7 @@ const NewWorkout = () => {
     setID,
   ) => {
     console.log('start toggling set', exerciseID, setID);
-    const updatedExercises = workoutExercises.map((exercise) => {
+    const updatedExercises = workout.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
           ...exercise,
@@ -190,14 +189,17 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkoutExercises(() => updatedExercises);
+    setWorkout(() => ({
+      ...workout,
+      exercises: updatedExercises,
+    }));
 
     console.log('end toggling set');
   };
 
   const handleAddSet: (exerciseID: string) => void = (exerciseID) => {
     console.log('start adding set', exerciseID);
-    const updatedExercises = workoutExercises.map((exercise) => {
+    const updatedExercises = workout.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
           ...exercise,
@@ -219,7 +221,10 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkoutExercises(() => updatedExercises);
+    setWorkout(() => ({
+      ...workout,
+      exercises: updatedExercises,
+    }));
 
     console.log('end adding set');
   };
@@ -266,7 +271,7 @@ const NewWorkout = () => {
       value = 0;
     }
 
-    const updatedExercises = workoutExercises.map((exercise) => {
+    const updatedExercises = workout.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
           ...exercise,
@@ -302,7 +307,10 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkoutExercises(() => updatedExercises);
+    setWorkout(() => ({
+      ...workout,
+      exercises: updatedExercises,
+    }));
     console.log('end updating set');
   };
 
@@ -318,8 +326,8 @@ const NewWorkout = () => {
   const handleDeleteSet = useCallback((exerciseID: string, setID: string) => {
     console.log('start deleting set', exerciseID, setID);
 
-    setWorkoutExercises((prevWorkoutExercises) => {
-      const updatedExercisesWithDeletedSet = prevWorkoutExercises.map(
+    setWorkout((prevWorkout) => {
+      const updatedExercisesWithDeletedSet = prevWorkout.exercises.map(
         (exercise) => {
           if (exercise.id === exerciseID) {
             if (exercise.sets.length === 1) {
@@ -347,7 +355,10 @@ const NewWorkout = () => {
       printExerciseDisplays(updatedExercises);
       console.log('end deleting set');
 
-      return updatedExercises;
+      return {
+        ...prevWorkout,
+        exercises: updatedExercises,
+      };
     });
 
     // after removing the item, we start animation
@@ -355,17 +366,20 @@ const NewWorkout = () => {
   }, []);
 
   const moveExercise = (fromIndex: number, toIndex: number) => {
-    const updatedExercises = [...workoutExercises];
+    const updatedExercises = [...workout.exercises];
     const [removed] = updatedExercises.splice(fromIndex, 1);
     updatedExercises.splice(toIndex, 0, removed);
 
-    setWorkoutExercises(() => updatedExercises);
+    setWorkout(() => ({
+      ...workout,
+      exercises: updatedExercises,
+    }));
   };
 
   const onFinishWorkoutPress = () => {
     // Check if there are no completed sets
     let hasCompletedSets = false;
-    for (const exercise of workoutExercises) {
+    for (const exercise of workout.exercises) {
       for (const set of exercise.sets) {
         if (set.completed) {
           hasCompletedSets = true;
@@ -455,7 +469,7 @@ const NewWorkout = () => {
     }
 
     // Filter out sets that are not completed
-    const exercisesWithCompletedSets = workoutExercises.map((exercise) => {
+    const exercisesWithCompletedSets = workout.exercises.map((exercise) => {
       return {
         ...exercise,
         sets: exercise.sets.filter((set) => {
@@ -492,22 +506,22 @@ const NewWorkout = () => {
     );
 
     // Create workout object
-    const workout: Workout = {
+    const newWorkout: Workout = {
       id: uuidv4(),
-      title: workoutName,
+      title: workout.name,
       startedAt: workoutStartDate,
       duration: seconds,
       exercises: exercises,
     };
 
     // Print workout object
-    printWorkout(workout);
+    printWorkout(newWorkout);
 
     // Optimistic update to user's workout history
     const oldUser = user;
     setUser({
       ...user,
-      workoutHistory: [workout, ...user.workoutHistory],
+      workoutHistory: [newWorkout, ...user.workoutHistory],
     });
 
     console.log('User workout history updated.');
@@ -516,7 +530,7 @@ const NewWorkout = () => {
     // Update user exp
     const finishAndSaveWorkoutResponse = await finishAndSaveWorkout(
       user.id,
-      workout,
+      newWorkout,
     );
 
     if (!finishAndSaveWorkoutResponse.success) {
@@ -556,8 +570,10 @@ const NewWorkout = () => {
           </View>
           <TextInput
             className="w-full text-lg font-semibold mb-2"
-            onChangeText={(text) => setWorkoutName(text)}
-            value={workoutName}
+            onChangeText={(text) =>
+              setWorkout((prev) => ({ ...prev, name: text }))
+            }
+            value={workout.name}
             defaultValue={''}
           />
           <Text className="text-grayDark text-sm mb-8">
@@ -568,7 +584,7 @@ const NewWorkout = () => {
         </View>
         <View className="relative w-full justify-start items-start">
           <FlatList
-            data={workoutExercises}
+            data={workout.exercises}
             scrollEnabled={false}
             style={{ width: '100%' }}
             keyExtractor={(exercise) => exercise.id}
@@ -596,7 +612,7 @@ const NewWorkout = () => {
                           />
                         </TouchableOpacity>
                       ) : null}
-                      {exerciseIndex !== workoutExercises.length - 1 ? (
+                      {exerciseIndex !== workout.exercises.length - 1 ? (
                         <TouchableOpacity
                           className="p-1"
                           onPress={() =>
@@ -746,24 +762,6 @@ const SetItem: React.FC<{
       },
     }),
   ).current;
-
-  const convertSecondsToMMSS = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-
-    let minutesString = minutes.toString();
-    let remainingSecondsString = remainingSeconds.toString();
-
-    if (minutes < 10) {
-      minutesString = `0${minutes}`;
-    }
-
-    if (remainingSeconds < 10) {
-      remainingSecondsString = `0${remainingSeconds}`;
-    }
-
-    return `${minutesString}:${remainingSecondsString}`;
-  };
 
   const windowWidth = Dimensions.get('window').width;
 
