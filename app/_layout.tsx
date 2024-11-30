@@ -2,6 +2,8 @@ import { FIREBASE_AUTH } from '@/firebaseConfig';
 import { getUser } from '@/services/user';
 import { useGeneralStore } from '@/store/general';
 import { useUserStore } from '@/store/user';
+import { useWorkoutStore } from '@/store/workout';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { Href, router, Slot, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -22,12 +24,16 @@ export default function RootLayout() {
 
   const { setUser } = useUserStore();
 
-  const { loading } = useGeneralStore();
+  const { loading, setLoading } = useGeneralStore();
+
+  const { setWorkout, clearWorkout } = useWorkoutStore();
 
   useEffect(() => {
     // Setup observer to reroute user based on auth state change
     onAuthStateChanged(FIREBASE_AUTH, async (user) => {
       if (user) {
+        setLoading(true);
+
         // Get user data from Firestore
         const getUserResponse = await getUser(user.uid);
 
@@ -46,6 +52,29 @@ export default function RootLayout() {
           userData.profileInfo.username,
         );
 
+        // Get active workout from AsyncStorage if it exists
+        const activeWorkoutString = await AsyncStorage.getItem('activeWorkout');
+
+        if (activeWorkoutString) {
+          setWorkout(() => {
+            const activeWorkout = JSON.parse(
+              activeWorkoutString,
+              (key, value) => {
+                if (key === 'startedAt') {
+                  return new Date(value);
+                }
+                return value;
+              },
+            );
+
+            return activeWorkout;
+          });
+        }
+
+        console.log('Navigating to appropriate screen');
+
+        setLoading(false);
+
         // Navigate to the appropriate screen
         if (userData.isOnboardingCompleted) {
           router.replace('/profile' as Href);
@@ -55,6 +84,9 @@ export default function RootLayout() {
       } else {
         // User is signed out
         console.log('User is signed out');
+
+        // Clear workout from async storage
+        clearWorkout();
 
         console.log('Navigating to sign-in screen');
         // Navigate to the appropriate screen

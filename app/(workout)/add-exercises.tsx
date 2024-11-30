@@ -3,7 +3,6 @@ import {
   BASE_EXERCISE_DISPLAY,
   MuscleGroup,
 } from '@/constants/workout';
-import { updateActiveWorkout } from '@/services/workout';
 import { useUserStore } from '@/store/user';
 import { useWorkoutStore } from '@/store/workout';
 import { Exercise, ExerciseDisplay, ExerciseSetDisplay } from '@/types/workout';
@@ -226,14 +225,6 @@ const AddExercises = () => {
         ...prevWorkout.exercises,
         ...selectedExercises,
       ] as ExerciseDisplay[];
-
-      updateActiveWorkout(
-        {
-          ...prevWorkout,
-          exercises: newExercises,
-        },
-        user,
-      );
 
       return {
         ...prevWorkout,
