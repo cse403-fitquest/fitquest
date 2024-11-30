@@ -65,32 +65,6 @@ const questData: {
   questProgress: {},
 };
 
-const startQuest = async (
-  userID: string,
-  questID: string,
-  setActiveQuest: (quest: ActiveQuest | null) => void,
-) => {
-  const selectedQuest = quests.find((quest) => quest.questId === questID);
-  if (selectedQuest) {
-    questData.activeQuests[userID] = {
-      questID: selectedQuest.questId,
-      questName: selectedQuest.name,
-      progress: 0,
-      milestones: selectedQuest.milestones,
-      timer: Date.now(),
-      bossThreshold: selectedQuest.bossThreshold,
-      spriteId: selectedQuest.spriteId,
-      bossDefeated: false,
-    };
-    await AsyncStorage.setItem(
-      'activeQuest',
-      JSON.stringify(questData.activeQuests[userID]),
-    );
-    setActiveQuest(questData.activeQuests[userID]);
-    console.log(`Quest ${selectedQuest.name} started for user ${userID}`);
-  }
-};
-
 const Quest = () => {
   // const userID = 'user123';
   const [activeQuest, setActiveQuest] = useState<ActiveQuest | null>(null);
@@ -99,6 +73,34 @@ const Quest = () => {
   const [, setVisualProgress] = useState<number>(0);
   const [, setCurrentNodeIndex] = useState(0);
   const { user, setUser } = useUserStore();
+
+  const startQuest = async (
+    userID: string,
+    questID: string,
+    setActiveQuest: (quest: ActiveQuest | null) => void,
+  ) => {
+    const selectedQuest = quests.find((quest) => quest.questId === questID);
+    if (selectedQuest) {
+      const existingProgress = user?.currentQuest?.progress?.[questID] || 0;
+
+      questData.activeQuests[userID] = {
+        questID: selectedQuest.questId,
+        questName: selectedQuest.name,
+        progress: existingProgress,
+        milestones: selectedQuest.milestones,
+        timer: Date.now(),
+        bossThreshold: selectedQuest.bossThreshold,
+        spriteId: selectedQuest.spriteId,
+        bossDefeated: false,
+      };
+      await AsyncStorage.setItem(
+        'activeQuest',
+        JSON.stringify(questData.activeQuests[userID]),
+      );
+      setActiveQuest(questData.activeQuests[userID]);
+      console.log(`Quest ${selectedQuest.name} started for user ${userID}`);
+    }
+  };
 
   useEffect(() => {
     const loadActiveQuest = async () => {
@@ -146,13 +148,19 @@ const Quest = () => {
     if (!user?.id) return;
     try {
       const result = await updateUserProfile(user.id, {
-        currentQuest: { id: '', progress: {} },
+        currentQuest: {
+          id: '',
+          progress: user.currentQuest.progress,
+        },
       });
       if (result.success) {
         await AsyncStorage.removeItem('activeQuest');
         setUser({
           ...user,
-          currentQuest: { id: '', progress: {} },
+          currentQuest: {
+            id: '',
+            progress: user.currentQuest.progress,
+          },
         });
         setActiveQuest(null);
         setCurrentNodeIndex(0);
@@ -186,7 +194,10 @@ const Quest = () => {
           text: 'OK',
           onPress: async () => {
             try {
-              await updateUserCurrentQuest(quest.questId);
+              await updateUserCurrentQuest(
+                quest.questId,
+                user?.currentQuest?.progress,
+              );
               await startQuest(user?.id || '', quest.questId, setActiveQuest);
             } catch (error) {
               console.error('Error starting quest:', error);
@@ -198,16 +209,25 @@ const Quest = () => {
     );
   }
 
-  const updateUserCurrentQuest = async (questId: string) => {
+  const updateUserCurrentQuest = async (
+    questId: string,
+    existingProgress = {},
+  ) => {
     if (!user?.id) return;
     try {
       const result = await updateUserProfile(user.id, {
-        currentQuest: { id: questId, progress: {} },
+        currentQuest: {
+          id: questId,
+          progress: existingProgress,
+        },
       });
       if (result.success) {
         setUser({
           ...user,
-          currentQuest: { id: questId, progress: {} },
+          currentQuest: {
+            id: questId,
+            progress: existingProgress,
+          },
         });
       } else {
         throw new Error(result.error || 'Failed to update profile');
