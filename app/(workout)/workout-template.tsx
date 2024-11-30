@@ -1,19 +1,16 @@
 import FQButton from '@/components/FQButton';
 import FQModal from '@/components/FQModal';
-import { EXERCISES_STUB } from '@/constants/workout';
 import { useWorkoutStore } from '@/store/workout';
-import { Exercise, ExerciseTag } from '@/types/workout';
+import { ExerciseTag } from '@/types/workout';
 import { Ionicons } from '@expo/vector-icons';
 import { Href, router } from 'expo-router';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { Text, TouchableOpacity, View, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 
 const WorkoutTemplate = () => {
-  const [template, setTemplate] = useState<Exercise[]>([]);
-
-  const { setWorkoutName, setWorkoutExercises } = useWorkoutStore();
+  const { workout } = useWorkoutStore();
 
   const [setModalVisible, setSetModalVisible] = useState(false);
   const [setModalContent, setSetModalContent] = useState<{
@@ -28,9 +25,9 @@ const WorkoutTemplate = () => {
     onConfirm: () => {},
   });
 
-  useEffect(() => {
-    setTemplate(EXERCISES_STUB);
-  }, []);
+  // useEffect(() => {
+  //   setTemplate(EXERCISES_STUB);
+  // }, []);
 
   const turnDateIntoString = (date: Date) => {
     const dayIndex = date.getDay();
@@ -116,21 +113,6 @@ const WorkoutTemplate = () => {
   };
 
   const onEditTemplatePress = () => {
-    // Set workout name
-    setWorkoutName('Sample Template Name 1');
-
-    // Turn template from Exercise[] into ExerciseDisplay[]
-    const workoutExercises = template.map((exercise) => ({
-      ...exercise,
-      sets: exercise.sets.map((set) => ({
-        ...set,
-        completed: false,
-      })),
-    }));
-
-    // Set the workoutExercises in the store
-    setWorkoutExercises(() => workoutExercises);
-
     // Navigate to the edit template screen
     router.push('/edit-workout-template' as Href);
   };
@@ -154,23 +136,6 @@ const WorkoutTemplate = () => {
   };
 
   const onPerformWorkoutPress = () => {
-    // Set workout name
-    setWorkoutName('Sample Template Name 1');
-
-    // Turn template from Exercise[] into ExerciseDisplay[]
-    const workoutExercises = template.map((exercise) => ({
-      ...exercise,
-      id: uuidv4(),
-      sets: exercise.sets.map((set) => ({
-        ...set,
-        id: uuidv4(),
-        completed: false,
-      })),
-    }));
-
-    // Set the workoutExercises in the store
-    setWorkoutExercises(() => workoutExercises);
-
     // Navigate to the workout screen
     router.push('/new-workout' as Href);
   };
@@ -213,14 +178,14 @@ const WorkoutTemplate = () => {
               </View>
             </View>
             <Text className="w-full text-3xl font-semibold mb-2">
-              Sample Template Name 1
+              {workout.name}
             </Text>
             <Text className="text-grayDark text-sm mb-8">
               {turnDateIntoString(new Date())}
             </Text>
 
             <FlatList
-              data={template}
+              data={workout.exercises}
               keyExtractor={(item) => item.id}
               renderItem={({ item: exercise }) => (
                 <View className="w-full mb-8">

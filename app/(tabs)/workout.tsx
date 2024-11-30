@@ -5,13 +5,14 @@ import { useUserStore } from '@/store/user';
 import FQModal from '@/components/FQModal';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
-import { Workout } from '@/types/workout';
+import { ExerciseDisplay, ExerciseSetDisplay, Workout } from '@/types/workout';
 import FQButton from '@/components/FQButton';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/colors';
 import { SUGGESTED_TEMPLATES } from '@/constants/workout';
 import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
+import { v4 as uuidv4 } from 'uuid';
 
 const WorkoutScreen = () => {
   const { user } = useUserStore();
@@ -34,7 +35,7 @@ const WorkoutScreen = () => {
 
   const [timer] = useState<ReturnType<typeof setInterval> | null>(null);
 
-  const { setWorkoutName, setWorkoutExercises } = useWorkoutStore();
+  const { setWorkout } = useWorkoutStore();
 
   useEffect(() => {
     return () => {
@@ -48,10 +49,35 @@ const WorkoutScreen = () => {
   const onAddWorkoutTemplateClick = () => {
     console.log('Add workout template clicked');
 
-    setWorkoutName('New Workout Template');
-    setWorkoutExercises(() => []);
+    setWorkout(() => ({
+      id: uuidv4(),
+      name: 'New Workout Template',
+      exercises: [],
+    }));
 
     router.push('/edit-workout-template' as Href);
+  };
+
+  const onWorkoutTemplateClick = (workoutTemplate: Workout) => {
+    console.log('Workout template clicked');
+
+    const workoutExercises: ExerciseDisplay[] = workoutTemplate.exercises.map(
+      (exercise) => ({
+        ...exercise,
+        sets: exercise.sets.map((set) => ({
+          ...set,
+          completed: false,
+        })) as ExerciseSetDisplay[],
+      }),
+    );
+
+    setWorkout(() => ({
+      id: workoutTemplate.id,
+      name: workoutTemplate.title,
+      exercises: workoutExercises,
+    }));
+
+    router.push('/workout-template' as Href);
   };
 
   return (
@@ -119,8 +145,11 @@ const WorkoutScreen = () => {
                     onPress={() => {
                       console.log('Start an empty workout');
 
-                      setWorkoutName('Empty Workout');
-                      setWorkoutExercises(() => []);
+                      setWorkout(() => ({
+                        id: uuidv4(),
+                        name: 'Empty Workout',
+                        exercises: [],
+                      }));
 
                       router.push('/new-workout' as Href);
                     }}
@@ -144,7 +173,11 @@ const WorkoutScreen = () => {
                   data={user.savedWorkoutTemplates}
                   keyExtractor={(workout) => workout.id}
                   renderItem={({ item: workoutTemplate }) => (
-                    <Template workoutTemplate={workoutTemplate} />
+                    <TouchableOpacity
+                      onPress={() => onWorkoutTemplateClick(workoutTemplate)}
+                    >
+                      <Template workoutTemplate={workoutTemplate} />
+                    </TouchableOpacity>
                   )}
                   ListEmptyComponent={
                     <View className="h-[50px] justify-center items-center">
@@ -153,6 +186,7 @@ const WorkoutScreen = () => {
                       </Text>
                     </View>
                   }
+                  ItemSeparatorComponent={() => <View className="h-5"></View>}
                   nestedScrollEnabled={true}
                 />
               </View>

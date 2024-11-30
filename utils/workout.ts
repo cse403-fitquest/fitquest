@@ -44,7 +44,26 @@ export const addToUserWorkouts = (user: User, workout: Workout): User => {
   ) {
     throw new Error('Workout with title: ' + workout.title + ' already exists');
   }
+
+  let found = false;
+  // If no workout is found, add the workout to the user's savedWorkoutTemplates
+  if (newUser.savedWorkoutTemplates.find((w) => w.id === workout.id)) {
+    found = true;
+  }
+
+  if (found) {
+    // Update the workout if it already exists
+    newUser.savedWorkoutTemplates = newUser.savedWorkoutTemplates.map((w) =>
+      w.id === workout.id ? workout : w,
+    );
+
+    console.log('Successfully edited ' + workout.title + ' to saved templates');
+
+    return newUser;
+  }
+
   console.log('Successfully added ' + workout.title + ' to saved templates');
+
   newUser.savedWorkoutTemplates = [...user.savedWorkoutTemplates, workout];
   return newUser;
 };

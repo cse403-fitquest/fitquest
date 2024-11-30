@@ -50,8 +50,7 @@ export const getTagColumnWidth = (tag: ExerciseTag) => {
 };
 
 const NewWorkout = () => {
-  const { workoutName, setWorkoutName, workoutExercises, setWorkoutExercises } =
-    useWorkoutStore();
+  const { workout, setWorkout } = useWorkoutStore();
 
   const { user, setUser } = useUserStore();
 
@@ -89,7 +88,7 @@ const NewWorkout = () => {
 
   const handleAddSet: (exerciseID: string) => void = (exerciseID) => {
     console.log('start adding set', exerciseID);
-    const updatedExercises = workoutExercises.map((exercise) => {
+    const updatedExercises = workout.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
           ...exercise,
@@ -111,7 +110,12 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkoutExercises(() => updatedExercises);
+    setWorkout(() => {
+      return {
+        ...workout,
+        exercises: updatedExercises,
+      };
+    });
 
     console.log('end adding set');
   };
@@ -158,7 +162,7 @@ const NewWorkout = () => {
       value = 0;
     }
 
-    const updatedExercises = workoutExercises.map((exercise) => {
+    const updatedExercises = workout.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
           ...exercise,
@@ -194,7 +198,10 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkoutExercises(() => updatedExercises);
+    setWorkout(() => ({
+      ...workout,
+      exercises: updatedExercises,
+    }));
     console.log('end updating set');
   };
 
@@ -210,8 +217,8 @@ const NewWorkout = () => {
   const handleDeleteSet = useCallback((exerciseID: string, setID: string) => {
     console.log('start deleting set', exerciseID, setID);
 
-    setWorkoutExercises((prevWorkoutExercises) => {
-      const updatedExercisesWithDeletedSet = prevWorkoutExercises.map(
+    setWorkout((prevWorkout) => {
+      const updatedExercisesWithDeletedSet = prevWorkout.exercises.map(
         (exercise) => {
           if (exercise.id === exerciseID) {
             if (exercise.sets.length === 1) {
@@ -239,7 +246,10 @@ const NewWorkout = () => {
       printExerciseDisplays(updatedExercises);
       console.log('end deleting set');
 
-      return updatedExercises;
+      return {
+        ...prevWorkout,
+        exercises: updatedExercises,
+      };
     });
 
     // after removing the item, we start animation
@@ -247,11 +257,14 @@ const NewWorkout = () => {
   }, []);
 
   const moveExercise = (fromIndex: number, toIndex: number) => {
-    const updatedExercises = [...workoutExercises];
+    const updatedExercises = [...workout.exercises];
     const [removed] = updatedExercises.splice(fromIndex, 1);
     updatedExercises.splice(toIndex, 0, removed);
 
-    setWorkoutExercises(() => updatedExercises);
+    setWorkout(() => ({
+      ...workout,
+      exercises: updatedExercises,
+    }));
   };
 
   const onSaveTemplatePress = () => {
@@ -277,7 +290,7 @@ const NewWorkout = () => {
     if (!user) return;
 
     // Turn Execises with SetDisplay into Exercises with Set (no completed field)
-    const exercises: Exercise[] = workoutExercises.map((exercise) => {
+    const exercises: Exercise[] = workout.exercises.map((exercise) => {
       return {
         ...exercise,
         sets: exercise.sets.map((set) => {
@@ -294,8 +307,8 @@ const NewWorkout = () => {
 
     // Create workout object
     const workoutTemplate: Workout = {
-      id: uuidv4(),
-      title: workoutName,
+      id: workout.id,
+      title: workout.name,
       startedAt: workoutStartDate,
       duration: 0,
       exercises: exercises,
@@ -306,13 +319,28 @@ const NewWorkout = () => {
 
     // Save workoutTemplate template to database and update user store
     const oldUser = user;
-    setUser({
-      ...oldUser,
-      savedWorkoutTemplates: [
-        workoutTemplate,
-        ...oldUser.savedWorkoutTemplates,
-      ],
-    });
+
+    // Check if workout template already exists
+    if (
+      oldUser.savedWorkoutTemplates.find(
+        (template) => template.id === workoutTemplate.id,
+      )
+    ) {
+      setUser({
+        ...oldUser,
+        savedWorkoutTemplates: oldUser.savedWorkoutTemplates.map((template) =>
+          template.id === workoutTemplate.id ? workoutTemplate : template,
+        ),
+      });
+    } else {
+      setUser({
+        ...oldUser,
+        savedWorkoutTemplates: [
+          workoutTemplate,
+          ...oldUser.savedWorkoutTemplates,
+        ],
+      });
+    }
 
     const saveWorkoutTemplateResponse = await saveWorkoutTemplate(
       user.id,
@@ -360,15 +388,17 @@ const NewWorkout = () => {
           </View>
           <TextInput
             className="w-full text-lg font-semibold mb-8"
-            onChangeText={(text) => setWorkoutName(text)}
-            value={workoutName}
+            onChangeText={(text) =>
+              setWorkout((prevWorkout) => ({ ...prevWorkout, name: text }))
+            } // Update workout name
+            value={workout.name}
             defaultValue={''}
           />
           {/* Exercises here */}
         </View>
         <View className="relative w-full justify-start items-start">
           <FlatList
-            data={workoutExercises}
+            data={workout.exercises}
             scrollEnabled={false}
             style={{ width: '100%' }}
             keyExtractor={(exercise) => exercise.id}
@@ -396,7 +426,7 @@ const NewWorkout = () => {
                           />
                         </TouchableOpacity>
                       ) : null}
-                      {exerciseIndex !== workoutExercises.length - 1 ? (
+                      {exerciseIndex !== workout.exercises.length - 1 ? (
                         <TouchableOpacity
                           className="p-1"
                           onPress={() =>

@@ -3,23 +3,53 @@ import { ExerciseDisplay } from '@/types/workout';
 import { create } from 'zustand';
 
 interface IWorkoutStore {
-  workoutName: string;
+  workout: {
+    id: string;
+    name: string;
+    exercises: ExerciseDisplay[];
+  };
 
-  setWorkoutName: (name: string) => void;
-
-  workoutExercises: ExerciseDisplay[];
-
-  setWorkoutExercises: (
-    fn: (prevExercises: ExerciseDisplay[]) => ExerciseDisplay[],
+  setWorkout: (
+    fn: (workout: {
+      id: string;
+      name: string;
+      exercises: ExerciseDisplay[];
+    }) => {
+      id: string;
+      name: string;
+      exercises: ExerciseDisplay[];
+    },
   ) => void;
+
+  // setWorkoutExercises: (
+  //   fn: (prevExercises: ExerciseDisplay[]) => ExerciseDisplay[],
+  // ) => void;
+
+  // workoutName: string;
+
+  // setWorkoutName: (name: string) => void;
+
+  // workoutExercises: ExerciseDisplay[];
+
+  // setWorkoutExercises: (
+  //   fn: (prevExercises: ExerciseDisplay[]) => ExerciseDisplay[],
+  // ) => void;
 }
 
 export const useWorkoutStore = create<IWorkoutStore>((set) => ({
-  workoutName: '',
+  workout: {
+    id: '',
+    name: '',
+    exercises: [],
+  },
 
-  setWorkoutName: (name) => set({ workoutName: name }),
+  setWorkout: (fn) => set((state) => ({ workout: fn(state.workout) })),
 
-  workoutExercises: [],
+  // workoutName: '',
+
+  // setWorkoutName: (name) => set({ workoutName: name }),
+
+  // workoutExercises: [],
   //   workoutExercises: EXERCISES_STUB.map((exercise) => ({
   //     ...exercise,
   //     selected: false,
@@ -29,6 +59,6 @@ export const useWorkoutStore = create<IWorkoutStore>((set) => ({
   //     })),
   //   })),
 
-  setWorkoutExercises: (fn) =>
-    set((state) => ({ workoutExercises: fn(state.workoutExercises) })),
+  // setWorkoutExercises: (fn) =>
+  //   set((state) => ({ workoutExercises: fn(state.workoutExercises) })),
 }));
