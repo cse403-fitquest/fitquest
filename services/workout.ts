@@ -125,9 +125,9 @@ export const finishAndSaveWorkout: (
  * @param {Workout} workout - The Workout to be added
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
-export const updateWorkouts: (
+export const saveWorkoutTemplate: (
   userID: string,
-  workout: Workout,
+  workoutTemplate: Workout,
 ) => Promise<APIResponse> = async (userID, workout) => {
   try {
     // // Re-add this potion after demo is done

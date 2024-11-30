@@ -28,6 +28,8 @@ import {
 import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
 import { printExerciseDisplays } from '@/utils/workout';
+import { useUserStore } from '@/store/user';
+import { saveWorkoutTemplate } from '@/services/workout';
 
 const SET_COLUMN_WIDTH = 40;
 // const PREVIOUS_COLUMN_WIDTH = 68;
@@ -50,6 +52,8 @@ export const getTagColumnWidth = (tag: ExerciseTag) => {
 const NewWorkout = () => {
   const { workoutName, setWorkoutName, workoutExercises, setWorkoutExercises } =
     useWorkoutStore();
+
+  const { user, setUser } = useUserStore();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState<{
@@ -269,7 +273,9 @@ const NewWorkout = () => {
     setModalVisible(true);
   };
 
-  const handleSaveTemplate = () => {
+  const handleSaveTemplate = async () => {
+    if (!user) return;
+
     // Turn Execises with SetDisplay into Exercises with Set (no completed field)
     const exercises: Exercise[] = workoutExercises.map((exercise) => {
       return {
@@ -287,17 +293,41 @@ const NewWorkout = () => {
     });
 
     // Create workout object
-    const workout: Workout = {
+    const workoutTemplate: Workout = {
+      id: uuidv4(),
       title: workoutName,
       startedAt: workoutStartDate,
       duration: 0,
       exercises: exercises,
     };
 
-    // Print workout object
-    printWorkout(workout);
+    // Print workoutTemplate object
+    printWorkout(workoutTemplate);
 
-    // TODO: Save workout object to database and update store
+    // Save workoutTemplate template to database and update user store
+    const oldUser = user;
+    setUser({
+      ...oldUser,
+      savedWorkoutTemplates: [
+        workoutTemplate,
+        ...oldUser.savedWorkoutTemplates,
+      ],
+    });
+
+    const saveWorkoutTemplateResponse = await saveWorkoutTemplate(
+      user.id,
+      workoutTemplate,
+    );
+
+    if (saveWorkoutTemplateResponse.success) {
+      console.log('Successfully saved workout template');
+    } else {
+      console.error('Failed to save workout template');
+
+      // Revert user store
+      setUser(oldUser);
+      return;
+    }
 
     router.back();
   };
