@@ -35,7 +35,7 @@ const WorkoutScreen = () => {
 
   const [timer] = useState<ReturnType<typeof setInterval> | null>(null);
 
-  const { setWorkout } = useWorkoutStore();
+  const { workout, setWorkout } = useWorkoutStore();
 
   useEffect(() => {
     return () => {
@@ -53,6 +53,7 @@ const WorkoutScreen = () => {
       id: uuidv4(),
       name: 'New Workout Template',
       exercises: [],
+      startedAt: new Date(),
     }));
 
     router.push('/edit-workout-template' as Href);
@@ -75,6 +76,7 @@ const WorkoutScreen = () => {
       id: workoutTemplate.id,
       name: workoutTemplate.title,
       exercises: workoutExercises,
+      startedAt: new Date(),
     }));
 
     router.push('/workout-template' as Href);
@@ -97,6 +99,7 @@ const WorkoutScreen = () => {
       id: uuidv4(), // Generate a new ID for the workout if it's a suggested template
       name: workoutTemplate.title,
       exercises: workoutExercises,
+      startedAt: new Date(),
       isSuggested: true,
     }));
 
@@ -158,84 +161,106 @@ const WorkoutScreen = () => {
         ListHeaderComponent={
           <View className="py-8 px-6">
             <Text className="text-2xl text-gray-black mb-5">Workout</Text>
-            <View className="flex-1 items-left justify-r h-full">
-              <View className="mb-6">
-                <Text className="text-xl text-grayDark font-bold mb-4">
-                  QUICK START
-                </Text>
-                <View>
+            <View className="mb-6">
+              <Text className="text-xl text-grayDark font-bold mb-4">
+                RESUME WORKOUT
+              </Text>
+              <View className="w-full items-center justify-center">
+                {workout.id ? (
                   <FQButton
+                    className="w-full"
+                    secondary
                     onPress={() => {
-                      console.log('Start an empty workout');
-
-                      setWorkout(() => ({
-                        id: uuidv4(),
-                        name: 'Empty Workout',
-                        exercises: [],
-                      }));
+                      console.log('Resume workout');
 
                       router.push('/new-workout' as Href);
                     }}
                   >
-                    START AN EMPTY WORKOUT
+                    RESUME ACTIVE WORKOUT
                   </FQButton>
-                </View>
+                ) : (
+                  <Text>You currently have no active workout</Text>
+                )}
               </View>
+            </View>
 
-              {/* Saved Templates Section */}
-              <View className="mb-6">
-                <View className="w-full flex-row justify-between items-center mb-4">
-                  <Text className="text-xl text-grayDark font-bold">
-                    MY TEMPLATES
-                  </Text>
-                  <TouchableOpacity onPress={() => onAddWorkoutTemplateClick()}>
-                    <Ionicons name="add" size={25} color={Colors.blue} />
+            <View className="mb-6">
+              <Text className="text-xl text-grayDark font-bold mb-4">
+                QUICK START
+              </Text>
+              <View>
+                <FQButton
+                  onPress={() => {
+                    console.log('Start an empty workout');
+
+                    setWorkout(() => ({
+                      id: uuidv4(),
+                      name: 'Empty Workout',
+                      startedAt: new Date(),
+                      exercises: [],
+                    }));
+
+                    router.push('/new-workout' as Href);
+                  }}
+                >
+                  START AN EMPTY WORKOUT
+                </FQButton>
+              </View>
+            </View>
+
+            {/* Saved Templates Section */}
+            <View className="mb-6">
+              <View className="w-full flex-row justify-between items-center mb-4">
+                <Text className="text-xl text-grayDark font-bold">
+                  MY TEMPLATES
+                </Text>
+                <TouchableOpacity onPress={() => onAddWorkoutTemplateClick()}>
+                  <Ionicons name="add" size={25} color={Colors.blue} />
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={user.savedWorkoutTemplates}
+                keyExtractor={(workout) => workout.id}
+                renderItem={({ item: workoutTemplate }) => (
+                  <TouchableOpacity
+                    onPress={() => onWorkoutTemplateClick(workoutTemplate)}
+                  >
+                    <Template workoutTemplate={workoutTemplate} />
                   </TouchableOpacity>
-                </View>
+                )}
+                ListEmptyComponent={
+                  <View className="h-[50px] justify-center items-center">
+                    <Text className="text-center text-grayDark">
+                      You currently have no templates.
+                    </Text>
+                  </View>
+                }
+                ItemSeparatorComponent={() => <View className="h-5"></View>}
+                nestedScrollEnabled={true}
+              />
+            </View>
+
+            {/* Suggested Templates Section */}
+            <View className="mb-6">
+              <View className="w-full">
+                <Text className="text-xl text-grayDark font-bold mb-4">
+                  SUGGESTED TEMPLATES
+                </Text>
                 <FlatList
-                  data={user.savedWorkoutTemplates}
+                  data={SUGGESTED_TEMPLATES}
                   keyExtractor={(workout) => workout.id}
                   renderItem={({ item: workoutTemplate }) => (
                     <TouchableOpacity
-                      onPress={() => onWorkoutTemplateClick(workoutTemplate)}
+                      onPress={() =>
+                        onSuggestedWorkoutTemplateClick(workoutTemplate)
+                      }
                     >
                       <Template workoutTemplate={workoutTemplate} />
                     </TouchableOpacity>
                   )}
-                  ListEmptyComponent={
-                    <View className="h-[50px] justify-center items-center">
-                      <Text className="text-center text-grayDark">
-                        You currently have no templates.
-                      </Text>
-                    </View>
-                  }
                   ItemSeparatorComponent={() => <View className="h-5"></View>}
                   nestedScrollEnabled={true}
                 />
-              </View>
-
-              {/* Suggested Templates Section */}
-              <View className="mb-6">
-                <View className="w-full">
-                  <Text className="text-xl text-grayDark font-bold mb-4">
-                    SUGGESTED TEMPLATES
-                  </Text>
-                  <FlatList
-                    data={SUGGESTED_TEMPLATES}
-                    keyExtractor={(workout) => workout.id}
-                    renderItem={({ item: workoutTemplate }) => (
-                      <TouchableOpacity
-                        onPress={() =>
-                          onSuggestedWorkoutTemplateClick(workoutTemplate)
-                        }
-                      >
-                        <Template workoutTemplate={workoutTemplate} />
-                      </TouchableOpacity>
-                    )}
-                    ItemSeparatorComponent={() => <View className="h-5"></View>}
-                    nestedScrollEnabled={true}
-                  />
-                </View>
               </View>
             </View>
           </View>

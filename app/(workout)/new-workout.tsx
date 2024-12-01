@@ -38,12 +38,13 @@ import { finishAndSaveWorkout } from '@/services/workout';
 import { useUserStore } from '@/store/user';
 import { Alert } from 'react-native';
 import { useGeneralStore } from '@/store/general';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SET_COLUMN_WIDTH = 28;
 // const PREVIOUS_COLUMN_WIDTH = 68;
 
 const NewWorkout = () => {
-  const { workout, setWorkout } = useWorkoutStore();
+  const { workout, setWorkout, clearWorkout } = useWorkoutStore();
 
   const [seconds, setSeconds] = useState(0);
 
@@ -68,13 +69,28 @@ const NewWorkout = () => {
     },
   );
 
-  const workoutStartDate = new Date();
-
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSeconds((prev) => prev + 1);
-    }, 1000);
+    if (!user) return;
 
+    let interval: NodeJS.Timeout;
+
+    const initializeTimer = async () => {
+      const timeSinceLastWorkoutInSeconds = (
+        (new Date().getTime() - workout.startedAt.getTime()) /
+        1000
+      ).toFixed(0);
+      setSeconds(parseInt(timeSinceLastWorkoutInSeconds));
+
+      startInterval();
+    };
+
+    const startInterval = () => {
+      interval = setInterval(() => {
+        setSeconds((prev) => prev + 1);
+      }, 1000);
+    };
+
+    initializeTimer();
     return () => clearInterval(interval);
   }, []);
 
@@ -106,6 +122,11 @@ const NewWorkout = () => {
     exerciseID,
     setID,
   ) => {
+    if (!user) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     console.log('start toggling set', exerciseID, setID);
     const updatedExercises = workout.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
@@ -180,6 +201,11 @@ const NewWorkout = () => {
   };
 
   const handleAddSet: (exerciseID: string) => void = (exerciseID) => {
+    if (!user) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     console.log('start adding set', exerciseID);
     const updatedExercises = workout.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
@@ -246,6 +272,11 @@ const NewWorkout = () => {
     tag: ExerciseTag,
     value: number,
   ) => void = (exerciseID, setID, tag, value) => {
+    if (!user) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     console.log('start updating set', exerciseID, setID, tag, value);
 
     // Valdiate value
@@ -293,6 +324,7 @@ const NewWorkout = () => {
       ...workout,
       exercises: updatedExercises,
     }));
+
     console.log('end updating set');
   };
 
@@ -306,6 +338,11 @@ const NewWorkout = () => {
   };
 
   const handleDeleteSet = useCallback((exerciseID: string, setID: string) => {
+    if (!user) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     console.log('start deleting set', exerciseID, setID);
 
     setWorkout((prevWorkout) => {
@@ -348,6 +385,11 @@ const NewWorkout = () => {
   }, []);
 
   const moveExercise = (fromIndex: number, toIndex: number) => {
+    if (!user) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     const updatedExercises = [...workout.exercises];
     const [removed] = updatedExercises.splice(fromIndex, 1);
     updatedExercises.splice(toIndex, 0, removed);
@@ -385,6 +427,7 @@ const NewWorkout = () => {
         onConfirm: () => {
           setModalVisible(false);
           // Cancel workout
+          clearWorkout();
           router.back();
         },
         cancelText: 'CANCEL',
@@ -432,7 +475,12 @@ const NewWorkout = () => {
       ),
       confirmText: 'CANCEL WORKOUT',
       onConfirm: () => {
+        if (!user) {
+          console.error('User not found');
+          return;
+        }
         setModalVisible(false);
+        AsyncStorage.removeItem(`activeWorkout-${user.id}`);
         router.back();
       },
       cancelText: 'BACK',
@@ -493,7 +541,7 @@ const NewWorkout = () => {
     const newWorkout: Workout = {
       id: uuidv4(),
       title: workout.name,
-      startedAt: workoutStartDate,
+      startedAt: workout.startedAt,
       duration: seconds,
       exercises: exercises,
     };
@@ -535,6 +583,9 @@ const NewWorkout = () => {
       setUser(oldUser);
       return;
     }
+
+    // Clear workout
+    clearWorkout();
 
     // Redirect to workout screen
     router.replace('workout' as Href);
