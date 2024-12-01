@@ -2,22 +2,9 @@
 
 import { BASE_USER } from '@/constants/user';
 import { Exercise, ExerciseTag, Workout } from '@/types/workout';
-
-// import { fetchItems, setItemsInDB, purchaseItem } from '@/services/item';
-// import { FirebaseError } from 'firebase/app';
-// import {
-//   getDocs,
-//   deleteDoc,
-//   writeBatch,
-//   getDoc,
-//   updateDoc,
-// } from 'firebase/firestore';
-// import { Item } from '@/types/item';
 import { APIResponse } from '@/types/general';
-// import { BASE_ITEM } from '@/constants/item';
 import { deleteWorkoutTemplate, saveWorkoutTemplate } from '@/services/workout';
 import { updateDoc, getDoc } from 'firebase/firestore';
-// import { BASE_USER } from '@/constants/user';
 
 // Mock Firebase Firestore
 jest.mock('@/firebaseConfig', () => ({
@@ -176,7 +163,7 @@ describe('Workout Service Functions', () => {
   });
 
   // Tests for saving and editing workouts
-  describe('saving and deleting workout templates', () => {
+  describe('saving and editing workout templates', () => {
     const userId = 'user1234';
 
     it('should add to saved workouts successfully', async () => {
