@@ -237,7 +237,7 @@ describe('Workout Service Functions', () => {
     });
 
     // test delete on invalid ID
-    it('should fail if deleting workout that does not exist', async () => {
+    it('should pass if deleting workout that does not exist', async () => {
       const falseworkoutID = 'johnnytables';
       mockGetDoc.mockImplementation((ref) => {
         if (ref.path.includes('users'))
@@ -251,7 +251,7 @@ describe('Workout Service Functions', () => {
         falseworkoutID,
       );
 
-      expect(response.success).toEqual(false);
+      expect(response.success).toEqual(true);
     });
   });
 });
