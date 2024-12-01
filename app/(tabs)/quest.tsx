@@ -1,7 +1,6 @@
 import { Text, View, TouchableOpacity, Alert, FlatList } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
@@ -64,7 +63,7 @@ const Quest = () => {
     const selectedQuest = availableQuests.find(
       (quest) => quest.questId === questID,
     );
-    if (selectedQuest) {
+    if (selectedQuest && user?.id) {
       const existingProgress = user?.currentQuest?.progress || {};
       const questProgress = existingProgress[questID] || 0;
 
@@ -80,24 +79,14 @@ const Quest = () => {
         boss: selectedQuest.boss,
       };
 
-      await AsyncStorage.setItem('activeQuest', JSON.stringify(newActiveQuest));
       setActiveQuest(newActiveQuest);
-
-      if (user?.id) {
-        await updateUserCurrentQuest(questID, existingProgress);
-      }
-
-      console.log(
-        `Quest ${selectedQuest.questName} started for user ${userID}`,
-      );
+      await updateUserCurrentQuest(questID, existingProgress);
     }
   };
 
   useEffect(() => {
     const loadQuests = async () => {
       const result = await getAvailableQuests();
-      console.log('loadQuests');
-      console.log(result);
       if (result.success && result.data) {
         setAvailableQuests(
           (result.data as { quests: Quest[] }).quests?.slice(0, 2) || [],
@@ -105,16 +94,34 @@ const Quest = () => {
       }
     };
 
-    const loadActiveQuest = async () => {
-      const storedQuest = await AsyncStorage.getItem('activeQuest');
-      if (storedQuest) {
-        setActiveQuest(JSON.parse(storedQuest));
-      }
-    };
-
     loadQuests();
-    loadActiveQuest();
   }, []);
+
+  useEffect(() => {
+    if (user?.currentQuest?.id && availableQuests.length > 0) {
+      const currentQuest = availableQuests.find(
+        quest => quest.questId === user.currentQuest.id
+      );
+      
+      if (currentQuest) {
+        const progress = user.currentQuest.progress[currentQuest.questId] || 0;
+        
+        setActiveQuest({
+          questID: currentQuest.questId,
+          questName: currentQuest.questName,
+          progress: progress,
+          milestones: currentQuest.milestones,
+          timer: Date.now(),
+          bossThreshold: currentQuest.bossThreshold,
+          spriteId: currentQuest.spriteId,
+          bossDefeated: false,
+          boss: currentQuest.boss,
+        });
+      }
+    } else if (!user?.currentQuest?.id) {
+      setActiveQuest(null);
+    }
+  }, [user?.currentQuest, availableQuests]);
 
   const getNextMilestones = (quest: Quest, currentProgress: number) => {
     const allMilestones = quest.milestones;
@@ -158,7 +165,6 @@ const Quest = () => {
         },
       });
       if (result.success) {
-        await AsyncStorage.removeItem('activeQuest');
         setUser({
           ...user,
           currentQuest: {
@@ -287,10 +293,6 @@ const Quest = () => {
             });
 
             setActiveQuest(updatedQuest);
-            await AsyncStorage.setItem(
-              'activeQuest',
-              JSON.stringify(updatedQuest),
-            );
           } else {
             throw new Error(result.error || 'Failed to update progress');
           }
@@ -307,7 +309,6 @@ const Quest = () => {
           'Congratulations! You have completed the quest!',
           [{ text: 'OK' }],
         );
-        AsyncStorage.removeItem('activeQuest');
         setActiveQuest(null);
         setCurrentNodeIndex(0);
         setVisualProgress(0);
