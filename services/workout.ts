@@ -19,10 +19,10 @@ export const updateEXP: (
   duration: number,
 ) => Promise<APIResponse> = async (userID, duration) => {
   try {
-    // // Re-add this potion after demo is done
-    // if (duration < 600) {
-    //     throw new Error('Not long enough workout');
-    // }
+    // Re-add this potion after demo is done
+    if (duration < 60) {
+      throw new Error('Not long enough workout');
+    }
     const userCollection = collection(FIREBASE_DB, 'users').withConverter(
       userConverter,
     );

@@ -3,8 +3,14 @@
 import { BASE_USER } from '@/constants/user';
 import { Exercise, ExerciseTag, Workout } from '@/types/workout';
 import { APIResponse } from '@/types/general';
-import { deleteWorkoutTemplate, saveWorkoutTemplate } from '@/services/workout';
+import {
+  deleteWorkoutTemplate,
+  saveWorkoutTemplate,
+  updateActiveWorkout,
+  updateEXP,
+} from '@/services/workout';
 import { updateDoc, getDoc } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Mock Firebase Firestore
 jest.mock('@/firebaseConfig', () => ({
@@ -239,6 +245,108 @@ describe('Workout Service Functions', () => {
       );
 
       expect(response.success).toEqual(true);
+    });
+  });
+
+  describe('updating exp', () => {
+    const hourWorkoutDuration = 3600;
+    const negativeDuration = -5;
+    const shortDuration = 25;
+    it('should pass when updating exp', async () => {
+      mockGetDoc.mockImplementation((ref) => {
+        if (ref.path.includes('users'))
+          return { data: () => userDataWithWorkout };
+      });
+
+      mockUpdateDoc.mockResolvedValue(undefined);
+
+      const response: APIResponse = await updateEXP(
+        userDataWithWorkout.id,
+        hourWorkoutDuration,
+      );
+
+      expect(response.success).toEqual(true);
+
+      // Check if user's exp has been updated correctly
+      expect(mockUpdateDoc).toHaveBeenCalledWith(expect.objectContaining({}), {
+        exp: 2000,
+        attributePoints: 116,
+      });
+    });
+
+    it('should fail when duration negative', async () => {
+      mockGetDoc.mockImplementation((ref) => {
+        if (ref.path.includes('users'))
+          return { data: () => userDataWithWorkout };
+      });
+
+      mockUpdateDoc.mockResolvedValue(undefined);
+
+      const response: APIResponse = await updateEXP(
+        userDataWithWorkout.id,
+        negativeDuration,
+      );
+
+      expect(response.success).toEqual(false);
+    });
+
+    it('should fail when duration less than minute', async () => {
+      mockGetDoc.mockImplementation((ref) => {
+        if (ref.path.includes('users'))
+          return { data: () => userDataWithWorkout };
+      });
+
+      mockUpdateDoc.mockResolvedValue(undefined);
+
+      const response: APIResponse = await updateEXP(
+        userDataWithWorkout.id,
+        shortDuration,
+      );
+
+      expect(response.success).toEqual(false);
+    });
+
+    it('should fail when no user found', async () => {
+      const invalidUserid = 'namenamename';
+      mockGetDoc.mockImplementation((ref) => {
+        if (ref.path.includes('users'))
+          return { data: () => userDataWithWorkout };
+      });
+
+      mockUpdateDoc.mockResolvedValue(undefined);
+
+      const response: APIResponse = await updateEXP(
+        invalidUserid,
+        shortDuration,
+      );
+
+      expect(response.success).toEqual(false);
+    });
+  });
+
+  jest.mock('@react-native-async-storage/async-storage', () => ({
+    setItem: jest.fn(),
+  }));
+  describe('updating active workout', () => {
+    const mockWorkout = {
+      id: 'workout1',
+      name: 'Morning Workout',
+      exercises: [],
+      startedAt: new Date(),
+      isSuggested: true,
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should store the active workout in AsyncStorage', async () => {
+      await updateActiveWorkout(mockWorkout, userData);
+
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        `activeWorkout-${userData.id}`,
+        JSON.stringify(mockWorkout),
+      );
     });
   });
 });
