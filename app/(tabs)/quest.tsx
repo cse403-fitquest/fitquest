@@ -6,11 +6,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
-// import { useUserStore } from '@/store/user';
+import { useUserStore } from '@/store/user';
+import { updateUserProfile } from '@/services/user';
+import { getAvailableQuests } from '@/services/quest';
 
 interface Quest {
+  monsters: AnimatedSpriteID[];
+  questName: string;
   questId: string;
-  name: string;
   questDescription?: '';
   spriteId: AnimatedSpriteID;
   milestones: number[];
@@ -18,9 +21,21 @@ interface Quest {
   duration: number;
   createdAt?: '';
   expiredAt?: '';
+  boss: {
+    spriteId: AnimatedSpriteID;
+    health: number;
+    power: number;
+    speed: number;
+  };
 }
 
 interface ActiveQuest {
+  boss: {
+    spriteId: AnimatedSpriteID;
+    health: number;
+    power: number;
+    speed: number;
+  };
   questID: string;
   questName: string;
   progress: number;
@@ -31,80 +46,73 @@ interface ActiveQuest {
   bossDefeated: boolean;
 }
 
-export const quests = [
-  {
-    questId: '1',
-    name: 'Hunt Red Minotaur',
-    questDescription: '',
-    spriteId: AnimatedSpriteID.MINOTAUR_RED,
-    milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),
-    bossThreshold: 500,
-    duration: 7 * 24 * 60 * 60 * 1000,
-    createdAt: '',
-    expiredAt: '',
-  },
-  {
-    questId: '2',
-    name: 'Hunt Green Chompbug',
-    questDescription: '',
-    spriteId: AnimatedSpriteID.CHOMPBUG_GREEN,
-    milestones: Array.from({ length: 20 }, (_, i) => (i + 1) * 50),
-    bossThreshold: 500,
-    duration: 7 * 24 * 60 * 60 * 1000,
-    createdAt: '',
-    expiredAt: '',
-  },
-];
-
-const questData: {
-  activeQuests: Record<string, ActiveQuest>;
-  questProgress: Record<string, number>;
-} = {
-  activeQuests: {},
-  questProgress: {},
-};
-
-const startQuest = async (
-  userID: string,
-  questID: string,
-  setActiveQuest: (quest: ActiveQuest | null) => void,
-) => {
-  const selectedQuest = quests.find((quest) => quest.questId === questID);
-  if (selectedQuest) {
-    questData.activeQuests[userID] = {
-      questID: selectedQuest.questId,
-      questName: selectedQuest.name,
-      progress: 0,
-      milestones: selectedQuest.milestones,
-      timer: Date.now(),
-      bossThreshold: selectedQuest.bossThreshold,
-      spriteId: selectedQuest.spriteId,
-      bossDefeated: false,
-    };
-    await AsyncStorage.setItem(
-      'activeQuest',
-      JSON.stringify(questData.activeQuests[userID]),
-    );
-    setActiveQuest(questData.activeQuests[userID]);
-    console.log(`Quest ${selectedQuest.name} started for user ${userID}`);
-  }
-};
-
 const Quest = () => {
-  const userID = 'user123';
+  // const userID = 'user123';
   const [activeQuest, setActiveQuest] = useState<ActiveQuest | null>(null);
   const [, setShowAbandonModal] = useState<boolean>(false);
   const router = useRouter();
   const [, setVisualProgress] = useState<number>(0);
   const [, setCurrentNodeIndex] = useState(0);
+  const { user, setUser } = useUserStore();
+  const [availableQuests, setAvailableQuests] = useState<Quest[]>([]);
+
+  const startQuest = async (
+    userID: string,
+    questID: string,
+    setActiveQuest: (quest: ActiveQuest | null) => void,
+  ) => {
+    const selectedQuest = availableQuests.find(
+      (quest) => quest.questId === questID,
+    );
+    if (selectedQuest) {
+      const existingProgress = user?.currentQuest?.progress || {};
+      const questProgress = existingProgress[questID] || 0;
+
+      const newActiveQuest: ActiveQuest = {
+        questID: selectedQuest.questId,
+        questName: selectedQuest.questName,
+        progress: questProgress,
+        milestones: selectedQuest.milestones,
+        timer: Date.now(),
+        bossThreshold: selectedQuest.bossThreshold,
+        spriteId: selectedQuest.spriteId,
+        bossDefeated: false,
+        boss: selectedQuest.boss,
+      };
+
+      await AsyncStorage.setItem('activeQuest', JSON.stringify(newActiveQuest));
+      setActiveQuest(newActiveQuest);
+
+      if (user?.id) {
+        await updateUserCurrentQuest(questID, existingProgress);
+      }
+
+      console.log(
+        `Quest ${selectedQuest.questName} started for user ${userID}`,
+      );
+    }
+  };
 
   useEffect(() => {
+    const loadQuests = async () => {
+      const result = await getAvailableQuests();
+      console.log('loadQuests');
+      console.log(result);
+      if (result.success && result.data) {
+        setAvailableQuests(
+          (result.data as { quests: Quest[] }).quests?.slice(0, 2) || [],
+        );
+      }
+    };
+
     const loadActiveQuest = async () => {
       const storedQuest = await AsyncStorage.getItem('activeQuest');
       if (storedQuest) {
         setActiveQuest(JSON.parse(storedQuest));
       }
     };
+
+    loadQuests();
     loadActiveQuest();
   }, []);
 
@@ -119,7 +127,7 @@ const Quest = () => {
         .slice(-5 + remainingMilestones.length);
       return [...completedMilestones, ...remainingMilestones];
     }
-
+    console.log('Boss Threshold:', quest.bossThreshold);
     return remainingMilestones.slice(0, 5);
   };
 
@@ -141,23 +149,45 @@ const Quest = () => {
   };
 
   const confirmAbandon = async () => {
-    await AsyncStorage.removeItem('activeQuest');
-    setActiveQuest(null);
-    setCurrentNodeIndex(0);
-    setVisualProgress(0);
-    setShowAbandonModal(false);
+    if (!user?.id) return;
+    try {
+      const result = await updateUserProfile(user.id, {
+        currentQuest: {
+          id: '',
+          progress: user.currentQuest.progress,
+        },
+      });
+      if (result.success) {
+        await AsyncStorage.removeItem('activeQuest');
+        setUser({
+          ...user,
+          currentQuest: {
+            id: '',
+            progress: user.currentQuest.progress,
+          },
+        });
+        setActiveQuest(null);
+        setCurrentNodeIndex(0);
+        setVisualProgress(0);
+        setShowAbandonModal(false);
+      } else {
+        throw new Error(result.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Failed to abandon quest:', error);
+      Alert.alert('Error', 'Failed to abandon quest. Please try again.');
+    }
   };
 
   function confirmAction(
     action: string,
     quest: Quest,
-    userID: string,
     setActiveQuest: (quest: ActiveQuest | null) => void,
   ) {
-    if (activeQuest?.questID === quest.questId) return; // Prevent starting the same quest
+    if (activeQuest?.questID === quest.questId) return;
 
     Alert.alert(
-      `${action} Quest: ${quest.name}?`,
+      `${action} Quest: ${quest.questName}?`,
       `Are you sure you want to ${action.toLowerCase()} this quest?`,
       [
         {
@@ -166,34 +196,111 @@ const Quest = () => {
         },
         {
           text: 'OK',
-          onPress: () => startQuest(userID, quest.questId, setActiveQuest),
+          onPress: async () => {
+            try {
+              await updateUserCurrentQuest(
+                quest.questId,
+                user?.currentQuest?.progress,
+              );
+              await startQuest(user?.id || '', quest.questId, setActiveQuest);
+            } catch (error) {
+              console.error('Error starting quest:', error);
+              Alert.alert('Error', 'Failed to start quest. Please try again.');
+            }
+          },
         },
       ],
     );
   }
 
-  const handleAdvance = () => {
-    if (activeQuest) {
+  const updateUserCurrentQuest = async (
+    questId: string,
+    existingProgress = {},
+  ) => {
+    if (!user?.id) return;
+    try {
+      const result = await updateUserProfile(user.id, {
+        currentQuest: {
+          id: questId,
+          progress: existingProgress,
+        },
+      });
+      if (result.success) {
+        setUser({
+          ...user,
+          currentQuest: {
+            id: questId,
+            progress: existingProgress,
+          },
+        });
+      } else {
+        throw new Error(result.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Failed to update user current quest:', error);
+      Alert.alert('Error', 'Failed to update current quest. Please try again.');
+    }
+  };
+
+  const handleAdvance = async () => {
+    if (activeQuest && user?.id) {
+      const newProgress = activeQuest.progress + 50;
       const nextMilestone = activeQuest.milestones.find(
-        (milestone) => milestone > activeQuest.progress,
+        (milestone) => milestone >= newProgress,
       );
 
       if (nextMilestone) {
-        const updatedQuest = { ...activeQuest, progress: nextMilestone };
-        const isBoss = nextMilestone === activeQuest.bossThreshold;
-        const uniqueKey = Date.now();
+        const updatedQuest = { ...activeQuest, progress: newProgress };
 
-        router.replace({
-          pathname: '/fight',
-          params: {
-            isBoss: isBoss ? 'true' : 'false',
-            questId: activeQuest.questID,
-            uniqueKey,
-          },
-        });
+        const updatedProgress = {
+          ...user.currentQuest.progress,
+          [activeQuest.questID]: newProgress,
+        };
 
-        setActiveQuest(updatedQuest);
-        AsyncStorage.setItem('activeQuest', JSON.stringify(updatedQuest));
+        try {
+          const result = await updateUserProfile(user.id, {
+            currentQuest: {
+              id: activeQuest.questID,
+              progress: updatedProgress,
+            },
+          });
+
+          if (result.success) {
+            setUser({
+              ...user,
+              currentQuest: {
+                id: activeQuest.questID,
+                progress: updatedProgress,
+              },
+            });
+
+            const isBoss = newProgress === activeQuest.bossThreshold;
+            const uniqueKey = Date.now();
+
+            router.replace({
+              pathname: '/fight',
+              params: {
+                isBoss: isBoss ? 'true' : 'false',
+                questId: activeQuest.questID,
+                uniqueKey,
+              },
+            });
+
+            setActiveQuest(updatedQuest);
+            await AsyncStorage.setItem(
+              'activeQuest',
+              JSON.stringify(updatedQuest),
+            );
+          } else {
+            throw new Error(result.error || 'Failed to update progress');
+          }
+        } catch (error) {
+          console.error('Failed to update quest progress:', error);
+          Alert.alert(
+            'Error',
+            'Failed to update quest progress. Please try again.',
+          );
+        }
       } else {
         Alert.alert(
           'Quest Complete!',
@@ -210,30 +317,19 @@ const Quest = () => {
   };
 
   const calculateQuestPercentage = (quest: ActiveQuest, progress: number) => {
-    const totalMilestones = quest.milestones.length;
-    const completedMilestones = quest.milestones.filter(
-      (m) => m <= progress,
-    ).length;
-    return Math.round((completedMilestones / totalMilestones) * 100);
+    const finalMilestone = quest.milestones[quest.milestones.length - 1];
+    return Math.round((progress / finalMilestone) * 100);
   };
 
   const renderMilestoneNodes = (quest: ActiveQuest, progress: number) => {
     const startingPoint = 'start';
-    const nextMilestones = getNextMilestones(
-      {
-        questId: quest.questID,
-        name: quest.questName,
-        milestones: quest.milestones,
-        bossThreshold: quest.bossThreshold,
-        duration: 0,
-        questDescription: '',
-        spriteId: quest.spriteId,
-        createdAt: '',
-        expiredAt: '',
-      },
-      progress,
+    const selectedQuest = availableQuests.find(
+      (q) => q.questId === quest.questID,
     );
 
+    if (!selectedQuest) return null;
+
+    const nextMilestones = getNextMilestones(selectedQuest, progress);
     const visualMilestones = [startingPoint, ...nextMilestones];
 
     const percentage = calculateQuestPercentage(quest, progress);
@@ -246,60 +342,95 @@ const Quest = () => {
 
         <View
           className="flex-row justify-between items-center"
-          style={{ height: 120 }}
+          style={{ height: 60 }}
         >
-          {visualMilestones.map((milestone) => (
-            <View
-              key={milestone === 'start' ? 'start-node' : milestone}
-              className="items-center"
-            >
-              {milestone === 'start' ? (
-                <View
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 12,
-                    backgroundColor: '#D3D3D3',
-                    borderWidth: 2,
-                    borderColor: '#404040',
-                  }}
-                />
-              ) : milestone === quest.bossThreshold && !quest.bossDefeated ? (
-                <View style={{ width: 48, height: 48 }}>
-                  <AnimatedSprite
-                    id={
-                      quest.questID === '1'
-                        ? AnimatedSpriteID.MINOTAUR_RED
-                        : AnimatedSpriteID.CHOMPBUG_GREEN
-                    }
-                    width={64}
-                    height={64}
-                    state={SpriteState.IDLE}
+          {visualMilestones.map((milestone) => {
+            const milestoneValue =
+              milestone === 'start' ? 0 : Number(milestone);
+            const isBossNode = milestoneValue === Number(quest.bossThreshold);
+
+            return (
+              <View
+                key={milestone === 'start' ? 'start-node' : milestone}
+                className="items-center"
+              >
+                {isBossNode ? (
+                  <View style={{ width: 70, height: 120 }}>
+                    <AnimatedSprite
+                      id={getQuestSprite(quest.questName)}
+                      width={85}
+                      height={85}
+                      state={SpriteState.IDLE}
+                    />
+                  </View>
+                ) : (
+                  <View
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      backgroundColor: '#D3D3D3',
+                      borderWidth: 2,
+                      borderColor: '#404040',
+                    }}
                   />
-                </View>
-              ) : (
-                <View style={{ width: 32, height: 32 }}>
-                  <AnimatedSprite
-                    id={
-                      quest.questID === '1'
-                        ? AnimatedSpriteID.SLIME_GREEN
-                        : AnimatedSpriteID.FIRE_SKULL_RED
-                    }
-                    width={32}
-                    height={32}
-                    state={SpriteState.IDLE}
-                  />
-                </View>
-              )}
-              {milestone === 'start' ? (
-                <Text className="text-sm text-gray-500 mt-2 font-bold"></Text>
-              ) : milestone === quest.bossThreshold ? (
-                <Text className="text-sm text-red-500 mt-2 font-bold"></Text>
-              ) : null}
-            </View>
-          ))}
+                )}
+              </View>
+            );
+          })}
         </View>
       </View>
+    );
+  };
+
+  const getQuestSprite = (questName: string): AnimatedSpriteID => {
+    switch (questName) {
+      case 'Hunt Red Minotaur':
+        return AnimatedSpriteID.MINOTAUR_RED;
+      case 'Hunt Green Chompbug':
+        return AnimatedSpriteID.CHOMPBUG_GREEN;
+      default:
+        return AnimatedSpriteID.SLIME_GREEN;
+    }
+  };
+
+  const renderItem = ({ item, index }: { item: Quest; index: number }) => {
+    console.log('item', getQuestSprite(item.questName));
+
+    return (
+      <TouchableOpacity
+        key={index}
+        className={`bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between ${
+          activeQuest?.questID === item.questId ? 'opacity-50' : ''
+        }`}
+        onPress={() => confirmAction('Start', item as Quest, setActiveQuest)}
+        disabled={activeQuest?.questID === item.questId}
+      >
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Text
+              className={`text-lg font-semibold ${
+                activeQuest?.questID === item.questId ? 'text-gray-500' : ''
+              }`}
+            >
+              {item.questName}
+            </Text>
+            {item.questDescription && (
+              <Text className="text-sm text-gray-600 mt-1">
+                {item.questDescription}
+              </Text>
+            )}
+          </View>
+          <View style={{ width: 85, height: 85 }}>
+            <AnimatedSprite
+              id={getQuestSprite(item.questName)}
+              width={85}
+              height={85}
+              state={SpriteState.IDLE}
+            />
+          </View>
+        </View>
+      </TouchableOpacity>
     );
   };
 
@@ -359,47 +490,11 @@ const Quest = () => {
               QUEST BOARD
             </Text>
             <FlatList
-              data={quests}
-              renderItem={({ item, index }) => (
-                <TouchableOpacity
-                  key={index}
-                  className={`bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between ${
-                    activeQuest?.questID === item.questId ? 'opacity-50' : ''
-                  }`}
-                  onPress={() =>
-                    confirmAction(
-                      'Start',
-                      item as Quest,
-                      userID,
-                      setActiveQuest,
-                    )
-                  }
-                  disabled={activeQuest?.questID === item.questId}
-                >
-                  <View className="flex-row items-center justify-between">
-                    <Text
-                      className={`text-lg font-semibold ${
-                        activeQuest?.questID === item.questId
-                          ? 'text-gray-500'
-                          : ''
-                      }`}
-                    >
-                      {item.name}
-                    </Text>
-                    <View style={{ width: 85, height: 165 }}>
-                      <AnimatedSprite
-                        id={item.spriteId}
-                        width={120}
-                        height={120}
-                        state={SpriteState.IDLE}
-                      />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              )}
+              data={availableQuests}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.questId}
               ListHeaderComponent={null}
               ListFooterComponent={null}
-              keyExtractor={(_, index) => index.toString()}
             />
           </View>
         }
