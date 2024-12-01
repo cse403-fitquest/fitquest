@@ -659,7 +659,7 @@ const Profile = () => {
         {/* Header */}
         <View className="flex-row justify-between items-center">
           <View>
-            <Text className="text-gray-500">Welcome back,</Text>
+            <Text className="text-gray-500">Welcome,</Text>
             <Text className="text-2xl font-bold">
               {user?.profileInfo.username || '-'}
             </Text>
