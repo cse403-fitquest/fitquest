@@ -81,7 +81,6 @@ const Quest = () => {
         monsters: selectedQuest.monsters,
       };
 
-      console.log('newActiveQuest', newActiveQuest.boss.spriteId as AnimatedSpriteID)
 
       setActiveQuest(newActiveQuest);
       await updateUserCurrentQuest(questID, existingProgress);
@@ -136,10 +135,10 @@ const Quest = () => {
     if (remainingMilestones.length < 5) {
       const completedMilestones = allMilestones
         .filter((milestone) => milestone <= currentProgress)
-        .slice(-5 + remainingMilestones.length);
+        .slice(-4 + remainingMilestones.length);
       return [...completedMilestones, ...remainingMilestones];
     }
-    return remainingMilestones.slice(0, 5);
+    return remainingMilestones.slice(0, 4);
   };
 
   const handleAbandon = async () => {

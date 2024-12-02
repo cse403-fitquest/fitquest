@@ -25,15 +25,11 @@ type TurnInfo = {
   isPlayer: boolean;
 };
 
-// Add these helper functions at the top of the file, outside the component
 const calculatePlayerLevel = (attributes: { power: number; speed: number; health: number }) => {
-  // Sum of all attribute points represents total level
   return attributes.power + attributes.speed + attributes.health;
 };
 
 const calculateDifficultyMultiplier = (playerLevel: number) => {
-  // Base multiplier starts at 1
-  // Every 10 levels increases difficulty by 20%
   const levelFactor = Math.floor(playerLevel / 10);
   return 1 + (levelFactor * 0.2);
 };
@@ -43,7 +39,6 @@ const Combat = () => {
   const { availableMonsters, setAvailableMonsters } = useMonsterStore();
   const { user } = useUserStore();
 
-  // Initialize player stats from user data
   const initialPlayer = {
     id: user?.id || '',
     name: user?.profileInfo.username || 'Player',
@@ -52,10 +47,8 @@ const Combat = () => {
     speed: user?.attributes.speed || 15,
   };
 
-  // Add loading state
   const [isLoading, setIsLoading] = useState(true);
 
-  // Add monster state declaration at the top with other states
   const [monster, setMonster] = useState({
     name: 'Unknown Monster',
     maxHealth: 100,
@@ -65,39 +58,26 @@ const Combat = () => {
     spriteId: AnimatedSpriteID.SLIME_GREEN,
   });
 
-  // Add a flag to track if monster is initialized
   const [isMonsterInitialized, setIsMonsterInitialized] = useState(false);
 
-  // Modify the monster initialization useEffect
   useEffect(() => {
     const initializeMonster = async () => {
       setIsLoading(true);
       try {
-        // Calculate difficulty multiplier based on player's level
         const playerLevel = calculatePlayerLevel(user?.attributes || { power: 15, speed: 15, health: 6 });
         const difficultyMultiplier = calculateDifficultyMultiplier(playerLevel);
 
-        if (isBoss === 'true') {
-          // Add more logging to debug the quest fetch
-          console.log('Fetching boss data for questId:', questId);
-          
-          // Make sure questId is properly formatted
+        if (isBoss === 'true') {          
           const formattedQuestId = `quest_${questId}`;
-          console.log('Formatted quest ID:', formattedQuestId);
           
           const questDocRef = doc(FIREBASE_DB, 'quests', formattedQuestId);
-          console.log('Quest document reference:', questDocRef);
           
           const questDoc = await getDoc(questDocRef);
-          console.log('Quest document exists?', questDoc.exists());
           
           if (questDoc.exists()) {
             const questData = questDoc.data();
-            console.log('Quest data:', questData);
             const bossData = questData.boss;
-            
-            console.log('Boss data from quest:', bossData);
-            
+                        
             setMonster({
               name: questData.questName,
               maxHealth: Math.floor(bossData.health * 20 * difficultyMultiplier),
@@ -110,7 +90,6 @@ const Combat = () => {
             setDefaultMonster(difficultyMultiplier);
           }
         } else {
-          // Regular monster handling
           const monsterIds = (questMonsters as string).split(',');
           const selectedMonster = await getRandomMonster(monsterIds);
           
@@ -146,10 +125,6 @@ const Combat = () => {
       });
     };
 
-    // Add logging for the initial questId value
-    console.log('Current questId:', questId);
-    console.log('isBoss value:', isBoss);
-
     if (questId) {
       initializeMonster();
     } else {
@@ -161,7 +136,6 @@ const Combat = () => {
 
   const [combatLog, setCombatLog] = useState<string[]>([]);
 
-  // const [isPlayerTurn] = useState(true);
   const [strongAttackCooldown, setStrongAttackCooldown] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -226,7 +200,7 @@ const Combat = () => {
 
     return turns.map(turn => ({
       ...turn,
-      name: turn.isPlayer ? player.name : monster.name // Use correct monster name
+      name: turn.isPlayer ? player.name : monster.name 
     }));
   };
 
@@ -515,16 +489,13 @@ const Combat = () => {
     );
   };
 
-  // Move turn queue initialization to after monster is loaded
   useEffect(() => {
     if (isMonsterInitialized && player && monster) {
       const initialTurns = calculateTurnOrder(player.speed, monster.speed);
       setTurnQueue(initialTurns);
-      console.log('Initial turn queue set with monster:', monster.name);
     }
   }, [isMonsterInitialized, player, monster]);
 
-  // Update the handleMonsterTurn to ensure it has the correct monster data
   const handleMonsterTurn = async () => {
     if (isAnimating || turnQueue[currentTurnIndex].isPlayer || !isMonsterInitialized) return;
 
@@ -563,7 +534,7 @@ const Combat = () => {
 
   useEffect(() => {
     if (turnQueue.length && !isAnimating) {
-      if (turnQueue[currentTurnIndex].isPlayer) {
+      if (turnQueue[currentTurnIndex]?.isPlayer) {
         // Player turn
       } else {
         handleMonsterTurn();
@@ -577,7 +548,6 @@ const Combat = () => {
     return spriteSize;
   }, []);
 
-  // Add loading screen render
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center">
