@@ -43,6 +43,7 @@ interface ActiveQuest {
   bossThreshold: number;
   spriteId: AnimatedSpriteID;
   bossDefeated: boolean;
+  monsters: string[];
 }
 
 const Quest = () => {
@@ -77,6 +78,7 @@ const Quest = () => {
         spriteId: selectedQuest.spriteId,
         bossDefeated: false,
         boss: selectedQuest.boss,
+        monsters: selectedQuest.monsters,
       };
 
       setActiveQuest(newActiveQuest);
@@ -116,6 +118,7 @@ const Quest = () => {
           spriteId: currentQuest.spriteId,
           bossDefeated: false,
           boss: currentQuest.boss,
+          monsters: currentQuest.monsters,
         });
       }
     } else if (!user?.currentQuest?.id) {
@@ -134,7 +137,6 @@ const Quest = () => {
         .slice(-5 + remainingMilestones.length);
       return [...completedMilestones, ...remainingMilestones];
     }
-    console.log('Boss Threshold:', quest.bossThreshold);
     return remainingMilestones.slice(0, 5);
   };
 
@@ -287,8 +289,10 @@ const Quest = () => {
               pathname: '/fight',
               params: {
                 isBoss: isBoss ? 'true' : 'false',
+                questName: activeQuest.questName,
                 questId: activeQuest.questID,
                 uniqueKey,
+                questMonsters: activeQuest.monsters,
               },
             });
 
@@ -396,7 +400,6 @@ const Quest = () => {
   };
 
   const renderItem = ({ item, index }: { item: Quest; index: number }) => {
-    console.log('item', getQuestSprite(item.questName));
 
     return (
       <TouchableOpacity

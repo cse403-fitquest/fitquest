@@ -13,73 +13,10 @@ import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
-
-const questThemes = {
-  '1': {
-    normalMonsters: [
-      {
-        name: 'Green Slime',
-        maxHealth: 100,
-        health: 100,
-        power: 10,
-        speed: 5,
-        spriteId: AnimatedSpriteID.SLIME_GREEN,
-      },
-      {
-        name: 'Blue Slime',
-        maxHealth: 100,
-        health: 100,
-        power: 10,
-        speed: 5,
-        spriteId: AnimatedSpriteID.SLIME_BLUE,
-      },
-      {
-        name: 'Red Slime',
-        maxHealth: 100,
-        health: 100,
-        power: 10,
-        speed: 5,
-        spriteId: AnimatedSpriteID.SLIME_RED,
-      },
-    ],
-    boss: {
-      name: 'Red Minotaur',
-      maxHealth: 200,
-      health: 200,
-      power: 15,
-      speed: 20,
-      spriteId: AnimatedSpriteID.MINOTAUR_RED,
-    },
-  },
-  '2': {
-    normalMonsters: [
-      {
-        name: 'Flaming Skull',
-        maxHealth: 70,
-        health: 70,
-        power: 9,
-        speed: 4,
-        spriteId: AnimatedSpriteID.FIRE_SKULL_RED,
-      },
-      {
-        name: 'Blue Flaming Skull',
-        maxHealth: 85,
-        health: 85,
-        power: 7,
-        speed: 4,
-        spriteId: AnimatedSpriteID.FIRE_SKULL_BLUE,
-      },
-    ],
-    boss: {
-      name: 'Green Chompbug',
-      maxHealth: 180,
-      health: 180,
-      power: 14,
-      speed: 14,
-      spriteId: AnimatedSpriteID.CHOMPBUG_GREEN,
-    },
-  },
-};
+import { useMonsterStore } from '@/store/monster';
+import { getMonsterById, getRandomMonster } from '@/services/monster';
+import { getDoc, doc } from 'firebase/firestore';
+import { FIREBASE_DB } from '@/firebaseConfig';
 
 type TurnInfo = {
   id: string;
@@ -89,9 +26,8 @@ type TurnInfo = {
 };
 
 const Combat = () => {
-  const { isBoss, questId, questName, uniqueKey } = useLocalSearchParams();
-  const currentQuest = questThemes[questId as keyof typeof questThemes];
-
+  const { isBoss, questId, questName, uniqueKey, questMonsters } = useLocalSearchParams();
+  const { availableMonsters, setAvailableMonsters } = useMonsterStore();
   const { user } = useUserStore();
 
   // Initialize player stats from user data
@@ -103,33 +39,119 @@ const Combat = () => {
     speed: user?.attributes.speed || 15,
   };
 
-  const getNewMonster = () => {
-    if (isBoss === 'true') {
-      return { ...currentQuest.boss };
+  // Add loading state
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Add monster state declaration at the top with other states
+  const [monster, setMonster] = useState({
+    name: 'Unknown Monster',
+    maxHealth: 100,
+    health: 100,
+    power: 10,
+    speed: 5,
+    spriteId: AnimatedSpriteID.SLIME_GREEN,
+  });
+
+  // Add a flag to track if monster is initialized
+  const [isMonsterInitialized, setIsMonsterInitialized] = useState(false);
+
+  // Modify the monster initialization useEffect
+  useEffect(() => {
+    const initializeMonster = async () => {
+      setIsLoading(true);
+      try {
+        if (isBoss === 'true') {
+          // Add more logging to debug the quest fetch
+          console.log('Fetching boss data for questId:', questId);
+          
+          // Make sure questId is properly formatted
+          const formattedQuestId = `quest_${questId}`;
+          console.log('Formatted quest ID:', formattedQuestId);
+          
+          const questDocRef = doc(FIREBASE_DB, 'quests', formattedQuestId);
+          console.log('Quest document reference:', questDocRef);
+          
+          const questDoc = await getDoc(questDocRef);
+          console.log('Quest document exists?', questDoc.exists());
+          
+          if (questDoc.exists()) {
+            const questData = questDoc.data();
+            console.log('Quest data:', questData);
+            const bossData = questData.boss;
+            
+            console.log('Boss data from quest:', bossData);
+            
+            const spriteId = bossData.spriteId;
+            
+            console.log('Boss sprite ID:', spriteId);
+            
+            setMonster({
+              name: questData.questName,
+              maxHealth: bossData.health * 20,
+              health: bossData.health * 20,
+              power: bossData.power,
+              speed: bossData.speed,
+              spriteId: spriteId,
+            });
+          } else {
+            console.warn('Quest document not found for ID:', formattedQuestId);
+            setDefaultMonster();
+          }
+        } else {
+          // Regular monster handling remains the same
+          console.log('Quest monster IDs:', questMonsters);
+          const monsterIds = (questMonsters as string).split(',');
+          const selectedMonster = await getRandomMonster(monsterIds);
+          
+          if (selectedMonster) {
+            console.log('Selected monster:', selectedMonster);
+            const spriteId = selectedMonster.spriteId
+            console.log('Monster sprite ID:', spriteId);
+            
+            setMonster({
+              name: selectedMonster.name,
+              maxHealth: selectedMonster.attributes.health * 20,
+              health: selectedMonster.attributes.health * 20,
+              power: selectedMonster.attributes.power,
+              speed: selectedMonster.attributes.speed,
+              spriteId: spriteId as AnimatedSpriteID,
+            });
+          } else {
+            setDefaultMonster();
+          }
+        }
+        setIsMonsterInitialized(true);
+      } catch (error) {
+        console.error('Error initializing monster:', error);
+        setDefaultMonster();
+      }
+      setIsLoading(false);
+    };
+
+    const setDefaultMonster = () => {
+      setMonster({
+        name: 'Unknown Monster',
+        maxHealth: 100,
+        health: 100,
+        power: 10,
+        speed: 5,
+        spriteId: AnimatedSpriteID.SLIME_GREEN,
+      });
+    };
+
+    // Add logging for the initial questId value
+    console.log('Current questId:', questId);
+    console.log('isBoss value:', isBoss);
+
+    if (questId) {
+      initializeMonster();
+    } else {
+      console.warn('No questId provided');
     }
-    const randomIndex = Math.floor(
-      Math.random() * currentQuest.normalMonsters.length,
-    );
-    return { ...currentQuest.normalMonsters[randomIndex] };
-  };
+  }, [questId, isBoss, questMonsters]);
 
   const [player, setPlayer] = useState(initialPlayer);
 
-  const [monster, setMonster] = useState(() => {
-    if (isBoss === 'true') {
-      const scaledMonster = {
-        ...currentQuest.boss,
-        health: currentQuest.boss.health * 20,
-      };
-      return { ...scaledMonster };
-    } else {
-      const randomMonster =
-        currentQuest.normalMonsters[
-          Math.floor(Math.random() * currentQuest.normalMonsters.length)
-        ];
-      return { ...randomMonster, health: randomMonster.health * 20 };
-    }
-  });
   const [combatLog, setCombatLog] = useState<string[]>([]);
 
   // const [isPlayerTurn] = useState(true);
@@ -195,7 +217,10 @@ const Combat = () => {
       }
     }
 
-    return turns;
+    return turns.map(turn => ({
+      ...turn,
+      name: turn.isPlayer ? player.name : monster.name // Use correct monster name
+    }));
   };
 
   const generateMoreTurns = () => {
@@ -236,7 +261,6 @@ const Combat = () => {
   useEffect(() => {
     const resetCombat = () => {
       setPlayer({ ...initialPlayer });
-      setMonster(getNewMonster());
       setCombatLog([]);
     };
 
@@ -484,8 +508,18 @@ const Combat = () => {
     );
   };
 
+  // Move turn queue initialization to after monster is loaded
+  useEffect(() => {
+    if (isMonsterInitialized && player && monster) {
+      const initialTurns = calculateTurnOrder(player.speed, monster.speed);
+      setTurnQueue(initialTurns);
+      console.log('Initial turn queue set with monster:', monster.name);
+    }
+  }, [isMonsterInitialized, player, monster]);
+
+  // Update the handleMonsterTurn to ensure it has the correct monster data
   const handleMonsterTurn = async () => {
-    if (isAnimating || turnQueue[currentTurnIndex].isPlayer) return;
+    if (isAnimating || turnQueue[currentTurnIndex].isPlayer || !isMonsterInitialized) return;
 
     setIsAnimating(true);
     const baseMonsterDamage = monster.power;
@@ -507,7 +541,6 @@ const Combat = () => {
     ]);
 
     await delay(500);
-
     setMonsterSpriteState(SpriteState.IDLE);
 
     if (player.health - monsterDamage <= 0) {
@@ -517,7 +550,6 @@ const Combat = () => {
     }
 
     await delay(500);
-
     setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
     setIsAnimating(false);
   };
@@ -537,6 +569,15 @@ const Combat = () => {
     const spriteSize = width / 3;
     return spriteSize;
   }, []);
+
+  // Add loading screen render
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center">
+        <Text className="text-xl">Loading battle...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
@@ -563,7 +604,7 @@ const Combat = () => {
               </View>
               <Text className="text-sm mt-1">
                 HP: {monster.health}/
-                {isBossFight ? currentQuest.boss.health : monster.maxHealth}
+                {isBossFight ? monster.maxHealth : monster.maxHealth}
               </Text>
             </View>
 
