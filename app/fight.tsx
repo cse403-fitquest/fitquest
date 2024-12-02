@@ -38,8 +38,7 @@ const calculateDifficultyMultiplier = (playerLevel: number) => {
 };
 
 const Combat = () => {
-  const { isBoss, questId, questName, uniqueKey, questMonsters } =
-    useLocalSearchParams();
+  const { isBoss, questId, uniqueKey, questMonsters } = useLocalSearchParams();
   const { user } = useUserStore();
 
   const initialPlayer = {
@@ -579,8 +578,6 @@ const Combat = () => {
       <View className="h-2 bg-gray-200 rounded-full mb-12">
         <View className="h-full bg-blue-500 rounded-full w-1/2" />
       </View>
-
-      <Text className="text-2xl font-bold text-center mb-4">{questName}</Text>
 
       {renderTurnOrder()}
 
