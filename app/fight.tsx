@@ -25,6 +25,19 @@ type TurnInfo = {
   isPlayer: boolean;
 };
 
+// Add these helper functions at the top of the file, outside the component
+const calculatePlayerLevel = (attributes: { power: number; speed: number; health: number }) => {
+  // Sum of all attribute points represents total level
+  return attributes.power + attributes.speed + attributes.health;
+};
+
+const calculateDifficultyMultiplier = (playerLevel: number) => {
+  // Base multiplier starts at 1
+  // Every 10 levels increases difficulty by 20%
+  const levelFactor = Math.floor(playerLevel / 10);
+  return 1 + (levelFactor * 0.2);
+};
+
 const Combat = () => {
   const { isBoss, questId, questName, uniqueKey, questMonsters } = useLocalSearchParams();
   const { availableMonsters, setAvailableMonsters } = useMonsterStore();
@@ -60,6 +73,10 @@ const Combat = () => {
     const initializeMonster = async () => {
       setIsLoading(true);
       try {
+        // Calculate difficulty multiplier based on player's level
+        const playerLevel = calculatePlayerLevel(user?.attributes || { power: 15, speed: 15, health: 6 });
+        const difficultyMultiplier = calculateDifficultyMultiplier(playerLevel);
+
         if (isBoss === 'true') {
           // Add more logging to debug the quest fetch
           console.log('Fetching boss data for questId:', questId);
@@ -81,43 +98,33 @@ const Combat = () => {
             
             console.log('Boss data from quest:', bossData);
             
-            const spriteId = bossData.spriteId;
-            
-            console.log('Boss sprite ID:', spriteId);
-            
             setMonster({
               name: questData.questName,
-              maxHealth: bossData.health * 20,
-              health: bossData.health * 20,
-              power: bossData.power,
-              speed: bossData.speed,
-              spriteId: spriteId,
+              maxHealth: Math.floor(bossData.health * 20 * difficultyMultiplier),
+              health: Math.floor(bossData.health * 20 * difficultyMultiplier),
+              power: Math.floor(bossData.power * difficultyMultiplier),
+              speed: Math.floor(bossData.speed),
+              spriteId: bossData.spriteId,
             });
           } else {
-            console.warn('Quest document not found for ID:', formattedQuestId);
-            setDefaultMonster();
+            setDefaultMonster(difficultyMultiplier);
           }
         } else {
-          // Regular monster handling remains the same
-          console.log('Quest monster IDs:', questMonsters);
+          // Regular monster handling
           const monsterIds = (questMonsters as string).split(',');
           const selectedMonster = await getRandomMonster(monsterIds);
           
           if (selectedMonster) {
-            console.log('Selected monster:', selectedMonster);
-            const spriteId = selectedMonster.spriteId
-            console.log('Monster sprite ID:', spriteId);
-            
             setMonster({
               name: selectedMonster.name,
-              maxHealth: selectedMonster.attributes.health * 20,
-              health: selectedMonster.attributes.health * 20,
-              power: selectedMonster.attributes.power,
-              speed: selectedMonster.attributes.speed,
-              spriteId: spriteId as AnimatedSpriteID,
+              maxHealth: Math.floor(selectedMonster.attributes.health * 20 * difficultyMultiplier),
+              health: Math.floor(selectedMonster.attributes.health * 20 * difficultyMultiplier),
+              power: Math.floor(selectedMonster.attributes.power * difficultyMultiplier),
+              speed: Math.floor(selectedMonster.attributes.speed),
+              spriteId: selectedMonster.spriteId as AnimatedSpriteID,
             });
           } else {
-            setDefaultMonster();
+            setDefaultMonster(difficultyMultiplier);
           }
         }
         setIsMonsterInitialized(true);
@@ -128,13 +135,13 @@ const Combat = () => {
       setIsLoading(false);
     };
 
-    const setDefaultMonster = () => {
+    const setDefaultMonster = (multiplier = 1) => {
       setMonster({
         name: 'Unknown Monster',
-        maxHealth: 100,
-        health: 100,
-        power: 10,
-        speed: 5,
+        maxHealth: Math.floor(100 * multiplier),
+        health: Math.floor(100 * multiplier),
+        power: Math.floor(10 * multiplier),
+        speed: Math.floor(5 * multiplier),
         spriteId: AnimatedSpriteID.SLIME_GREEN,
       });
     };
@@ -148,7 +155,7 @@ const Combat = () => {
     } else {
       console.warn('No questId provided');
     }
-  }, [questId, isBoss, questMonsters]);
+  }, [questId, isBoss, questMonsters, user?.attributes]);
 
   const [player, setPlayer] = useState(initialPlayer);
 

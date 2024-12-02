@@ -81,6 +81,8 @@ const Quest = () => {
         monsters: selectedQuest.monsters,
       };
 
+      console.log('newActiveQuest', newActiveQuest.boss.spriteId as AnimatedSpriteID)
+
       setActiveQuest(newActiveQuest);
       await updateUserCurrentQuest(questID, existingProgress);
     }
@@ -362,7 +364,7 @@ const Quest = () => {
                 {isBossNode ? (
                   <View style={{ width: 70, height: 120 }}>
                     <AnimatedSprite
-                      id={getQuestSprite(quest.questName)}
+                      id={activeQuest?.boss.spriteId}
                       width={85}
                       height={85}
                       state={SpriteState.IDLE}
@@ -386,17 +388,6 @@ const Quest = () => {
         </View>
       </View>
     );
-  };
-
-  const getQuestSprite = (questName: string): AnimatedSpriteID => {
-    switch (questName) {
-      case 'Hunt Red Minotaur':
-        return AnimatedSpriteID.MINOTAUR_RED;
-      case 'Hunt Green Chompbug':
-        return AnimatedSpriteID.CHOMPBUG_GREEN;
-      default:
-        return AnimatedSpriteID.SLIME_GREEN;
-    }
   };
 
   const renderItem = ({ item, index }: { item: Quest; index: number }) => {
@@ -427,7 +418,7 @@ const Quest = () => {
           </View>
           <View style={{ width: 85, height: 85 }}>
             <AnimatedSprite
-              id={getQuestSprite(item.questName)}
+              id={item.spriteId}
               width={85}
               height={85}
               state={SpriteState.IDLE}

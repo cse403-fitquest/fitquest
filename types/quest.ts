@@ -7,8 +7,7 @@ export interface Quest {
     speed: number;
     spriteId: AnimatedSpriteID;
   };
-  spriteId: AnimatedSpriteID;
-  monsters: AnimatedSpriteID[];
+  monsters: string[];
   questId: string;
   questName: string;
   questDescription?: string;
@@ -45,6 +44,5 @@ export interface ActiveQuest {
   milestones: number[];
   timer: number;
   bossThreshold: number;
-  spriteId: AnimatedSpriteID;
   bossDefeated: boolean;
 }
