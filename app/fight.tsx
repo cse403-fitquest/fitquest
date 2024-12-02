@@ -25,17 +25,22 @@ type TurnInfo = {
   isPlayer: boolean;
 };
 
-const calculatePlayerLevel = (attributes: { power: number; speed: number; health: number }) => {
+const calculatePlayerLevel = (attributes: {
+  power: number;
+  speed: number;
+  health: number;
+}) => {
   return attributes.power + attributes.speed + attributes.health;
 };
 
 const calculateDifficultyMultiplier = (playerLevel: number) => {
   const levelFactor = Math.floor(playerLevel / 10);
-  return 1 + (levelFactor * 0.2);
+  return 1 + levelFactor * 0.2;
 };
 
 const Combat = () => {
-  const { isBoss, questId, questName, uniqueKey, questMonsters } = useLocalSearchParams();
+  const { isBoss, questId, questName, uniqueKey, questMonsters } =
+    useLocalSearchParams();
   const { availableMonsters, setAvailableMonsters } = useMonsterStore();
   const { user } = useUserStore();
 
@@ -64,23 +69,27 @@ const Combat = () => {
     const initializeMonster = async () => {
       setIsLoading(true);
       try {
-        const playerLevel = calculatePlayerLevel(user?.attributes || { power: 15, speed: 15, health: 6 });
+        const playerLevel = calculatePlayerLevel(
+          user?.attributes || { power: 15, speed: 15, health: 6 },
+        );
         const difficultyMultiplier = calculateDifficultyMultiplier(playerLevel);
 
-        if (isBoss === 'true') {          
+        if (isBoss === 'true') {
           const formattedQuestId = `quest_${questId}`;
-          
+
           const questDocRef = doc(FIREBASE_DB, 'quests', formattedQuestId);
-          
+
           const questDoc = await getDoc(questDocRef);
-          
+
           if (questDoc.exists()) {
             const questData = questDoc.data();
             const bossData = questData.boss;
-                        
+
             setMonster({
               name: questData.questName,
-              maxHealth: Math.floor(bossData.health * 20 * difficultyMultiplier),
+              maxHealth: Math.floor(
+                bossData.health * 20 * difficultyMultiplier,
+              ),
               health: Math.floor(bossData.health * 20 * difficultyMultiplier),
               power: Math.floor(bossData.power * difficultyMultiplier),
               speed: Math.floor(bossData.speed),
@@ -92,13 +101,19 @@ const Combat = () => {
         } else {
           const monsterIds = (questMonsters as string).split(',');
           const selectedMonster = await getRandomMonster(monsterIds);
-          
+
           if (selectedMonster) {
             setMonster({
               name: selectedMonster.name,
-              maxHealth: Math.floor(selectedMonster.attributes.health * 20 * difficultyMultiplier),
-              health: Math.floor(selectedMonster.attributes.health * 20 * difficultyMultiplier),
-              power: Math.floor(selectedMonster.attributes.power * difficultyMultiplier),
+              maxHealth: Math.floor(
+                selectedMonster.attributes.health * 20 * difficultyMultiplier,
+              ),
+              health: Math.floor(
+                selectedMonster.attributes.health * 20 * difficultyMultiplier,
+              ),
+              power: Math.floor(
+                selectedMonster.attributes.power * difficultyMultiplier,
+              ),
               speed: Math.floor(selectedMonster.attributes.speed),
               spriteId: selectedMonster.spriteId as AnimatedSpriteID,
             });
@@ -198,9 +213,9 @@ const Combat = () => {
       }
     }
 
-    return turns.map(turn => ({
+    return turns.map((turn) => ({
       ...turn,
-      name: turn.isPlayer ? player.name : monster.name 
+      name: turn.isPlayer ? player.name : monster.name,
     }));
   };
 
@@ -497,7 +512,12 @@ const Combat = () => {
   }, [isMonsterInitialized, player, monster]);
 
   const handleMonsterTurn = async () => {
-    if (isAnimating || turnQueue[currentTurnIndex].isPlayer || !isMonsterInitialized) return;
+    if (
+      isAnimating ||
+      turnQueue[currentTurnIndex].isPlayer ||
+      !isMonsterInitialized
+    )
+      return;
 
     setIsAnimating(true);
     const baseMonsterDamage = monster.power;

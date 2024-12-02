@@ -81,7 +81,6 @@ const Quest = () => {
         monsters: selectedQuest.monsters,
       };
 
-
       setActiveQuest(newActiveQuest);
       await updateUserCurrentQuest(questID, existingProgress);
     }
@@ -103,12 +102,12 @@ const Quest = () => {
   useEffect(() => {
     if (user?.currentQuest?.id && availableQuests.length > 0) {
       const currentQuest = availableQuests.find(
-        quest => quest.questId === user.currentQuest.id
+        (quest) => quest.questId === user.currentQuest.id,
       );
-      
+
       if (currentQuest) {
         const progress = user.currentQuest.progress[currentQuest.questId] || 0;
-        
+
         setActiveQuest({
           questID: currentQuest.questId,
           questName: currentQuest.questName,
@@ -390,7 +389,6 @@ const Quest = () => {
   };
 
   const renderItem = ({ item, index }: { item: Quest; index: number }) => {
-
     return (
       <TouchableOpacity
         key={index}
