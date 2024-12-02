@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import {
   SafeAreaView,
   View,
@@ -13,8 +13,7 @@ import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
-import { useMonsterStore } from '@/store/monster';
-import { getMonsterById, getRandomMonster } from '@/services/monster';
+import { getRandomMonster } from '@/services/monster';
 import { getDoc, doc } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 
@@ -41,7 +40,6 @@ const calculateDifficultyMultiplier = (playerLevel: number) => {
 const Combat = () => {
   const { isBoss, questId, questName, uniqueKey, questMonsters } =
     useLocalSearchParams();
-  const { availableMonsters, setAvailableMonsters } = useMonsterStore();
   const { user } = useUserStore();
 
   const initialPlayer = {

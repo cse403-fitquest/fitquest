@@ -415,7 +415,7 @@ const Quest = () => {
           </View>
           <View style={{ width: 85, height: 85 }}>
             <AnimatedSprite
-              id={item.spriteId}
+              id={item.boss.spriteId}
               width={85}
               height={85}
               state={SpriteState.IDLE}
