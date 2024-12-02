@@ -65,7 +65,7 @@ const SignIn = () => {
       Animated.timing(xPosTopAnimatedValue, {
         toValue: windowWidth,
         duration: 4500,
-        delay: 2000,
+        delay: 500,
         easing: Easing.linear,
         useNativeDriver: true,
       }).start(() => {
@@ -77,7 +77,7 @@ const SignIn = () => {
       Animated.timing(xPosBottomAnimatedValue, {
         toValue: -500,
         duration: 4500,
-        delay: 2000,
+        delay: 500,
         easing: Easing.linear,
         useNativeDriver: true,
       }).start(() => {
