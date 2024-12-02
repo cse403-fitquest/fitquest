@@ -294,7 +294,7 @@ export const updateUserProfile = async (
     return {
       success: false,
       data: null,
-      error: 'Failed to update profile',
+      error: 'Failed to update profile. Please try again.',
     };
   }
 };
