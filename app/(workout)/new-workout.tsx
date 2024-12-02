@@ -38,7 +38,6 @@ import { finishAndSaveWorkout } from '@/services/workout';
 import { useUserStore } from '@/store/user';
 import { Alert } from 'react-native';
 import { useGeneralStore } from '@/store/general';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SET_COLUMN_WIDTH = 28;
 // const PREVIOUS_COLUMN_WIDTH = 68;
@@ -480,7 +479,7 @@ const NewWorkout = () => {
           return;
         }
         setModalVisible(false);
-        AsyncStorage.removeItem(`activeWorkout-${user.id}`);
+        clearWorkout();
         router.back();
       },
       cancelText: 'BACK',

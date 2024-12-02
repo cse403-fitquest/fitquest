@@ -1,7 +1,6 @@
 import { Text, View, TouchableOpacity, Alert, FlatList } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
@@ -44,6 +43,7 @@ interface ActiveQuest {
   bossThreshold: number;
   spriteId: AnimatedSpriteID;
   bossDefeated: boolean;
+  monsters: string[];
 }
 
 const Quest = () => {
@@ -64,7 +64,7 @@ const Quest = () => {
     const selectedQuest = availableQuests.find(
       (quest) => quest.questId === questID,
     );
-    if (selectedQuest) {
+    if (selectedQuest && user?.id) {
       const existingProgress = user?.currentQuest?.progress || {};
       const questProgress = existingProgress[questID] || 0;
 
@@ -78,26 +78,17 @@ const Quest = () => {
         spriteId: selectedQuest.spriteId,
         bossDefeated: false,
         boss: selectedQuest.boss,
+        monsters: selectedQuest.monsters,
       };
 
-      await AsyncStorage.setItem('activeQuest', JSON.stringify(newActiveQuest));
       setActiveQuest(newActiveQuest);
-
-      if (user?.id) {
-        await updateUserCurrentQuest(questID, existingProgress);
-      }
-
-      console.log(
-        `Quest ${selectedQuest.questName} started for user ${userID}`,
-      );
+      await updateUserCurrentQuest(questID, existingProgress);
     }
   };
 
   useEffect(() => {
     const loadQuests = async () => {
       const result = await getAvailableQuests();
-      console.log('loadQuests');
-      console.log(result);
       if (result.success && result.data) {
         setAvailableQuests(
           (result.data as { quests: Quest[] }).quests?.slice(0, 2) || [],
@@ -105,16 +96,35 @@ const Quest = () => {
       }
     };
 
-    const loadActiveQuest = async () => {
-      const storedQuest = await AsyncStorage.getItem('activeQuest');
-      if (storedQuest) {
-        setActiveQuest(JSON.parse(storedQuest));
-      }
-    };
-
     loadQuests();
-    loadActiveQuest();
   }, []);
+
+  useEffect(() => {
+    if (user?.currentQuest?.id && availableQuests.length > 0) {
+      const currentQuest = availableQuests.find(
+        (quest) => quest.questId === user.currentQuest.id,
+      );
+
+      if (currentQuest) {
+        const progress = user.currentQuest.progress[currentQuest.questId] || 0;
+
+        setActiveQuest({
+          questID: currentQuest.questId,
+          questName: currentQuest.questName,
+          progress: progress,
+          milestones: currentQuest.milestones,
+          timer: Date.now(),
+          bossThreshold: currentQuest.bossThreshold,
+          spriteId: currentQuest.spriteId,
+          bossDefeated: false,
+          boss: currentQuest.boss,
+          monsters: currentQuest.monsters,
+        });
+      }
+    } else if (!user?.currentQuest?.id) {
+      setActiveQuest(null);
+    }
+  }, [user?.currentQuest, availableQuests]);
 
   const getNextMilestones = (quest: Quest, currentProgress: number) => {
     const allMilestones = quest.milestones;
@@ -124,11 +134,10 @@ const Quest = () => {
     if (remainingMilestones.length < 5) {
       const completedMilestones = allMilestones
         .filter((milestone) => milestone <= currentProgress)
-        .slice(-5 + remainingMilestones.length);
+        .slice(-4 + remainingMilestones.length);
       return [...completedMilestones, ...remainingMilestones];
     }
-    console.log('Boss Threshold:', quest.bossThreshold);
-    return remainingMilestones.slice(0, 5);
+    return remainingMilestones.slice(0, 4);
   };
 
   const handleAbandon = async () => {
@@ -158,7 +167,6 @@ const Quest = () => {
         },
       });
       if (result.success) {
-        await AsyncStorage.removeItem('activeQuest');
         setUser({
           ...user,
           currentQuest: {
@@ -281,16 +289,14 @@ const Quest = () => {
               pathname: '/fight',
               params: {
                 isBoss: isBoss ? 'true' : 'false',
+                questName: activeQuest.questName,
                 questId: activeQuest.questID,
                 uniqueKey,
+                questMonsters: activeQuest.monsters,
               },
             });
 
             setActiveQuest(updatedQuest);
-            await AsyncStorage.setItem(
-              'activeQuest',
-              JSON.stringify(updatedQuest),
-            );
           } else {
             throw new Error(result.error || 'Failed to update progress');
           }
@@ -307,7 +313,6 @@ const Quest = () => {
           'Congratulations! You have completed the quest!',
           [{ text: 'OK' }],
         );
-        AsyncStorage.removeItem('activeQuest');
         setActiveQuest(null);
         setCurrentNodeIndex(0);
         setVisualProgress(0);
@@ -357,7 +362,7 @@ const Quest = () => {
                 {isBossNode ? (
                   <View style={{ width: 70, height: 120 }}>
                     <AnimatedSprite
-                      id={getQuestSprite(quest.questName)}
+                      id={activeQuest?.boss.spriteId}
                       width={85}
                       height={85}
                       state={SpriteState.IDLE}
@@ -383,20 +388,7 @@ const Quest = () => {
     );
   };
 
-  const getQuestSprite = (questName: string): AnimatedSpriteID => {
-    switch (questName) {
-      case 'Hunt Red Minotaur':
-        return AnimatedSpriteID.MINOTAUR_RED;
-      case 'Hunt Green Chompbug':
-        return AnimatedSpriteID.CHOMPBUG_GREEN;
-      default:
-        return AnimatedSpriteID.SLIME_GREEN;
-    }
-  };
-
   const renderItem = ({ item, index }: { item: Quest; index: number }) => {
-    console.log('item', getQuestSprite(item.questName));
-
     return (
       <TouchableOpacity
         key={index}
@@ -423,7 +415,7 @@ const Quest = () => {
           </View>
           <View style={{ width: 85, height: 85 }}>
             <AnimatedSprite
-              id={getQuestSprite(item.questName)}
+              id={item.boss.spriteId}
               width={85}
               height={85}
               state={SpriteState.IDLE}

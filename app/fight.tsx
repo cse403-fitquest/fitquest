@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import {
   SafeAreaView,
   View,
@@ -13,73 +13,9 @@ import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
-
-const questThemes = {
-  '1': {
-    normalMonsters: [
-      {
-        name: 'Green Slime',
-        maxHealth: 100,
-        health: 100,
-        power: 10,
-        speed: 5,
-        spriteId: AnimatedSpriteID.SLIME_GREEN,
-      },
-      {
-        name: 'Blue Slime',
-        maxHealth: 100,
-        health: 100,
-        power: 10,
-        speed: 5,
-        spriteId: AnimatedSpriteID.SLIME_BLUE,
-      },
-      {
-        name: 'Red Slime',
-        maxHealth: 100,
-        health: 100,
-        power: 10,
-        speed: 5,
-        spriteId: AnimatedSpriteID.SLIME_RED,
-      },
-    ],
-    boss: {
-      name: 'Red Minotaur',
-      maxHealth: 200,
-      health: 200,
-      power: 15,
-      speed: 20,
-      spriteId: AnimatedSpriteID.MINOTAUR_RED,
-    },
-  },
-  '2': {
-    normalMonsters: [
-      {
-        name: 'Flaming Skull',
-        maxHealth: 70,
-        health: 70,
-        power: 9,
-        speed: 4,
-        spriteId: AnimatedSpriteID.FIRE_SKULL_RED,
-      },
-      {
-        name: 'Blue Flaming Skull',
-        maxHealth: 85,
-        health: 85,
-        power: 7,
-        speed: 4,
-        spriteId: AnimatedSpriteID.FIRE_SKULL_BLUE,
-      },
-    ],
-    boss: {
-      name: 'Green Chompbug',
-      maxHealth: 180,
-      health: 180,
-      power: 14,
-      speed: 14,
-      spriteId: AnimatedSpriteID.CHOMPBUG_GREEN,
-    },
-  },
-};
+import { getRandomMonster } from '@/services/monster';
+import { getDoc, doc } from 'firebase/firestore';
+import { FIREBASE_DB } from '@/firebaseConfig';
 
 type TurnInfo = {
   id: string;
@@ -88,13 +24,23 @@ type TurnInfo = {
   isPlayer: boolean;
 };
 
-const Combat = () => {
-  const { isBoss, questId, questName, uniqueKey } = useLocalSearchParams();
-  const currentQuest = questThemes[questId as keyof typeof questThemes];
+const calculatePlayerLevel = (attributes: {
+  power: number;
+  speed: number;
+  health: number;
+}) => {
+  return attributes.power + attributes.speed + attributes.health;
+};
 
+const calculateDifficultyMultiplier = (playerLevel: number) => {
+  const levelFactor = Math.floor(playerLevel / 10);
+  return 1 + levelFactor * 0.2;
+};
+
+const Combat = () => {
+  const { isBoss, questId, uniqueKey, questMonsters } = useLocalSearchParams();
   const { user } = useUserStore();
 
-  // Initialize player stats from user data
   const initialPlayer = {
     id: user?.id || '',
     name: user?.profileInfo.username || 'Player',
@@ -103,36 +49,105 @@ const Combat = () => {
     speed: user?.attributes.speed || 15,
   };
 
-  const getNewMonster = () => {
-    if (isBoss === 'true') {
-      return { ...currentQuest.boss };
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [monster, setMonster] = useState({
+    name: 'Unknown Monster',
+    maxHealth: 100,
+    health: 100,
+    power: 10,
+    speed: 5,
+    spriteId: AnimatedSpriteID.SLIME_GREEN,
+  });
+
+  const [isMonsterInitialized, setIsMonsterInitialized] = useState(false);
+
+  useEffect(() => {
+    const initializeMonster = async () => {
+      setIsLoading(true);
+      try {
+        const playerLevel = calculatePlayerLevel(
+          user?.attributes || { power: 15, speed: 15, health: 6 },
+        );
+        const difficultyMultiplier = calculateDifficultyMultiplier(playerLevel);
+
+        if (isBoss === 'true') {
+          const formattedQuestId = `quest_${questId}`;
+
+          const questDocRef = doc(FIREBASE_DB, 'quests', formattedQuestId);
+
+          const questDoc = await getDoc(questDocRef);
+
+          if (questDoc.exists()) {
+            const questData = questDoc.data();
+            const bossData = questData.boss;
+
+            setMonster({
+              name: questData.questName,
+              maxHealth: Math.floor(
+                bossData.health * 20 * difficultyMultiplier,
+              ),
+              health: Math.floor(bossData.health * 20 * difficultyMultiplier),
+              power: Math.floor(bossData.power * difficultyMultiplier),
+              speed: Math.floor(bossData.speed),
+              spriteId: bossData.spriteId,
+            });
+          } else {
+            setDefaultMonster(difficultyMultiplier);
+          }
+        } else {
+          const monsterIds = (questMonsters as string).split(',');
+          const selectedMonster = await getRandomMonster(monsterIds);
+
+          if (selectedMonster) {
+            setMonster({
+              name: selectedMonster.name,
+              maxHealth: Math.floor(
+                selectedMonster.attributes.health * 20 * difficultyMultiplier,
+              ),
+              health: Math.floor(
+                selectedMonster.attributes.health * 20 * difficultyMultiplier,
+              ),
+              power: Math.floor(
+                selectedMonster.attributes.power * difficultyMultiplier,
+              ),
+              speed: Math.floor(selectedMonster.attributes.speed),
+              spriteId: selectedMonster.spriteId as AnimatedSpriteID,
+            });
+          } else {
+            setDefaultMonster(difficultyMultiplier);
+          }
+        }
+        setIsMonsterInitialized(true);
+      } catch (error) {
+        console.error('Error initializing monster:', error);
+        setDefaultMonster();
+      }
+      setIsLoading(false);
+    };
+
+    const setDefaultMonster = (multiplier = 1) => {
+      setMonster({
+        name: 'Unknown Monster',
+        maxHealth: Math.floor(100 * multiplier),
+        health: Math.floor(100 * multiplier),
+        power: Math.floor(10 * multiplier),
+        speed: Math.floor(5 * multiplier),
+        spriteId: AnimatedSpriteID.SLIME_GREEN,
+      });
+    };
+
+    if (questId) {
+      initializeMonster();
+    } else {
+      console.warn('No questId provided');
     }
-    const randomIndex = Math.floor(
-      Math.random() * currentQuest.normalMonsters.length,
-    );
-    return { ...currentQuest.normalMonsters[randomIndex] };
-  };
+  }, [questId, isBoss, questMonsters, user?.attributes]);
 
   const [player, setPlayer] = useState(initialPlayer);
 
-  const [monster, setMonster] = useState(() => {
-    if (isBoss === 'true') {
-      const scaledMonster = {
-        ...currentQuest.boss,
-        health: currentQuest.boss.health * 20,
-      };
-      return { ...scaledMonster };
-    } else {
-      const randomMonster =
-        currentQuest.normalMonsters[
-          Math.floor(Math.random() * currentQuest.normalMonsters.length)
-        ];
-      return { ...randomMonster, health: randomMonster.health * 20 };
-    }
-  });
   const [combatLog, setCombatLog] = useState<string[]>([]);
 
-  // const [isPlayerTurn] = useState(true);
   const [strongAttackCooldown, setStrongAttackCooldown] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -195,7 +210,10 @@ const Combat = () => {
       }
     }
 
-    return turns;
+    return turns.map((turn) => ({
+      ...turn,
+      name: turn.isPlayer ? player.name : monster.name,
+    }));
   };
 
   const generateMoreTurns = () => {
@@ -236,7 +254,6 @@ const Combat = () => {
   useEffect(() => {
     const resetCombat = () => {
       setPlayer({ ...initialPlayer });
-      setMonster(getNewMonster());
       setCombatLog([]);
     };
 
@@ -484,8 +501,20 @@ const Combat = () => {
     );
   };
 
+  useEffect(() => {
+    if (isMonsterInitialized && player && monster) {
+      const initialTurns = calculateTurnOrder(player.speed, monster.speed);
+      setTurnQueue(initialTurns);
+    }
+  }, [isMonsterInitialized, player, monster]);
+
   const handleMonsterTurn = async () => {
-    if (isAnimating || turnQueue[currentTurnIndex].isPlayer) return;
+    if (
+      isAnimating ||
+      turnQueue[currentTurnIndex].isPlayer ||
+      !isMonsterInitialized
+    )
+      return;
 
     setIsAnimating(true);
     const baseMonsterDamage = monster.power;
@@ -507,7 +536,6 @@ const Combat = () => {
     ]);
 
     await delay(500);
-
     setMonsterSpriteState(SpriteState.IDLE);
 
     if (player.health - monsterDamage <= 0) {
@@ -517,14 +545,13 @@ const Combat = () => {
     }
 
     await delay(500);
-
     setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
     setIsAnimating(false);
   };
 
   useEffect(() => {
     if (turnQueue.length && !isAnimating) {
-      if (turnQueue[currentTurnIndex].isPlayer) {
+      if (turnQueue[currentTurnIndex]?.isPlayer) {
         // Player turn
       } else {
         handleMonsterTurn();
@@ -538,13 +565,19 @@ const Combat = () => {
     return spriteSize;
   }, []);
 
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center">
+        <Text className="text-xl">Loading battle...</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
       <View className="h-2 bg-gray-200 rounded-full mb-12">
         <View className="h-full bg-blue-500 rounded-full w-1/2" />
       </View>
-
-      <Text className="text-2xl font-bold text-center mb-4">{questName}</Text>
 
       {renderTurnOrder()}
 
@@ -563,7 +596,7 @@ const Combat = () => {
               </View>
               <Text className="text-sm mt-1">
                 HP: {monster.health}/
-                {isBossFight ? currentQuest.boss.health : monster.maxHealth}
+                {isBossFight ? monster.maxHealth : monster.maxHealth}
               </Text>
             </View>
 
