@@ -1,10 +1,10 @@
 // __tests__/user.test.ts
 
-import { createUser, getUser } from '@/services/user';
+import { createUser, getUser, updateUserProfile } from '@/services/user';
 import { FirebaseError } from 'firebase/app';
-import { setDoc, getDoc } from 'firebase/firestore';
+import { setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { BASE_USER } from '@/constants/user';
-import { CreateUserResponse, GetUserResponse } from '@/types/user';
+import { CreateUserResponse, GetUserResponse, User } from '@/types/user';
 
 // Mock Firebase Firestore
 jest.mock('@/firebaseConfig', () => ({
@@ -19,6 +19,7 @@ jest.mock('firebase/firestore', () => ({
   doc: jest.fn(() => 'mockedDoc'),
   setDoc: jest.fn(),
   getDoc: jest.fn(),
+  updateDoc: jest.fn(),
 }));
 
 // Mock AsyncStorage methods
@@ -32,6 +33,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 describe('User Service Functions', () => {
   const mockSetDoc = setDoc as jest.Mock;
   const mockGetDoc = getDoc as jest.Mock;
+  const mockUpdateDoc = updateDoc as jest.Mock;
 
   const id = 'user123';
   const username = 'testuser';
@@ -165,6 +167,84 @@ describe('User Service Functions', () => {
         success: false,
         data: null,
         error: 'Error getting user. Please try again.',
+      });
+    });
+  });
+
+  describe('updateUserProfile', () => {
+    it('should update partial profile info successfully', async () => {
+      const userId = 'user123';
+      const updates: Partial<User> = {
+        profileInfo: {
+          ...BASE_USER.profileInfo,
+          username: 'newuser',
+          height: 180,
+          weight: 75,
+        },
+      };
+
+      mockUpdateDoc.mockResolvedValue(undefined);
+
+      const response = await updateUserProfile(userId, updates);
+
+      expect(mockUpdateDoc).toHaveBeenCalledWith(expect.anything(), updates);
+      expect(response).toEqual({
+        success: true,
+        data: null,
+        error: null,
+      });
+    });
+
+    it('should handle empty update object', async () => {
+      const userId = 'user123';
+      const updates = {};
+
+      mockUpdateDoc.mockResolvedValue(undefined);
+
+      const response = await updateUserProfile(userId, updates);
+
+      expect(mockUpdateDoc).toHaveBeenCalledWith(expect.anything(), updates);
+      expect(response).toEqual({
+        success: true,
+        data: null,
+        error: null,
+      });
+    });
+
+    it('should update multiple fields successfully', async () => {
+      const userId = 'user123';
+      const updates = {
+        currentQuest: {
+          id: 'quest123',
+          progress: { quest123: 50 },
+        },
+        gold: 100,
+      };
+
+      mockUpdateDoc.mockResolvedValue(undefined);
+
+      const response = await updateUserProfile(userId, updates);
+
+      expect(mockUpdateDoc).toHaveBeenCalledWith(expect.anything(), updates);
+      expect(response).toEqual({
+        success: true,
+        data: null,
+        error: null,
+      });
+    });
+
+    it('should handle generic error gracefully', async () => {
+      const userId = 'user123';
+      const updates = { gold: 100 };
+
+      mockUpdateDoc.mockRejectedValue(new Error('Network error'));
+
+      const response = await updateUserProfile(userId, updates);
+
+      expect(response).toEqual({
+        success: false,
+        data: null,
+        error: 'Failed to update profile. Please try again.',
       });
     });
   });

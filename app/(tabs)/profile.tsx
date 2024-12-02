@@ -25,6 +25,7 @@ import { getUserExpThreshold } from '@/utils/user';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { BASE_ITEM } from '@/constants/item';
+import { User } from '@/types/user';
 
 interface ItemCardProps {
   item: Item;
@@ -505,7 +506,7 @@ const Profile = () => {
       return;
     }
 
-    const updates = {
+    const updates: Partial<User> = {
       profileInfo: {
         ...user.profileInfo,
         username: username.trim(),
@@ -524,8 +525,8 @@ const Profile = () => {
       // Update the user in the store
       setUser({
         ...user,
-        profileInfo: updates.profileInfo,
-        privacySettings: updates.privacySettings,
+        profileInfo: updates.profileInfo ?? user.profileInfo,
+        privacySettings: updates.privacySettings ?? user.privacySettings,
       });
       Alert.alert('Profile updated successfully');
     } else {
