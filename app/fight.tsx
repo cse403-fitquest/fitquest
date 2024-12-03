@@ -8,6 +8,8 @@ import {
   Dimensions,
   Animated,
   ImageBackground,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
@@ -17,6 +19,7 @@ import { useUserStore } from '@/store/user';
 import { getRandomMonster } from '@/services/monster';
 import { getDoc, doc } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
+import { updateUserProfile } from '@/services/user';
 
 type TurnInfo = {
   id: string;
@@ -39,8 +42,13 @@ const calculateDifficultyMultiplier = (playerLevel: number) => {
 };
 
 const Combat = () => {
-  const { isBoss, questId, uniqueKey, questMonsters } = useLocalSearchParams();
-  const { user } = useUserStore();
+  const params = useLocalSearchParams();
+  const nextProgress = Number(params.nextProgress);
+  const questId = params.questId as string;
+  
+  const { isBoss, uniqueKey, questMonsters } = params;
+  const { user, setUser } = useUserStore();
+
 
   const initialPlayer = {
     id: user?.id || '',
@@ -51,6 +59,7 @@ const Combat = () => {
   };
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const [monster, setMonster] = useState({
     name: 'Unknown Monster',
@@ -65,7 +74,7 @@ const Combat = () => {
 
   useEffect(() => {
     const initializeMonster = async () => {
-      setIsLoading(true);
+      setIsInitializing(true);
       try {
         const playerLevel = calculatePlayerLevel(
           user?.attributes || { power: 15, speed: 15, health: 6 },
@@ -123,8 +132,9 @@ const Combat = () => {
       } catch (error) {
         console.error('Error initializing monster:', error);
         setDefaultMonster();
+      } finally {
+        setIsInitializing(false);
       }
-      setIsLoading(false);
     };
 
     const setDefaultMonster = (multiplier = 1) => {
@@ -142,6 +152,7 @@ const Combat = () => {
       initializeMonster();
     } else {
       console.warn('No questId provided');
+      setIsInitializing(false);
     }
   }, [questId, isBoss, questMonsters, user?.attributes]);
 
@@ -243,13 +254,38 @@ const Combat = () => {
     resetCombatState();
   }, []);
 
-  const handleContinue = () => {
-    if (modalType === 'victory') {
-      router.replace(`/(tabs)/quest`);
-    } else {
-      router.replace('/(tabs)/quest');
-      resetCombatState();
+  const handleContinue = async () => {
+    if (modalType === 'victory' && user?.id) {
+      try {
+        const updatedProgress = {
+          ...user.currentQuest.progress,
+          [questId]: nextProgress,
+        };
+
+        const result = await updateUserProfile(user.id, {
+          currentQuest: {
+            id: questId,
+            progress: updatedProgress,
+          },
+        });
+
+        if (result.success) {
+          setUser({
+            ...user,
+            currentQuest: {
+              id: questId,
+              progress: updatedProgress,
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Failed to update quest progress:', error);
+        Alert.alert('Error', 'Failed to update quest progress. Please try again.');
+      }
     }
+    
+    router.replace('/(tabs)/quest');
+    resetCombatState();
   };
 
   useEffect(() => {
@@ -575,55 +611,16 @@ const Combat = () => {
     battleBackgrounds[Math.floor(Math.random() * battleBackgrounds.length)]
   );
 
-  if (isLoading) {
+  if (isInitializing) {
     return (
       <ImageBackground 
         source={battleBackground}
         className="flex-1"
       >
-        <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
-          <View className="h-2 bg-gray-200/50 rounded-full mb-12">
-            <View className="h-full bg-blue-500/70 rounded-full w-1/2" />
-          </View>
-
-          <View className="flex-1 px-6 justify-center items-center h-full">
-            <View className="h-[300px] w-full mb-40 rounded-xl p-4">
-              <View className="flex-row justify-between items-start mb-[10px]">
-                <View className="w-1/2 pr-4 bg-black/30 p-2 rounded">
-                  <View className="h-4 bg-gray-400/50 rounded-full w-32 mb-2" />
-                  <View className="w-full h-4 bg-gray/80 rounded-full overflow-hidden border border-black border-2">
-                    <View className="h-full bg-gray-400/50 animate-pulse w-1/2" />
-                  </View>
-                </View>
-              </View>
-
-              <View className="flex-row justify-between items-center mt-20">
-                <View className="w-1/2 pl-4 bg-black/30 p-2 rounded">
-                  <View className="h-4 bg-gray-400/50 rounded-full w-32 mb-2" />
-                  <View className="w-full h-4 bg-gray/80 rounded-full overflow-hidden border border-black border-2">
-                    <View className="h-full bg-gray-400/50 animate-pulse w-1/2" />
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          <View className="absolute left-6 bottom-0 pb-8 flex-row w-full h-[160px]">
-            <View className="flex-1 mr-2">
-              <Text className="text-lg font-bold mb-2 text-white drop-shadow">MOVES</Text>
-              <View className="space-y-2">
-                <View className="bg-gray-400/50 p-3 rounded shadow animate-pulse" />
-                <View className="bg-gray-400/50 p-3 rounded shadow animate-pulse" />
-              </View>
-            </View>
-
-            <View className="flex-1 ml-2">
-              <Text className="text-lg font-bold mb-2 text-white drop-shadow">POTIONS</Text>
-              <View className="space-y-2">
-                <View className="bg-gray-400/50 p-3 rounded shadow animate-pulse" />
-                <View className="bg-gray-400/50 p-3 rounded shadow animate-pulse" />
-              </View>
-            </View>
+        <SafeAreaView className="flex-1 items-center justify-center">
+          <View className="bg-black/50 p-6 rounded-xl items-center">
+            <ActivityIndicator size="large" color="#ffffff" />
+            <Text className="text-xl text-white mt-4">Preparing for battle...</Text>
           </View>
         </SafeAreaView>
       </ImageBackground>
@@ -769,7 +766,7 @@ const Combat = () => {
           </View>
         </View>
 
-        <Modal
+          <Modal
           animationType="fade"
           transparent={true}
           visible={showVictoryModal}
