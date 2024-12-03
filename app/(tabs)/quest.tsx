@@ -442,31 +442,26 @@ const Quest = () => {
 
               {activeQuest ? (
                 <View className="bg-white p-6 rounded-xl border border-gray relative shadow-black shadow-lg min-h-[150px] max-h-[225px]">
-                  <Text className="text-lg font-semibold mb-2">
-                    {activeQuest.questName}
-                  </Text>
-                  {renderMilestoneNodes(activeQuest, activeQuest.progress)}
-                  <TouchableOpacity
-                    className="absolute right-[40px] p-2"
-                    onPress={handleAdvance}
-                  >
-                    <Ionicons
-                      name="arrow-forward-circle-outline"
-                      size={30}
-                      color="lightblue"
-                    />
-                  </TouchableOpacity>
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-base font-semibold" numberOfLines={1}>
+                      {activeQuest.questName}
+                    </Text>
+                    <View className="flex-row justify-center items-center">
+                      {/* Start Button */}
+                      <TouchableOpacity
+                        className="mr-4"
+                        onPress={handleAdvance}
+                      >
+                        <Ionicons name="play" size={24} color="green" />
+                      </TouchableOpacity>
 
-                  <TouchableOpacity
-                    className="absolute right-0 p-2"
-                    onPress={handleAbandon}
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={30}
-                      color="lightgray"
-                    />
-                  </TouchableOpacity>
+                      {/* Abandon Button */}
+                      <TouchableOpacity className="" onPress={handleAbandon}>
+                        <Ionicons name="flag-outline" size={24} color="red" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  {renderMilestoneNodes(activeQuest, activeQuest.progress)}
                 </View>
               ) : (
                 <View className="bg-gray-200 p-6 rounded-xl flex items-center justify-center min-h-[180px]">
