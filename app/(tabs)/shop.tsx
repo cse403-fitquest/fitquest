@@ -321,7 +321,7 @@ const Shop = () => {
       <FQModal
         visible={modalVisible}
         setVisible={setModalVisible}
-        title={selectedItem ? 'Equip ' + selectedItem.name : ''}
+        title={selectedItem ? 'Buy ' + selectedItem.name : ''}
         subtitle={selectedItem ? itemTypeToString(selectedItem.type) : ''}
         onConfirm={handlePurchaseItem}
         cancelText={
