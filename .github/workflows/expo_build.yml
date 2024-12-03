@@ -32,4 +32,4 @@ jobs:
         run: npm install
 
       - name: 🚀 Build app
-        run: npx eas-cli build -p android --non-interactive --no-wait
+        run: npx eas-cli build -p android --profile preview --non-interactive --no-wait
