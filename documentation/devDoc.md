@@ -204,7 +204,7 @@ Adding a New Test:
 
 5. Commit the Test File:
 
-    - Checkout to a new branch from the main branch (with latest chanegs) with an appropriate prefix (eg. fix/, feat/, refactor/, test/)
+    - Checkout to a new branch from the `develop` branch (with latest changes) with an appropriate prefix (eg. fix/, feat/, refactor/, test/)
     - Add and commit changes to your new brench
     - Create a pull request and request to be reviewed by one of the other developers
 
@@ -237,38 +237,3 @@ Adding a New Test:
     ```bash
     npm test
     ```
-
-3. Build the App:
-
-    For Android:
-
-    ```bash
-    npm run build:android
-    ```
-
-4. Sanity Checks:
-
-    - Manually test critical features to ensure stability.
-
-5. Create a Release Tag:
-
-    - Tag the release in Git:
-
-        ```bash
-        git tag -a v1.1.0 -m "Release version 1.1.0"
-        git push origin v1.1.0
-        ```
-
-6. Deploy to Google Play Store:
-
-    - Follow the respective guidelines [Google Play Store](https://play.google/developer-content-policy/) to submit the app.
-
-**Manual Tasks:**
-
-- Update Release Notes:
-
-    - Document new features, bug fixes, and known issues in the [Release Notes](https://github.com/cse403-fitquest/fitquest/releases).
-
-- Verify App Store Compliance:
-
-    - Ensure the app meets all submission guidelines for each platform, including metadata, screenshots, and privacy policies.
