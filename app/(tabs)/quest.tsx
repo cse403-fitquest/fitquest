@@ -440,32 +440,31 @@ const Quest = () => {
 
               {activeQuest ? (
                 <View className="bg-white p-6 rounded-xl border border-gray relative shadow-black shadow-lg min-h-[150px] max-h-[225px]">
-                  <Text className="text-lg font-semibold mb-2">
+                  <Text
+                    className="text-base font-semibold mb-2 pr-[120px]"
+                    numberOfLines={1}
+                  >
                     {activeQuest.questName}
                   </Text>
                   {renderMilestoneNodes(activeQuest, activeQuest.progress)}
+
+                  {/* Start Button */}
                   <TouchableOpacity
                     className="absolute top-[15px] right-[60px] p-2"
                     onPress={handleAdvance}
                   >
-                    <Text className="text-white text-lg bg-green px-3 py-1 rounded-lg">
-                      Start
-                    </Text>
-                    {/* 
-                    <Ionicons
-                      name="arrow-forward-circle-outline"
-                      size={30}
-                      color="green"
-                    />
-                    */}
+                    <View className="bg-green rounded-full p-2">
+                      <Ionicons name="play" size={24} color="white" />
+                    </View>
                   </TouchableOpacity>
 
+                  {/* Abandon Button */}
                   <TouchableOpacity
                     className="absolute top-[15px] right-[10px] p-2"
                     onPress={handleAbandon}
                   >
-                    <View className="bg-red-500 rounded-full p-1">
-                      <Ionicons name="trash-outline" size={30} color="white" />
+                    <View className="bg-red-500 rounded-full p-2">
+                      <Ionicons name="trash-outline" size={24} color="white" />
                     </View>
                   </TouchableOpacity>
                 </View>
