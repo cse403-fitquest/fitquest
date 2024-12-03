@@ -88,8 +88,6 @@ export const finishAndSaveWorkout: (
       throw new Error('User data not found.');
     }
 
-    console.log('userData', userData);
-
     const newWorkout = workout;
     const expGain = newWorkout.duration * 500;
 
