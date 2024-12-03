@@ -392,18 +392,16 @@ const Quest = () => {
     return (
       <TouchableOpacity
         key={index}
-        className={`bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between ${
-          activeQuest?.questID === item.questId ? 'opacity-50' : ''
-        }`}
+        className={`bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between ${activeQuest?.questID === item.questId ? 'opacity-50' : ''
+          }`}
         onPress={() => confirmAction('Start', item as Quest, setActiveQuest)}
         disabled={activeQuest?.questID === item.questId}
       >
         <View className="flex-row items-center justify-between">
           <View>
             <Text
-              className={`text-lg font-semibold ${
-                activeQuest?.questID === item.questId ? 'text-gray-500' : ''
-              }`}
+              className={`text-lg font-semibold ${activeQuest?.questID === item.questId ? 'text-gray-500' : ''
+                }`}
             >
               {item.questName}
             </Text>
@@ -447,25 +445,28 @@ const Quest = () => {
                   </Text>
                   {renderMilestoneNodes(activeQuest, activeQuest.progress)}
                   <TouchableOpacity
-                    className="absolute right-[40px] p-2"
+                    className="absolute top-[15px] right-[60px] p-2"
                     onPress={handleAdvance}
                   >
+                    <Text className="text-white text-lg bg-green px-3 py-1 rounded-lg">
+                      Start
+                    </Text>
+                    {/* 
                     <Ionicons
                       name="arrow-forward-circle-outline"
                       size={30}
-                      color="lightblue"
+                      color="green"
                     />
+                    */}
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    className="absolute right-0 p-2"
+                    className="absolute top-[15px] right-[10px] p-2"
                     onPress={handleAbandon}
                   >
-                    <Ionicons
-                      name="trash-outline"
-                      size={30}
-                      color="lightgray"
-                    />
+                    <View className="bg-red-500 rounded-full p-1">
+                      <Ionicons name="trash-outline" size={30} color="white" />
+                    </View>
                   </TouchableOpacity>
                 </View>
               ) : (
