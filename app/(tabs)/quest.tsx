@@ -392,16 +392,18 @@ const Quest = () => {
     return (
       <TouchableOpacity
         key={index}
-        className={`bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between ${activeQuest?.questID === item.questId ? 'opacity-50' : ''
-          }`}
+        className={`bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between ${
+          activeQuest?.questID === item.questId ? 'opacity-50' : ''
+        }`}
         onPress={() => confirmAction('Start', item as Quest, setActiveQuest)}
         disabled={activeQuest?.questID === item.questId}
       >
         <View className="flex-row items-center justify-between">
           <View>
             <Text
-              className={`text-lg font-semibold ${activeQuest?.questID === item.questId ? 'text-gray-500' : ''
-                }`}
+              className={`text-lg font-semibold ${
+                activeQuest?.questID === item.questId ? 'text-gray-500' : ''
+              }`}
             >
               {item.questName}
             </Text>
