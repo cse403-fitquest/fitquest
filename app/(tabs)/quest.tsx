@@ -442,33 +442,26 @@ const Quest = () => {
 
               {activeQuest ? (
                 <View className="bg-white p-6 rounded-xl border border-gray relative shadow-black shadow-lg min-h-[150px] max-h-[225px]">
-                  <Text
-                    className="text-base font-semibold mb-2 pr-[120px]"
-                    numberOfLines={1}
-                  >
-                    {activeQuest.questName}
-                  </Text>
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-base font-semibold" numberOfLines={1}>
+                      {activeQuest.questName}
+                    </Text>
+                    <View className="flex-row justify-center items-center">
+                      {/* Start Button */}
+                      <TouchableOpacity
+                        className="mr-4"
+                        onPress={handleAdvance}
+                      >
+                        <Ionicons name="play" size={24} color="green" />
+                      </TouchableOpacity>
+
+                      {/* Abandon Button */}
+                      <TouchableOpacity className="" onPress={handleAbandon}>
+                        <Ionicons name="flag-outline" size={24} color="red" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                   {renderMilestoneNodes(activeQuest, activeQuest.progress)}
-
-                  {/* Start Button */}
-                  <TouchableOpacity
-                    className="absolute top-[15px] right-[60px] p-2"
-                    onPress={handleAdvance}
-                  >
-                    <View className="bg-green rounded-full p-2">
-                      <Ionicons name="play" size={24} color="white" />
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* Abandon Button */}
-                  <TouchableOpacity
-                    className="absolute top-[15px] right-[10px] p-2"
-                    onPress={handleAbandon}
-                  >
-                    <View className="bg-red-500 rounded-full p-2">
-                      <Ionicons name="trash-outline" size={24} color="white" />
-                    </View>
-                  </TouchableOpacity>
                 </View>
               ) : (
                 <View className="bg-gray-200 p-6 rounded-xl flex items-center justify-center min-h-[180px]">
