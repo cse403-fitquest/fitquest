@@ -308,15 +308,47 @@ const Quest = () => {
           );
         }
       } else {
-        Alert.alert(
-          'Quest Complete!',
-          'Congratulations! You have completed the quest!',
-          [{ text: 'OK' }],
-        );
-        setActiveQuest(null);
-        setCurrentNodeIndex(0);
-        setVisualProgress(0);
-        setShowAbandonModal(false);
+        // Quest is complete - reset progress
+        try {
+          const updatedProgress = {
+            ...user.currentQuest.progress,
+            [activeQuest.questID]: 0, // Reset progress to 0
+          };
+
+          const result = await updateUserProfile(user.id, {
+            currentQuest: {
+              id: '', // Clear current quest
+              progress: updatedProgress,
+            },
+          });
+
+          if (result.success) {
+            setUser({
+              ...user,
+              currentQuest: {
+                id: '',
+                progress: updatedProgress,
+              },
+            });
+            Alert.alert(
+              'Quest Complete!',
+              'Congratulations! You have completed the quest!',
+              [{ text: 'OK' }],
+            );
+            setActiveQuest(null);
+            setCurrentNodeIndex(0);
+            setVisualProgress(0);
+            setShowAbandonModal(false);
+          } else {
+            throw new Error(result.error || 'Failed to reset progress');
+          }
+        } catch (error) {
+          console.error('Failed to reset quest progress:', error);
+          Alert.alert(
+            'Error',
+            'Failed to reset quest progress. Please try again.',
+          );
+        }
       }
     }
   };
@@ -413,11 +445,11 @@ const Quest = () => {
               </Text>
             )}
           </View>
-          <View style={{ width: 85, height: 85 }}>
+          <View style={{ width: 80, height: 125 }}>
             <AnimatedSprite
               id={item.boss.spriteId}
-              width={85}
-              height={85}
+              width={100}
+              height={100}
               state={SpriteState.IDLE}
             />
           </View>
