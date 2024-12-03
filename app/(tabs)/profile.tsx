@@ -485,6 +485,22 @@ const Profile = () => {
   const handleUpdateProfile = async () => {
     if (!user) return;
 
+    // Check if there are actual changes
+    const hasChanges =
+      username.trim() !== user.profileInfo.username ||
+      parseFloat(height) !== user.profileInfo.height ||
+      parseFloat(weight) !== user.profileInfo.weight ||
+      isCurrentQuestPublic !== user.privacySettings.isCurrentQuestPublic ||
+      isLastWorkoutPublic !== user.privacySettings.isLastWorkoutPublic;
+
+    if (!hasChanges) {
+      Alert.alert(
+        'No changes detected',
+        'Please make changes before confirming.',
+      );
+      return; // Exit if no changes
+    }
+
     if (!username.trim() || username.trim().length < 4) {
       Alert.alert(
         'Validation Error',
