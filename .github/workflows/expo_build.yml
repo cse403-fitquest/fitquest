@@ -1,7 +1,7 @@
 name: EAS Build
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
