@@ -57,7 +57,6 @@ const Combat = () => {
     speed: user?.attributes.speed || 15,
   };
 
-  const [isLoading, setIsLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(true);
 
   const [monster, setMonster] = useState({
