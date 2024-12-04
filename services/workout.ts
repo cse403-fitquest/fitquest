@@ -70,16 +70,14 @@ export const updateEXP: (
  * @param {Workout} workout - The Workout to be added
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
-export const finishAndSaveWorkout: (
+export const finishAndSaveWorkout = async (
   userID: string,
   workout: Workout,
-) => Promise<APIResponse> = async (userID, workout) => {
+) => {
   try {
     const userCollection = collection(FIREBASE_DB, 'users').withConverter(
       userConverter,
     );
-
-    // Get user data
     const userRef = doc(userCollection, userID);
     const userSnap = await getDoc(userRef);
     const userData = userSnap.data();
@@ -90,6 +88,7 @@ export const finishAndSaveWorkout: (
 
     const newWorkout = workout;
     const expGain = newWorkout.duration * 500;
+    const currentWorkoutMinutes = userData.activeWorkoutMinutes || 0;
 
     // Get new user exp amount
     const userAfterExpGain = updateUserAfterExpGain(userData, expGain);
@@ -98,6 +97,9 @@ export const finishAndSaveWorkout: (
       workoutHistory: [newWorkout, ...userData.workoutHistory],
       exp: userAfterExpGain.exp,
       attributePoints: userAfterExpGain.attributePoints,
+      // Add workout duration to activeWorkoutMinutes
+      // TODO: Change duration from seconds to minutes
+      activeWorkoutMinutes: currentWorkoutMinutes + newWorkout.duration,
     });
 
     console.log(
@@ -111,7 +113,6 @@ export const finishAndSaveWorkout: (
     };
   } catch (error) {
     console.error('Error saving workout:', error);
-
     return {
       data: null,
       success: false,

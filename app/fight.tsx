@@ -7,6 +7,9 @@ import {
   Modal,
   Dimensions,
   Animated,
+  ImageBackground,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
@@ -16,6 +19,7 @@ import { useUserStore } from '@/store/user';
 import { getRandomMonster } from '@/services/monster';
 import { getDoc, doc } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
+import { updateUserProfile } from '@/services/user';
 
 type TurnInfo = {
   id: string;
@@ -38,8 +42,12 @@ const calculateDifficultyMultiplier = (playerLevel: number) => {
 };
 
 const Combat = () => {
-  const { isBoss, questId, uniqueKey, questMonsters } = useLocalSearchParams();
-  const { user } = useUserStore();
+  const params = useLocalSearchParams();
+  const nextProgress = Number(params.nextProgress);
+  const questId = params.questId as string;
+
+  const { isBoss, uniqueKey, questMonsters } = params;
+  const { user, setUser } = useUserStore();
 
   const initialPlayer = {
     id: user?.id || '',
@@ -49,7 +57,7 @@ const Combat = () => {
     speed: user?.attributes.speed || 15,
   };
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const [monster, setMonster] = useState({
     name: 'Unknown Monster',
@@ -64,7 +72,7 @@ const Combat = () => {
 
   useEffect(() => {
     const initializeMonster = async () => {
-      setIsLoading(true);
+      setIsInitializing(true);
       try {
         const playerLevel = calculatePlayerLevel(
           user?.attributes || { power: 15, speed: 15, health: 6 },
@@ -122,8 +130,9 @@ const Combat = () => {
       } catch (error) {
         console.error('Error initializing monster:', error);
         setDefaultMonster();
+      } finally {
+        setIsInitializing(false);
       }
-      setIsLoading(false);
     };
 
     const setDefaultMonster = (multiplier = 1) => {
@@ -141,6 +150,7 @@ const Combat = () => {
       initializeMonster();
     } else {
       console.warn('No questId provided');
+      setIsInitializing(false);
     }
   }, [questId, isBoss, questMonsters, user?.attributes]);
 
@@ -242,13 +252,41 @@ const Combat = () => {
     resetCombatState();
   }, []);
 
-  const handleContinue = () => {
-    if (modalType === 'victory') {
-      router.replace(`/(tabs)/quest`);
-    } else {
-      router.replace('/(tabs)/quest');
-      resetCombatState();
+  const handleContinue = async () => {
+    if (modalType === 'victory' && user?.id) {
+      try {
+        const updatedProgress = {
+          ...user.currentQuest.progress,
+          [questId]: nextProgress,
+        };
+
+        const result = await updateUserProfile(user.id, {
+          currentQuest: {
+            id: questId,
+            progress: updatedProgress,
+          },
+        });
+
+        if (result.success) {
+          setUser({
+            ...user,
+            currentQuest: {
+              id: questId,
+              progress: updatedProgress,
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Failed to update quest progress:', error);
+        Alert.alert(
+          'Error',
+          'Failed to update quest progress. Please try again.',
+        );
+      }
     }
+
+    router.replace('/(tabs)/quest');
+    resetCombatState();
   };
 
   useEffect(() => {
@@ -565,241 +603,268 @@ const Combat = () => {
     return spriteSize;
   }, []);
 
-  if (isLoading) {
+  const battleBackgrounds = [
+    require('@/assets/backgrounds/battle_background_1.png'),
+    // Add more backgrounds as needed
+  ];
+
+  const [battleBackground] = useState(
+    () =>
+      battleBackgrounds[Math.floor(Math.random() * battleBackgrounds.length)],
+  );
+
+  if (isInitializing) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center">
-        <Text className="text-xl">Loading battle...</Text>
-      </SafeAreaView>
+      <ImageBackground source={battleBackground} className="flex-1">
+        <SafeAreaView className="flex-1 items-center justify-center">
+          <View className="bg-black/50 p-6 rounded-xl items-center">
+            <ActivityIndicator size="large" color="#ffffff" />
+            <Text className="text-xl text-white mt-4">
+              Preparing for battle...
+            </Text>
+          </View>
+        </SafeAreaView>
+      </ImageBackground>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
-      <View className="h-2 bg-gray-200 rounded-full mb-12">
-        <View className="h-full bg-blue-500 rounded-full w-1/2" />
-      </View>
+    <ImageBackground source={battleBackground} className="flex-1">
+      <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
+        <View className="h-2 bg-gray-200/50 rounded-full mb-12">
+          <View className="h-full bg-blue-500/70 rounded-full w-1/2" />
+        </View>
 
-      {renderTurnOrder()}
+        {renderTurnOrder()}
 
-      <View className="flex-1 px-6 justify-center items-center h-full">
-        <View className="h-[300px] w-full mb-40">
-          <View className="flex-row justify-between items-start mb-[10px]">
-            <View className="w-1/2 pr-4">
-              <Text className="text-lg font-bold mb-1">{monster.name}</Text>
-              <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
-                <View
-                  className="h-full bg-green"
-                  style={{
-                    width: `${(monster.health / monster.maxHealth!) * 100}%`,
-                  }}
+        <View className="flex-1 px-6 justify-center items-center h-full">
+          <View className="h-[300px] w-full mb-40 rounded-xl p-4">
+            <View className="flex-row justify-between items-start mb-[10px]">
+              <View className="w-1/2 pr-4 bg-black/30 p-2 rounded">
+                <Text className="text-lg font-bold mb-1 text-white">
+                  {monster.name}
+                </Text>
+                <View className="w-full h-4 bg-gray/80 rounded-full overflow-hidden border border-black border-2">
+                  <View
+                    className="h-full bg-green"
+                    style={{
+                      width: `${(monster.health / monster.maxHealth!) * 100}%`,
+                    }}
+                  />
+                </View>
+                <Text className="text-sm mt-1 text-white">
+                  HP: {monster.health}/{monster.maxHealth}
+                </Text>
+              </View>
+
+              <View className="w-1/2 items-end left-5">
+                <AnimatedSprite
+                  id={monster.spriteId}
+                  width={spriteSize}
+                  height={spriteSize}
+                  state={monsterSpriteState}
+                  direction="left"
                 />
               </View>
-              <Text className="text-sm mt-1">
-                HP: {monster.health}/
-                {isBossFight ? monster.maxHealth : monster.maxHealth}
-              </Text>
             </View>
 
-            <View className="w-1/2 items-end left-5">
-              <AnimatedSprite
-                id={monster.spriteId}
-                width={spriteSize}
-                height={spriteSize}
-                state={monsterSpriteState}
-                direction="left"
-              />
-            </View>
-          </View>
-          <View className="flex-row justify-between items-center">
-            <View className="w-1/2 items-start right-5">
-              <AnimatedSprite
-                id={user?.spriteID}
-                width={spriteSize}
-                height={spriteSize}
-                state={playerSpriteState}
-              />
-            </View>
-
-            <View className="w-1/2 pl-4">
-              <Text className="text-lg font-bold mb-1 ">{player.name}</Text>
-              <View className="w-full h-4 bg-gray rounded-full overflow-hidden border border-black border-2">
-                <View
-                  className="h-full bg-green"
-                  style={{
-                    width: `${(player.health / initialPlayer.health) * 100}%`,
-                  }}
+            <View className="flex-row justify-between items-center">
+              <View className="w-1/2 items-start right-5">
+                <AnimatedSprite
+                  id={user?.spriteID}
+                  width={spriteSize}
+                  height={spriteSize}
+                  state={playerSpriteState}
                 />
               </View>
-              <Text className="text-sm mt-1">
-                HP: {player.health}/{initialPlayer.health}
-              </Text>
+
+              <View className="w-1/2 pl-4 bg-black/30 p-2 rounded">
+                <Text className="text-lg font-bold mb-1 text-white">
+                  {player.name}
+                </Text>
+                <View className="w-full h-4 bg-gray/80 rounded-full overflow-hidden border border-black border-2">
+                  <View
+                    className="h-full bg-green"
+                    style={{
+                      width: `${(player.health / initialPlayer.health) * 100}%`,
+                    }}
+                  />
+                </View>
+                <Text className="text-sm mt-1 text-white">
+                  HP: {player.health}/{initialPlayer.health}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
 
-      <View className="absolute left-6 w-full bottom-[170px] mb-4 p-2 bg-white/80 rounded">
-        {combatLog.slice(-3).map((log, index) => (
-          <Text key={index} className="text-sm mb-1">
-            {log}
-          </Text>
-        ))}
-      </View>
-
-      <View className="absolute left-6 bottom-0 pb-8 flex-row w-full h-[160px]">
-        <View className="flex-1 mr-2">
-          <Text className="text-lg font-bold mb-2">MOVES</Text>
-          <View className="space-y-2">
-            <Pressable
-              className={`bg-white p-3 rounded shadow ${isAnimating ? 'opacity-50' : ''}`}
-              onPress={() => handleAttack(false)}
-              disabled={isAnimating}
-            >
-              <Text className="text-center">Attack</Text>
-            </Pressable>
-            <Pressable
-              className={`bg-white p-3 rounded shadow ${
-                strongAttackCooldown > 0 || isAnimating ? 'opacity-50' : ''
-              }`}
-              onPress={() => handleAttack(true)}
-              disabled={strongAttackCooldown > 0 || isAnimating}
-            >
-              <Text className="text-center flex-row items-center justify-center">
-                Strong Attack
-                {strongAttackCooldown > 0 && (
-                  <Text className="ml-1 text-red-500">
-                    {' '}
-                    [CD: {strongAttackCooldown}]
-                  </Text>
-                )}
-              </Text>
-            </Pressable>
-          </View>
+        <View className="absolute left-6 w-full bottom-[170px] mb-4 p-2 bg-black/50 rounded">
+          {combatLog.slice(-3).map((log, index) => (
+            <Text key={index} className="text-sm mb-1 text-white">
+              {log}
+            </Text>
+          ))}
         </View>
 
-        <View className="flex-1 ml-2">
-          <Text className="text-lg font-bold mb-2">POTIONS</Text>
-          <View className="space-y-2">
-            <Pressable
-              className={`bg-white p-3 rounded shadow ${
-                potions.small <= 0 || isAnimating ? 'opacity-50' : ''
-              }`}
-              onPress={() => handlePotion('small')}
-              disabled={potions.small <= 0 || isAnimating}
-            >
-              <Text className="text-center">
-                Small Potion
-                <Text className="text-gray-600"> ({potions.small})</Text>
-              </Text>
-            </Pressable>
-            <Pressable
-              className={`bg-white p-3 rounded shadow ${
-                potions.large <= 0 || isAnimating ? 'opacity-50' : ''
-              }`}
-              onPress={() => handlePotion('large')}
-              disabled={potions.large <= 0 || isAnimating}
-            >
-              <Text className="text-center">
-                Large Potion
-                <Text className="text-gray-600"> ({potions.large})</Text>
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showVictoryModal}
-        onRequestClose={() => setShowVictoryModal(false)}
-      >
-        <View className="flex-1 bg-black/50 items-center justify-center">
-          <View className="bg-white m-5 p-6 rounded-2xl w-[85%] items-center">
-            {modalType === 'victory' ? (
-              <>
-                <Text className="text-2xl font-bold">
-                  You have defeated {isBossFight ? 'Boss' : 'the monster'}!
+        <View className="absolute left-6 bottom-0 pb-8 flex-row w-full h-[160px]">
+          <View className="flex-1 mr-2">
+            <Text className="text-lg font-bold mb-2 text-white drop-shadow">
+              MOVES
+            </Text>
+            <View className="space-y-2">
+              <Pressable
+                className={`bg-white/90 p-3 rounded shadow ${isAnimating ? 'opacity-50' : ''}`}
+                onPress={() => handleAttack(false)}
+                disabled={isAnimating}
+              >
+                <Text className="text-center">Attack</Text>
+              </Pressable>
+              <Pressable
+                className={`bg-white/90 p-3 rounded shadow ${
+                  strongAttackCooldown > 0 || isAnimating ? 'opacity-50' : ''
+                }`}
+                onPress={() => handleAttack(true)}
+                disabled={strongAttackCooldown > 0 || isAnimating}
+              >
+                <Text className="text-center flex-row items-center justify-center">
+                  Strong Attack
+                  {strongAttackCooldown > 0 && (
+                    <Text className="ml-1 text-red-500">
+                      {' '}
+                      [CD: {strongAttackCooldown}]
+                    </Text>
+                  )}
                 </Text>
+              </Pressable>
+            </View>
+          </View>
 
-                <View className="w-full relative items-center justify-center h-[160px] overflow-hidden mb-10">
-                  <View className="absolute bottom-0 flex-row justify-center items-end">
-                    <View className="relative left-[25px]">
-                      <AnimatedSprite
-                        id={user?.spriteID}
-                        state={SpriteState.ATTACK_1}
-                        width={120}
-                        height={120}
-                        duration={600}
-                      />
-                    </View>
-                    <View className="relative right-[25px]">
-                      <AnimatedSprite
-                        id={monster.spriteId}
-                        state={SpriteState.DAMAGED}
-                        direction="left"
-                        width={150}
-                        height={150}
-                        duration={600}
-                        delay={200}
-                      />
+          <View className="flex-1 ml-2">
+            <Text className="text-lg font-bold mb-2 text-white drop-shadow">
+              POTIONS
+            </Text>
+            <View className="space-y-2">
+              <Pressable
+                className={`bg-white/90 p-3 rounded shadow ${
+                  potions.small <= 0 || isAnimating ? 'opacity-50' : ''
+                }`}
+                onPress={() => handlePotion('small')}
+                disabled={potions.small <= 0 || isAnimating}
+              >
+                <Text className="text-center">
+                  Small Potion
+                  <Text className="text-gray-600"> ({potions.small})</Text>
+                </Text>
+              </Pressable>
+              <Pressable
+                className={`bg-white/90 p-3 rounded shadow ${
+                  potions.large <= 0 || isAnimating ? 'opacity-50' : ''
+                }`}
+                onPress={() => handlePotion('large')}
+                disabled={potions.large <= 0 || isAnimating}
+              >
+                <Text className="text-center">
+                  Large Potion
+                  <Text className="text-gray-600"> ({potions.large})</Text>
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showVictoryModal}
+          onRequestClose={() => setShowVictoryModal(false)}
+        >
+          <View className="flex-1 bg-black/50 items-center justify-center">
+            <View className="bg-white m-5 p-6 rounded-2xl w-[85%] items-center">
+              {modalType === 'victory' ? (
+                <>
+                  <Text className="text-2xl font-bold">
+                    You have defeated {isBossFight ? 'Boss' : 'the monster'}!
+                  </Text>
+
+                  <View className="w-full relative items-center justify-center h-[160px] overflow-hidden mb-10">
+                    <View className="absolute bottom-0 flex-row justify-center items-end">
+                      <View className="relative left-[25px]">
+                        <AnimatedSprite
+                          id={user?.spriteID}
+                          state={SpriteState.ATTACK_1}
+                          width={120}
+                          height={120}
+                          duration={600}
+                        />
+                      </View>
+                      <View className="relative right-[25px]">
+                        <AnimatedSprite
+                          id={monster.spriteId}
+                          state={SpriteState.DAMAGED}
+                          direction="left"
+                          width={150}
+                          height={150}
+                          duration={600}
+                          delay={200}
+                        />
+                      </View>
                     </View>
                   </View>
-                </View>
-              </>
-            ) : (
-              <>
-                <Text className="text-2xl mb-6 font-bold text-red-500">
-                  Defeated by {monster.name}!
-                </Text>
+                </>
+              ) : (
+                <>
+                  <Text className="text-2xl mb-6 font-bold text-red-500">
+                    Defeated by {monster.name}!
+                  </Text>
 
-                <View className="w-full relative items-center justify-center h-[160px] overflow-hidden mb-10">
-                  <View className="absolute bottom-0 flex-row justify-center items-end">
-                    <View className="relative left-[15px]">
-                      <AnimatedSprite
-                        id={user?.spriteID}
-                        state={SpriteState.DEATH}
-                        width={120}
-                        height={120}
-                        duration={600}
-                      />
-                    </View>
-                    <View className="relative right-[15px] z-10">
-                      <AnimatedSprite
-                        id={monster.spriteId}
-                        state={SpriteState.ATTACK_1}
-                        direction="left"
-                        width={150}
-                        height={150}
-                        duration={600}
-                        delay={200}
-                      />
+                  <View className="w-full relative items-center justify-center h-[160px] overflow-hidden mb-10">
+                    <View className="absolute bottom-0 flex-row justify-center items-end">
+                      <View className="relative left-[15px]">
+                        <AnimatedSprite
+                          id={user?.spriteID}
+                          state={SpriteState.DEATH}
+                          width={120}
+                          height={120}
+                          duration={600}
+                        />
+                      </View>
+                      <View className="relative right-[15px] z-10">
+                        <AnimatedSprite
+                          id={monster.spriteId}
+                          state={SpriteState.ATTACK_1}
+                          direction="left"
+                          width={150}
+                          height={150}
+                          duration={600}
+                          delay={200}
+                        />
+                      </View>
                     </View>
                   </View>
-                </View>
 
-                <View className="mb-8">
-                  <Text className="text-lg text-center text-gray-600">
-                    Better luck next time!
-                  </Text>
-                </View>
-              </>
-            )}
+                  <View className="mb-8">
+                    <Text className="text-lg text-center text-gray-600">
+                      Better luck next time!
+                    </Text>
+                  </View>
+                </>
+              )}
 
-            <Pressable
-              className="w-full bg-blue py-4 rounded-xl shadow-lg active:bg-blue"
-              onPress={handleContinue}
-            >
-              <Text className="text-white text-xl font-bold tracking-wider text-center">
-                CONTINUE
-              </Text>
-            </Pressable>
+              <Pressable
+                className="w-full bg-blue py-4 rounded-xl shadow-lg active:bg-blue"
+                onPress={handleContinue}
+              >
+                <Text className="text-white text-xl font-bold tracking-wider text-center">
+                  CONTINUE
+                </Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      <StatusBar backgroundColor="#161622" style="light" />
-    </SafeAreaView>
+        <StatusBar backgroundColor="#161622" style="light" />
+      </SafeAreaView>
+    </ImageBackground>
   );
 };
 
