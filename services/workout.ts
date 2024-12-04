@@ -70,9 +70,14 @@ export const updateEXP: (
  * @param {Workout} workout - The Workout to be added
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
-export const finishAndSaveWorkout = async (userID: string, workout: Workout) => {
+export const finishAndSaveWorkout = async (
+  userID: string,
+  workout: Workout,
+) => {
   try {
-    const userCollection = collection(FIREBASE_DB, 'users').withConverter(userConverter);
+    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
+      userConverter,
+    );
     const userRef = doc(userCollection, userID);
     const userSnap = await getDoc(userRef);
     const userData = userSnap.data();
@@ -96,7 +101,9 @@ export const finishAndSaveWorkout = async (userID: string, workout: Workout) => 
       activeWorkoutMinutes: currentWorkoutMinutes + newWorkout.duration,
     });
 
-    console.log('successfully added ' + newWorkout.title + ' to user workout history.');
+    console.log(
+      'successfully added ' + newWorkout.title + ' to user workout history.',
+    );
 
     return {
       data: null,

@@ -1,4 +1,11 @@
-import { Text, View, TouchableOpacity, Alert, FlatList, ActivityIndicator } from 'react-native';
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  FlatList,
+  ActivityIndicator,
+} from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -262,7 +269,7 @@ const Quest = () => {
       if (user.activeWorkoutMinutes < 1800) {
         Alert.alert(
           'Not Strong Enough...',
-          'You\'ll need to train more before challenging this foe. Return after training!',
+          "You'll need to train more before challenging this foe. Return after training!",
           [
             {
               text: 'Grow Stronger',
@@ -275,7 +282,7 @@ const Quest = () => {
 
       const newProgress = activeQuest.progress + 50;
       const nextMilestone = activeQuest.milestones.find(
-        (milestone) => milestone >= newProgress
+        (milestone) => milestone >= newProgress,
       );
 
       if (nextMilestone) {
@@ -313,12 +320,12 @@ const Quest = () => {
         try {
           const updatedProgress = {
             ...user.currentQuest.progress,
-            [activeQuest.questID]: 0, 
+            [activeQuest.questID]: 0,
           };
 
           const result = await updateUserProfile(user.id, {
             currentQuest: {
-              id: '', 
+              id: '',
               progress: updatedProgress,
             },
           });
@@ -474,45 +481,45 @@ const Quest = () => {
               {isLoading ? (
                 <View className="bg-white p-6 rounded-xl border border-gray min-h-[180px] items-center justify-center">
                   <ActivityIndicator size="large" color="#0000ff" />
-                  <Text className="mt-4 text-gray-600">Loading quest data...</Text>
+                  <Text className="mt-4 text-gray-600">
+                    Loading quest data...
+                  </Text>
+                </View>
+              ) : activeQuest ? (
+                <View className="bg-white p-6 rounded-xl border border-gray relative shadow-black shadow-lg min-h-[150px] max-h-[225px]">
+                  <Text className="text-lg font-semibold mb-2">
+                    {activeQuest.questName}
+                  </Text>
+                  {renderMilestoneNodes(activeQuest, activeQuest.progress)}
+                  <TouchableOpacity
+                    className="absolute right-[40px] p-2"
+                    onPress={handleAdvance}
+                  >
+                    <Ionicons
+                      name="arrow-forward-circle-outline"
+                      size={30}
+                      color="lightblue"
+                    />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    className="absolute right-0 p-2"
+                    onPress={handleAbandon}
+                  >
+                    <Ionicons
+                      name="trash-outline"
+                      size={30}
+                      color="lightgray"
+                    />
+                  </TouchableOpacity>
                 </View>
               ) : (
-                activeQuest ? (
-                  <View className="bg-white p-6 rounded-xl border border-gray relative shadow-black shadow-lg min-h-[150px] max-h-[225px]">
-                    <Text className="text-lg font-semibold mb-2">
-                      {activeQuest.questName}
-                    </Text>
-                    {renderMilestoneNodes(activeQuest, activeQuest.progress)}
-                    <TouchableOpacity
-                      className="absolute right-[40px] p-2"
-                      onPress={handleAdvance}
-                    >
-                      <Ionicons
-                        name="arrow-forward-circle-outline"
-                        size={30}
-                        color="lightblue"
-                      />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      className="absolute right-0 p-2"
-                      onPress={handleAbandon}
-                    >
-                      <Ionicons
-                        name="trash-outline"
-                        size={30}
-                        color="lightgray"
-                      />
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <View className="bg-gray-200 p-6 rounded-xl flex items-center justify-center min-h-[180px]">
-                    <Text className="text-lg mb-2">No Active Quest</Text>
-                    <Text className="text-gray-600">
-                      Start a quest from the quest board below
-                    </Text>
-                  </View>
-                )
+                <View className="bg-gray-200 p-6 rounded-xl flex items-center justify-center min-h-[180px]">
+                  <Text className="text-lg mb-2">No Active Quest</Text>
+                  <Text className="text-gray-600">
+                    Start a quest from the quest board below
+                  </Text>
+                </View>
               )}
             </View>
 
@@ -522,7 +529,9 @@ const Quest = () => {
             {isLoading ? (
               <View className="items-center justify-center py-8">
                 <ActivityIndicator size="large" color="#0000ff" />
-                <Text className="mt-4 text-gray-600">Loading available quests...</Text>
+                <Text className="mt-4 text-gray-600">
+                  Loading available quests...
+                </Text>
               </View>
             ) : (
               <FlatList

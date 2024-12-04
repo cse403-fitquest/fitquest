@@ -45,10 +45,9 @@ const Combat = () => {
   const params = useLocalSearchParams();
   const nextProgress = Number(params.nextProgress);
   const questId = params.questId as string;
-  
+
   const { isBoss, uniqueKey, questMonsters } = params;
   const { user, setUser } = useUserStore();
-
 
   const initialPlayer = {
     id: user?.id || '',
@@ -280,10 +279,13 @@ const Combat = () => {
         }
       } catch (error) {
         console.error('Failed to update quest progress:', error);
-        Alert.alert('Error', 'Failed to update quest progress. Please try again.');
+        Alert.alert(
+          'Error',
+          'Failed to update quest progress. Please try again.',
+        );
       }
     }
-    
+
     router.replace('/(tabs)/quest');
     resetCombatState();
   };
@@ -607,20 +609,20 @@ const Combat = () => {
     // Add more backgrounds as needed
   ];
 
-  const [battleBackground] = useState(() => 
-    battleBackgrounds[Math.floor(Math.random() * battleBackgrounds.length)]
+  const [battleBackground] = useState(
+    () =>
+      battleBackgrounds[Math.floor(Math.random() * battleBackgrounds.length)],
   );
 
   if (isInitializing) {
     return (
-      <ImageBackground 
-        source={battleBackground}
-        className="flex-1"
-      >
+      <ImageBackground source={battleBackground} className="flex-1">
         <SafeAreaView className="flex-1 items-center justify-center">
           <View className="bg-black/50 p-6 rounded-xl items-center">
             <ActivityIndicator size="large" color="#ffffff" />
-            <Text className="text-xl text-white mt-4">Preparing for battle...</Text>
+            <Text className="text-xl text-white mt-4">
+              Preparing for battle...
+            </Text>
           </View>
         </SafeAreaView>
       </ImageBackground>
@@ -628,10 +630,7 @@ const Combat = () => {
   }
 
   return (
-    <ImageBackground 
-      source={battleBackground}
-      className="flex-1"
-    >
+    <ImageBackground source={battleBackground} className="flex-1">
       <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
         <View className="h-2 bg-gray-200/50 rounded-full mb-12">
           <View className="h-full bg-blue-500/70 rounded-full w-1/2" />
@@ -643,7 +642,9 @@ const Combat = () => {
           <View className="h-[300px] w-full mb-40 rounded-xl p-4">
             <View className="flex-row justify-between items-start mb-[10px]">
               <View className="w-1/2 pr-4 bg-black/30 p-2 rounded">
-                <Text className="text-lg font-bold mb-1 text-white">{monster.name}</Text>
+                <Text className="text-lg font-bold mb-1 text-white">
+                  {monster.name}
+                </Text>
                 <View className="w-full h-4 bg-gray/80 rounded-full overflow-hidden border border-black border-2">
                   <View
                     className="h-full bg-green"
@@ -679,7 +680,9 @@ const Combat = () => {
               </View>
 
               <View className="w-1/2 pl-4 bg-black/30 p-2 rounded">
-                <Text className="text-lg font-bold mb-1 text-white">{player.name}</Text>
+                <Text className="text-lg font-bold mb-1 text-white">
+                  {player.name}
+                </Text>
                 <View className="w-full h-4 bg-gray/80 rounded-full overflow-hidden border border-black border-2">
                   <View
                     className="h-full bg-green"
@@ -706,7 +709,9 @@ const Combat = () => {
 
         <View className="absolute left-6 bottom-0 pb-8 flex-row w-full h-[160px]">
           <View className="flex-1 mr-2">
-            <Text className="text-lg font-bold mb-2 text-white drop-shadow">MOVES</Text>
+            <Text className="text-lg font-bold mb-2 text-white drop-shadow">
+              MOVES
+            </Text>
             <View className="space-y-2">
               <Pressable
                 className={`bg-white/90 p-3 rounded shadow ${isAnimating ? 'opacity-50' : ''}`}
@@ -736,7 +741,9 @@ const Combat = () => {
           </View>
 
           <View className="flex-1 ml-2">
-            <Text className="text-lg font-bold mb-2 text-white drop-shadow">POTIONS</Text>
+            <Text className="text-lg font-bold mb-2 text-white drop-shadow">
+              POTIONS
+            </Text>
             <View className="space-y-2">
               <Pressable
                 className={`bg-white/90 p-3 rounded shadow ${
@@ -766,7 +773,7 @@ const Combat = () => {
           </View>
         </View>
 
-          <Modal
+        <Modal
           animationType="fade"
           transparent={true}
           visible={showVictoryModal}
