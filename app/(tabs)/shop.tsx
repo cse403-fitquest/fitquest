@@ -80,7 +80,7 @@ const Shop = () => {
     if (user.gold < selectedItem.cost) {
       Alert.alert(
         'Not enough gold',
-        `You need ${selectedItem.cost - user.gold} more gold to buy this.`,
+        `You need ${selectedItem.cost - user.gold} more gold to purchase this.`,
       );
       return;
     }
@@ -114,7 +114,7 @@ const Shop = () => {
         return;
       }
     } else {
-      // Buy and equip item
+      // Purchase and equip item
       console.log('Equipment:', selectedItem);
 
       // Update user data
@@ -321,7 +321,7 @@ const Shop = () => {
       <FQModal
         visible={modalVisible}
         setVisible={setModalVisible}
-        title={selectedItem ? 'Equip ' + selectedItem.name : ''}
+        title={selectedItem ? 'Purchase ' + selectedItem.name : ''}
         subtitle={selectedItem ? itemTypeToString(selectedItem.type) : ''}
         onConfirm={handlePurchaseItem}
         cancelText={
@@ -332,7 +332,7 @@ const Shop = () => {
         confirmText={
           selectedItem && userEquipments.some((i) => i.id === selectedItem.id)
             ? 'BACK'
-            : 'BUY ITEM'
+            : 'PURCHASE ITEM'
         }
       >
         {modalChildren}
