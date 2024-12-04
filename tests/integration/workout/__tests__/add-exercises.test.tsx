@@ -6,19 +6,19 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
-import { userEvent } from '@testing-library/react-native';
-import { v4 as uuidv4 } from 'uuid';
 import AddExercises from '@/app/(workout)/add-exercises';
 import { useWorkoutStore } from '@/store/workout';
 import { useUserStore } from '@/store/user';
 import { ALL_EXERCISES_STUB } from '@/constants/workout';
 import { log, error } from 'console';
 
-let uuidCounter = 0;
-
-jest.mock('uuid', () => ({
-  v4: jest.fn(() => `unique-id-${++uuidCounter}`),
-}));
+// Mock UUID with unique IDs
+jest.mock('uuid', () => {
+  let uuidCounter = 0; // Define the counter inside the factory function
+  return {
+    v4: jest.fn(() => `unique-id-${++uuidCounter}`),
+  };
+});
 
 // Mock asyncstorage
 jest.mock('@react-native-async-storage/async-storage', () =>
@@ -36,11 +36,6 @@ jest.mock('expo-router', () => ({
     navigate: jest.fn(),
     back: jest.fn(),
   },
-}));
-
-// Mock UUID
-jest.mock('uuid', () => ({
-  v4: jest.fn(() => 'unique-id'),
 }));
 
 // Mock Zustand stores
@@ -81,39 +76,66 @@ describe('AddExercises', () => {
     });
   });
 
-  it('should first render exercises unselected', () => {
+  it('should first render exercises unselected', async () => {
     render(<AddExercises />);
-    ALL_EXERCISES_STUB.forEach((exercise) => {
-      expect(
-        screen.getByTestId(`exercise-${exercise.name}`).props['data-selected'],
-      ).toBeFalsy();
-    });
+    await waitFor(
+      () => {
+        ALL_EXERCISES_STUB.forEach((exercise) => {
+          const exerciseTouchableOpacity = screen.getByTestId(
+            `exercise-${exercise.name}`,
+          );
+
+          const exerciseView = exerciseTouchableOpacity.props.children[0];
+
+          expect(exerciseView.props['data-selected']).toBeFalsy();
+        });
+      },
+      { timeout: 1000 },
+    );
   });
 
   it('should allow selecting and deselecting an exercise', async () => {
-    // render(<AddExercises />);
-    // const exercise = ALL_EXERCISES_STUB[0]; // Example exercise
-    // const exerciseButton = screen.getByTestId(`exercise-${exercise.name}`);
-    // log('exerciseButton', exerciseButton.props);
-    // console.log('exerciseButton', exerciseButton.props);
-    // // Initially not selected
-    // expect(exerciseButton.props['data-selected']).toBeFalsy();
-    // // Select the exercise
-    // fireEvent.press(exerciseButton);
-    // await waitFor(
-    //   () => {
-    //     expect(exerciseButton.props['data-selected']).toBeTruthy();
-    //   },
-    //   { timeout: 1000 },
-    // );
-    // // Deselect the exercise
-    // fireEvent.press(exerciseButton);
-    // await waitFor(
-    //   () => {
-    //     expect(exerciseButton.props['data-selected']).toBeFalsy();
-    //   },
-    //   { timeout: 1000 },
-    // );
+    render(<AddExercises />);
+    const exercise = ALL_EXERCISES_STUB[0]; // Example exercise
+    const exerciseTouchableOpacity = screen.getByTestId(
+      `exercise-${exercise.name}`,
+    );
+
+    const exerciseView = exerciseTouchableOpacity.props.children[0];
+
+    // Initially not selected
+    expect(exerciseView.props['data-selected']).toBeFalsy();
+
+    log('BEFORE SELECTING EXERCISE', exerciseView.props);
+
+    // Select the exercise
+    fireEvent(exerciseTouchableOpacity, 'pressIn');
+    fireEvent(exerciseTouchableOpacity, 'pressOut');
+
+    await waitFor(
+      () => {
+        const exerciseTouchableOpacity2 = screen.getByTestId(
+          `exercise-${exercise.name}`,
+        );
+
+        const exerciseView2 = exerciseTouchableOpacity2.props.children[0];
+
+        log('AFTER SELECTING EXERCISE', exerciseView2.props);
+
+        expect(exerciseView2.props['data-selected']).toBeTruthy();
+      },
+      { timeout: 1000 },
+    );
+
+    // Deselect the exercise
+    fireEvent(exerciseTouchableOpacity, 'pressIn');
+    fireEvent(exerciseTouchableOpacity, 'pressOut');
+    await waitFor(
+      () => {
+        expect(exerciseView.props['data-selected']).toBeFalsy();
+      },
+      { timeout: 1000 },
+    );
   });
   it('should unselect exercise', () => {});
 });

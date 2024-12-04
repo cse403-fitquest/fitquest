@@ -282,13 +282,12 @@ const AddExercises = () => {
                 <TouchableOpacity
                   onPress={() => onExercisePress(exercise.id)}
                   testID={`exercise-${exercise.name}`}
-                  data-selected={exercise.selected}
-                  data-id={exercise.id}
                 >
                   <View
                     className={clsx('justify-center items-start py-2', {
                       'bg-blue': exercise.selected,
                     })}
+                    data-selected={exercise.selected}
                   >
                     <View className="px-10">
                       <Text
