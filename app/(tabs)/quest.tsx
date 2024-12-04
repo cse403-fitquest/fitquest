@@ -259,7 +259,23 @@ const Quest = () => {
   };
 
   const handleAdvance = async () => {
+    console.log('user', user)
+    console.log("activeWorkoutMinutes",user?.activeWorkoutMinutes)
     if (activeQuest && user?.id) {
+      if (user.activeWorkoutMinutes < 30) {
+        Alert.alert(
+          'Not Enough Workout Minutes',
+          'You need at least 30 workout minutes to start a battle. Go complete a workout first!',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.push('/(tabs)/workout'),
+            },
+          ],
+        );
+        return;
+      }
+
       const newProgress = activeQuest.progress + 50;
       const nextMilestone = activeQuest.milestones.find(
         (milestone) => milestone >= newProgress
@@ -269,17 +285,34 @@ const Quest = () => {
         const isBoss = newProgress === activeQuest.bossThreshold;
         const uniqueKey = Date.now();
 
-        router.replace({
-          pathname: '/fight',
-          params: {
-            isBoss: isBoss ? 'true' : 'false',
-            questName: activeQuest.questName,
-            questId: activeQuest.questID,
-            uniqueKey,
-            questMonsters: activeQuest.monsters,
-            nextProgress: newProgress.toString(),
-          },
-        });
+        // Deduct 30 minutes from activeWorkoutMinutes
+        try {
+          const result = await updateUserProfile(user.id, {
+            activeWorkoutMinutes: user.activeWorkoutMinutes - 30,
+          });
+
+          if (result.success) {
+            setUser({
+              ...user,
+              activeWorkoutMinutes: user.activeWorkoutMinutes - 30,
+            });
+
+            router.replace({
+              pathname: '/fight',
+              params: {
+                isBoss: isBoss ? 'true' : 'false',
+                questName: activeQuest.questName,
+                questId: activeQuest.questID,
+                uniqueKey,
+                questMonsters: activeQuest.monsters,
+                nextProgress: newProgress.toString(),
+              },
+            });
+          }
+        } catch (error) {
+          console.error('Failed to update workout minutes:', error);
+          Alert.alert('Error', 'Failed to start battle. Please try again.');
+        }
       } else {
         // Quest is complete - reset progress
         try {

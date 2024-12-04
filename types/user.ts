@@ -32,6 +32,7 @@ export type User = {
   consumables: string[]; // Array of all user's consumables IDs
   savedWorkouts: WorkoutTemplate[]; // Array of all users' workout templates
   savedWorkoutTemplates: Workout[];
+  activeWorkoutMinutes: number;
   workoutHistory: Workout[];
   privacySettings: {
     isLastWorkoutPublic: boolean;
