@@ -7,10 +7,11 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import AddExercises from '@/app/(workout)/add-exercises';
-import { useWorkoutStore } from '@/store/workout';
-import { useUserStore } from '@/store/user';
+// import { useWorkoutStore } from '@/store/workout';
+// import { useUserStore } from '@/store/user';
 import { ALL_EXERCISES_STUB } from '@/constants/workout';
-import { log, error } from 'console';
+// import { log, error } from 'console';
+import { router } from 'expo-router';
 
 // Mock UUID with unique IDs
 jest.mock('uuid', () => {
@@ -48,20 +49,16 @@ jest.mock('@/store/user', () => ({
 
 jest.mock('@/store/workout', () => ({
   useWorkoutStore: () => ({
-    workout: { exercises: [] },
+    workout: {
+      exercises: [],
+    },
     setWorkout: jest.fn(),
   }),
 }));
 
 describe('AddExercises', () => {
-  //   const setWorkout = jest.fn();
-  //   const setUser = jest.fn();
-  //   const user = { id: '1' };
-
   beforeEach(() => {
     jest.clearAllMocks();
-    // (useWorkoutStore as unknown as jest.Mock).mockReturnValue({ setWorkout });
-    // (useUserStore as unknown as jest.Mock).mockReturnValue({ setUser, user });
   });
 
   it('should render', () => {
@@ -106,8 +103,6 @@ describe('AddExercises', () => {
     // Initially not selected
     expect(exerciseView.props['data-selected']).toBeFalsy();
 
-    log('BEFORE SELECTING EXERCISE', exerciseView.props);
-
     // Select the exercise
     fireEvent.press(exerciseTouchableOpacity);
 
@@ -119,22 +114,57 @@ describe('AddExercises', () => {
 
         const exerciseView2 = exerciseTouchableOpacity2.props.children[0];
 
-        log('AFTER SELECTING EXERCISE', exerciseView2.props);
-
         expect(exerciseView2.props['data-selected']).toBeTruthy();
       },
-      { timeout: 1000 },
+      // { timeout: 1000 },
     );
 
     // Deselect the exercise
-    fireEvent(exerciseTouchableOpacity, 'pressIn');
-    fireEvent(exerciseTouchableOpacity, 'pressOut');
+    fireEvent.press(exerciseTouchableOpacity);
     await waitFor(
       () => {
         expect(exerciseView.props['data-selected']).toBeFalsy();
       },
+      // { timeout: 1000 },
+    );
+  });
+
+  it('should display the checkmark button when exercises are selected', async () => {
+    render(<AddExercises />);
+    const exercise = ALL_EXERCISES_STUB[0];
+    const testID = `exercise-${exercise.name}`;
+    const exerciseTouchableOpacity = screen.getByTestId(testID);
+
+    // Initially, checkmark should not be present
+    expect(screen.queryByTestId('checkmark-button')).toBeNull();
+
+    // Select an exercise
+    fireEvent.press(exerciseTouchableOpacity);
+    await waitFor(() => {
+      expect(screen.getByTestId('checkmark-button')).toBeTruthy();
+    });
+  });
+
+  it('should navigate back on checkmark press', async () => {
+    // log('mockSetWorkout');
+
+    render(<AddExercises />);
+    const exercise = ALL_EXERCISES_STUB[0];
+    const testID = `exercise-${exercise.name}`;
+    const exerciseButton = screen.getByTestId(testID);
+
+    // Select an exercise
+    fireEvent.press(exerciseButton);
+
+    // Press the checkmark
+    const checkmarkButton = screen.getByTestId('checkmark-button');
+    fireEvent.press(checkmarkButton);
+
+    await waitFor(
+      () => {
+        expect(router.back).toHaveBeenCalled();
+      },
       { timeout: 1000 },
     );
   });
-  it('should unselect exercise', () => {});
 });

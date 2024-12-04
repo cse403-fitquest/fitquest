@@ -241,6 +241,7 @@ const AddExercises = () => {
         <TouchableOpacity
           className="absolute bottom-10 right-10 z-50"
           onPress={onCheckmarkPress}
+          testID="checkmark-button"
         >
           <View className="flex-row justify-center items-center bg-blue w-16 h-16 rounded-full shadow shadow-black">
             <Ionicons name="checkmark" size={30} color="white" />
