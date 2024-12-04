@@ -109,8 +109,7 @@ describe('AddExercises', () => {
     log('BEFORE SELECTING EXERCISE', exerciseView.props);
 
     // Select the exercise
-    fireEvent(exerciseTouchableOpacity, 'pressIn');
-    fireEvent(exerciseTouchableOpacity, 'pressOut');
+    fireEvent.press(exerciseTouchableOpacity);
 
     await waitFor(
       () => {
