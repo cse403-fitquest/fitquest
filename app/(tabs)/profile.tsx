@@ -116,7 +116,8 @@ const Profile = () => {
   const [workoutData, setWorkoutData] = useState<{
     weeks: string[];
     counts: number[];
-  }>({ weeks: [], counts: [] });
+    rawCounts: number[];
+  }>({ weeks: [], counts: [], rawCounts: [] });
 
   // useEffect(() => {
   //   console.log('Workout History length:', user?.workoutHistory.length);
@@ -692,12 +693,10 @@ const Profile = () => {
   const getWeeklyWorkoutData = () => {
     const weeks = [];
     const counts = [];
+    const rawCounts = [];
     const today = new Date();
+    const MAX_SEGMENTS = 6;
 
-    // console.log('===== DEBUG =====');
-    // console.log('Today:', today.toLocaleString());
-
-    // Start from beginning of current week
     const endDate = new Date(today);
     endDate.setHours(23, 59, 59, 999);
 
@@ -706,42 +705,28 @@ const Profile = () => {
       weekEnd.setDate(endDate.getDate() - i * 7);
       const weekStart = new Date(weekEnd);
       weekStart.setDate(weekEnd.getDate() - 6);
-      weekStart.setHours(0, 0, 0, 0); // Start of day
+      weekStart.setHours(0, 0, 0, 0);
 
       const weekLabel = `${weekStart.getMonth() + 1}/${weekStart.getDate()}`;
       weeks.unshift(weekLabel);
 
-      // console.log(`\nWeek ${weekLabel}:`, {
-      //   start: weekStart.getTime(),
-      //   end: weekEnd.getTime(),
-      // });
-
-      const workoutsThisWeek =
+      const workoutCount =
         user?.workoutHistory?.filter((workout) => {
           const workoutDate = new Date(
             workout.startedAt['seconds'] * 1000 +
             (workout.startedAt['nanoseconds'] || 0) / 1000000,
           );
-
-          const isInRange =
+          return (
             workoutDate.getTime() >= weekStart.getTime() &&
-            workoutDate.getTime() <= weekEnd.getTime();
-
-          // console.log('Checking workout:', {
-          //   date: workoutDate.toLocaleString(),
-          //   timestamp: workoutDate.getTime(),
-          //   weekStart: weekStart.getTime(),
-          //   weekEnd: weekEnd.getTime(),
-          //   isInRange,
-          // });
-
-          return isInRange;
+            workoutDate.getTime() <= weekEnd.getTime()
+          );
         }).length || 0;
 
-      counts.unshift(workoutsThisWeek);
+      rawCounts.unshift(workoutCount);
+      counts.unshift(Math.min(workoutCount, MAX_SEGMENTS));
     }
 
-    return { weeks, counts };
+    return { weeks, counts, rawCounts };
   };
 
   return (
@@ -863,33 +848,42 @@ const Profile = () => {
           )}
         </View>
 
-        {/* Workouts per Week */}
         <View className="mt-8">
           <Text className="font-bold mb-8 text-xl text-grayDark">
             WORKOUTS PER WEEK
           </Text>
 
           <View className="mt-4">
-            <View className="h-[250px] flex-row items-end justify-between mb-2">
+            <View className="h-[200px] flex-row items-end justify-between mb-2">
               {workoutData.counts.map((count, index) => (
-                <View key={index} className="w-16">
+                <View key={index} className="w-16 items-center">
+                  {/* Overflow count */}
+                  {workoutData.rawCounts[index] > 6 && (
+                    <Text className="text-xs text-gray-500 mb-1">
+                      +{workoutData.rawCounts[index] - 6}
+                    </Text>
+                  )}
+                  {/* Bar */}
                   <View
                     className="w-full border-t border-green-600"
                     style={{
-                      height: count * 48,
+                      height: Math.min(count, 6) * 30,
                       backgroundColor: '#22C55E',
                       position: 'relative',
                     }}
                   >
-                    {Array.from({ length: count - 1 }).map((_, i) => (
-                      <View
-                        key={i}
-                        className="absolute w-full border-b border-white"
-                        style={{
-                          top: (i + 1) * 48,
-                        }}
-                      />
-                    ))}
+                    {/* Segment lines */}
+                    {Array.from({ length: Math.min(count, 6) - 1 }).map(
+                      (_, i) => (
+                        <View
+                          key={i}
+                          className="absolute w-full border-b border-white"
+                          style={{
+                            top: (i + 1) * 30,
+                          }}
+                        />
+                      ),
+                    )}
                   </View>
                 </View>
               ))}
