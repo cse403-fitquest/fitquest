@@ -445,12 +445,7 @@ const Social = () => {
 
       setLoading(true);
 
-      const oldSentRequests = [...sentRequests];
-
-      // Optimistically add email to sent requests
-      setSentRequests([...sentRequests, modalDataOption.email]);
-      setModalVisible(false);
-
+      // first send the request, then update the UI
       const sendFriendRequestResponse = await sendFriendRequest(
         user?.id,
         emailInput,
@@ -466,10 +461,11 @@ const Social = () => {
           sendFriendRequestResponse.error ?? 'Error sending friend request',
         );
 
-        // Revert changes
-        setSentRequests(oldSentRequests);
         return;
       }
+
+      setSentRequests([...sentRequests, modalDataOption.email]);
+      setModalVisible(false);
 
       // Add email to sent requests
     } else if (modalDataOption.option === ModalDataOptions.REMOVE_FRIEND) {
