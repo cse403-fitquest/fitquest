@@ -448,13 +448,17 @@ const Social = () => {
       const oldSentRequests = [...sentRequests];
 
       // Optimistically add email to sent requests
-      setSentRequests([...sentRequests, modalDataOption.email]);
-      setModalVisible(false);
+      // setSentRequests([...sentRequests, modalDataOption.email]);
+      // setModalVisible(false);
 
+      // first send the request, then update the UI
       const sendFriendRequestResponse = await sendFriendRequest(
         user?.id,
         emailInput,
       );
+
+      setSentRequests([...sentRequests, modalDataOption.email]);
+      setModalVisible(false);
 
       setLoading(false);
 
