@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, Alert, FlatList } from 'react-native';
+import { Text, View, TouchableOpacity, Alert, FlatList, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -47,7 +47,6 @@ interface ActiveQuest {
 }
 
 const Quest = () => {
-  // const userID = 'user123';
   const [activeQuest, setActiveQuest] = useState<ActiveQuest | null>(null);
   const [, setShowAbandonModal] = useState<boolean>(false);
   const router = useRouter();
@@ -55,6 +54,7 @@ const Quest = () => {
   const [, setCurrentNodeIndex] = useState(0);
   const { user, setUser } = useUserStore();
   const [availableQuests, setAvailableQuests] = useState<Quest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const startQuest = async (
     userID: string,
@@ -88,11 +88,18 @@ const Quest = () => {
 
   useEffect(() => {
     const loadQuests = async () => {
-      const result = await getAvailableQuests();
-      if (result.success && result.data) {
-        setAvailableQuests(
-          (result.data as { quests: Quest[] }).quests?.slice(0, 2) || [],
-        );
+      setIsLoading(true);
+      try {
+        const result = await getAvailableQuests();
+        if (result.success && result.data) {
+          setAvailableQuests(
+            (result.data as { quests: Quest[] }).quests?.slice(0, 2) || [],
+          );
+        }
+      } catch (error) {
+        console.error('Error loading quests:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -252,38 +259,39 @@ const Quest = () => {
 
   const handleAdvance = async () => {
     if (activeQuest && user?.id) {
+      if (user.activeWorkoutMinutes < 1800) {
+        Alert.alert(
+          'Not Strong Enough...',
+          'You\'ll need to train more before challenging this foe. Return after training!',
+          [
+            {
+              text: 'Grow Stronger',
+              onPress: () => router.push('/(tabs)/workout'),
+            },
+          ],
+        );
+        return;
+      }
+
       const newProgress = activeQuest.progress + 50;
       const nextMilestone = activeQuest.milestones.find(
-        (milestone) => milestone >= newProgress,
+        (milestone) => milestone >= newProgress
       );
 
       if (nextMilestone) {
-        const updatedQuest = { ...activeQuest, progress: newProgress };
-
-        const updatedProgress = {
-          ...user.currentQuest.progress,
-          [activeQuest.questID]: newProgress,
-        };
+        const isBoss = newProgress === activeQuest.bossThreshold;
+        const uniqueKey = Date.now();
 
         try {
           const result = await updateUserProfile(user.id, {
-            currentQuest: {
-              id: activeQuest.questID,
-              progress: updatedProgress,
-            },
+            activeWorkoutMinutes: user.activeWorkoutMinutes - 1800,
           });
 
           if (result.success) {
             setUser({
               ...user,
-              currentQuest: {
-                id: activeQuest.questID,
-                progress: updatedProgress,
-              },
+              activeWorkoutMinutes: user.activeWorkoutMinutes - 1800,
             });
-
-            const isBoss = newProgress === activeQuest.bossThreshold;
-            const uniqueKey = Date.now();
 
             router.replace({
               pathname: '/fight',
@@ -293,30 +301,53 @@ const Quest = () => {
                 questId: activeQuest.questID,
                 uniqueKey,
                 questMonsters: activeQuest.monsters,
+                nextProgress: newProgress.toString(),
               },
             });
-
-            setActiveQuest(updatedQuest);
-          } else {
-            throw new Error(result.error || 'Failed to update progress');
           }
         } catch (error) {
-          console.error('Failed to update quest progress:', error);
-          Alert.alert(
-            'Error',
-            'Failed to update quest progress. Please try again.',
-          );
+          console.error('Failed to update workout minutes:', error);
+          Alert.alert('Error', 'Failed to start battle. Please try again.');
         }
       } else {
-        Alert.alert(
-          'Quest Complete!',
-          'Congratulations! You have completed the quest!',
-          [{ text: 'OK' }],
-        );
-        setActiveQuest(null);
-        setCurrentNodeIndex(0);
-        setVisualProgress(0);
-        setShowAbandonModal(false);
+        try {
+          const updatedProgress = {
+            ...user.currentQuest.progress,
+            [activeQuest.questID]: 0, 
+          };
+
+          const result = await updateUserProfile(user.id, {
+            currentQuest: {
+              id: '', 
+              progress: updatedProgress,
+            },
+          });
+
+          if (result.success) {
+            setUser({
+              ...user,
+              currentQuest: {
+                id: '',
+                progress: updatedProgress,
+              },
+            });
+            Alert.alert(
+              'Quest Complete!',
+              'Congratulations! You have completed the quest!',
+              [{ text: 'OK' }],
+            );
+            setActiveQuest(null);
+            setCurrentNodeIndex(0);
+            setVisualProgress(0);
+            setShowAbandonModal(false);
+          }
+        } catch (error) {
+          console.error('Failed to reset quest progress:', error);
+          Alert.alert(
+            'Error',
+            'Failed to reset quest progress. Please try again.',
+          );
+        }
       }
     }
   };
@@ -413,11 +444,11 @@ const Quest = () => {
               </Text>
             )}
           </View>
-          <View style={{ width: 85, height: 85 }}>
+          <View style={{ width: 80, height: 125 }}>
             <AnimatedSprite
               id={item.boss.spriteId}
-              width={85}
-              height={85}
+              width={100}
+              height={100}
               state={SpriteState.IDLE}
             />
           </View>
@@ -440,54 +471,68 @@ const Quest = () => {
                 ACTIVE QUEST
               </Text>
 
-              {activeQuest ? (
-                <View className="bg-white p-6 rounded-xl border border-gray relative shadow-black shadow-lg min-h-[150px] max-h-[225px]">
-                  <Text className="text-lg font-semibold mb-2">
-                    {activeQuest.questName}
-                  </Text>
-                  {renderMilestoneNodes(activeQuest, activeQuest.progress)}
-                  <TouchableOpacity
-                    className="absolute right-[40px] p-2"
-                    onPress={handleAdvance}
-                  >
-                    <Ionicons
-                      name="arrow-forward-circle-outline"
-                      size={30}
-                      color="lightblue"
-                    />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    className="absolute right-0 p-2"
-                    onPress={handleAbandon}
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={30}
-                      color="lightgray"
-                    />
-                  </TouchableOpacity>
+              {isLoading ? (
+                <View className="bg-white p-6 rounded-xl border border-gray min-h-[180px] items-center justify-center">
+                  <ActivityIndicator size="large" color="#0000ff" />
+                  <Text className="mt-4 text-gray-600">Loading quest data...</Text>
                 </View>
               ) : (
-                <View className="bg-gray-200 p-6 rounded-xl flex items-center justify-center min-h-[180px]">
-                  <Text className="text-lg mb-2">No Active Quest</Text>
-                  <Text className="text-gray-600">
-                    Start a quest from the quest board below
-                  </Text>
-                </View>
+                activeQuest ? (
+                  <View className="bg-white p-6 rounded-xl border border-gray relative shadow-black shadow-lg min-h-[150px] max-h-[225px]">
+                    <Text className="text-lg font-semibold mb-2">
+                      {activeQuest.questName}
+                    </Text>
+                    {renderMilestoneNodes(activeQuest, activeQuest.progress)}
+                    <TouchableOpacity
+                      className="absolute right-[40px] p-2"
+                      onPress={handleAdvance}
+                    >
+                      <Ionicons
+                        name="arrow-forward-circle-outline"
+                        size={30}
+                        color="lightblue"
+                      />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      className="absolute right-0 p-2"
+                      onPress={handleAbandon}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={30}
+                        color="lightgray"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View className="bg-gray-200 p-6 rounded-xl flex items-center justify-center min-h-[180px]">
+                    <Text className="text-lg mb-2">No Active Quest</Text>
+                    <Text className="text-gray-600">
+                      Start a quest from the quest board below
+                    </Text>
+                  </View>
+                )
               )}
             </View>
 
             <Text className="text-xl mb-4 font-bold text-grayDark">
               QUEST BOARD
             </Text>
-            <FlatList
-              data={availableQuests}
-              renderItem={renderItem}
-              keyExtractor={(item) => item.questId}
-              ListHeaderComponent={null}
-              ListFooterComponent={null}
-            />
+            {isLoading ? (
+              <View className="items-center justify-center py-8">
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text className="mt-4 text-gray-600">Loading available quests...</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={availableQuests}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.questId}
+                ListHeaderComponent={null}
+                ListFooterComponent={null}
+              />
+            )}
           </View>
         }
       />

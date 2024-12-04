@@ -23,6 +23,7 @@ export const BASE_USER: User = {
   consumables: [],
   savedWorkouts: [],
   savedWorkoutTemplates: [],
+  activeWorkoutMinutes: 0,
   workoutHistory: [],
   privacySettings: {
     isLastWorkoutPublic: true,
