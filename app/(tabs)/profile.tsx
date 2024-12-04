@@ -669,6 +669,61 @@ const Profile = () => {
       selectedStatForBreakdown.slice(1)
     );
   }
+  //ss
+  const getWeeklyWorkoutData = () => {
+    const weeks = [];
+    const counts = [];
+    const today = new Date();
+
+    console.log('===== DEBUG =====');
+    console.log('Today:', today.toLocaleString());
+
+    // Start from beginning of current week
+    const endDate = new Date(today);
+    endDate.setHours(23, 59, 59, 999);
+
+    for (let i = 0; i < 5; i++) {
+      const weekEnd = new Date(endDate);
+      weekEnd.setDate(endDate.getDate() - i * 7);
+      const weekStart = new Date(weekEnd);
+      weekStart.setDate(weekEnd.getDate() - 6);
+      weekStart.setHours(0, 0, 0, 0); // Start of day
+
+      const weekLabel = `${weekStart.getMonth() + 1}/${weekStart.getDate()}`;
+      weeks.unshift(weekLabel);
+
+      console.log(`\nWeek ${weekLabel}:`, {
+        start: weekStart.getTime(),
+        end: weekEnd.getTime(),
+      });
+
+      const workoutsThisWeek =
+        user?.workoutHistory?.filter((workout) => {
+          const workoutDate = new Date(
+            workout.startedAt['seconds'] * 1000 +
+            (workout.startedAt['nanoseconds'] || 0) / 1000000,
+          );
+
+          const isInRange =
+            workoutDate.getTime() >= weekStart.getTime() &&
+            workoutDate.getTime() <= weekEnd.getTime();
+
+          console.log('Checking workout:', {
+            date: workoutDate.toLocaleString(),
+            timestamp: workoutDate.getTime(),
+            weekStart: weekStart.getTime(),
+            weekEnd: weekEnd.getTime(),
+            isInRange,
+          });
+          //ss
+          return isInRange;
+        }).length || 0;
+
+      counts.unshift(workoutsThisWeek);
+    }
+
+    return { weeks, counts };
+  };
 
   return (
     <SafeAreaView className=" bg-offWhite">
@@ -797,23 +852,33 @@ const Profile = () => {
 
           <View className="mt-4">
             <View className="h-[250px] flex-row items-end justify-between mb-2">
-              {[5, 2, 3, 1, 4].map((value) => (
-                <View key={value} className="w-16">
-                  {[...Array(value)].map((_, blockIndex) => (
-                    <View
-                      key={blockIndex}
-                      className="h-12 w-full bg-green border-t border-green-600"
-                      style={{
-                        backgroundColor: '#22C55E',
-                      }}
-                    />
-                  ))}
+              {getWeeklyWorkoutData().counts.map((count, index) => (
+                <View key={index} className="w-16">
+                  <View
+                    className="w-full border-t border-green-600"
+                    style={{
+                      height: count * 48,
+                      backgroundColor: '#22C55E',
+                      position: 'relative',
+                    }}
+                  >
+                    {/* Add separator lines for each workout */}
+                    {Array.from({ length: count - 1 }).map((_, i) => (
+                      <View
+                        key={i}
+                        className="absolute w-full border-b border-white"
+                        style={{
+                          top: (i + 1) * 48,
+                        }}
+                      />
+                    ))}
+                  </View>
                 </View>
               ))}
             </View>
 
             <View className="flex-row justify-between h-[50px]">
-              {['9/16', '9/23', '9/30', '10/7', '10/14'].map((date) => (
+              {getWeeklyWorkoutData().weeks.map((date) => (
                 <Text key={date} className="text-gray-500 text-sm">
                   {date}
                 </Text>
