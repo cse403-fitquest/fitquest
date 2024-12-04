@@ -113,6 +113,25 @@ const Profile = () => {
     user?.profileInfo.weight?.toString() || '',
   );
 
+  const [workoutData, setWorkoutData] = useState<{
+    weeks: string[];
+    counts: number[];
+  }>({ weeks: [], counts: [] });
+
+  // useEffect(() => {
+  //   console.log('Workout History length:', user?.workoutHistory.length);
+  //   const data = getWeeklyWorkoutData();
+  //   console.log('Generated Workout Data:', data);
+  //   setWorkoutData(data);
+  // }, [user?.workoutHistory]);
+
+  useEffect(() => {
+    if (user?.workoutHistory) {
+      const data = getWeeklyWorkoutData();
+      setWorkoutData(data);
+    }
+  }, [user?.workoutHistory]);
+
   const isItemEquipped = selectedItem
     ? user?.equippedItems.includes(selectedItem.id)
     : false;
@@ -669,14 +688,14 @@ const Profile = () => {
       selectedStatForBreakdown.slice(1)
     );
   }
-  //ss
+
   const getWeeklyWorkoutData = () => {
     const weeks = [];
     const counts = [];
     const today = new Date();
 
-    console.log('===== DEBUG =====');
-    console.log('Today:', today.toLocaleString());
+    // console.log('===== DEBUG =====');
+    // console.log('Today:', today.toLocaleString());
 
     // Start from beginning of current week
     const endDate = new Date(today);
@@ -692,10 +711,10 @@ const Profile = () => {
       const weekLabel = `${weekStart.getMonth() + 1}/${weekStart.getDate()}`;
       weeks.unshift(weekLabel);
 
-      console.log(`\nWeek ${weekLabel}:`, {
-        start: weekStart.getTime(),
-        end: weekEnd.getTime(),
-      });
+      // console.log(`\nWeek ${weekLabel}:`, {
+      //   start: weekStart.getTime(),
+      //   end: weekEnd.getTime(),
+      // });
 
       const workoutsThisWeek =
         user?.workoutHistory?.filter((workout) => {
@@ -708,14 +727,14 @@ const Profile = () => {
             workoutDate.getTime() >= weekStart.getTime() &&
             workoutDate.getTime() <= weekEnd.getTime();
 
-          console.log('Checking workout:', {
-            date: workoutDate.toLocaleString(),
-            timestamp: workoutDate.getTime(),
-            weekStart: weekStart.getTime(),
-            weekEnd: weekEnd.getTime(),
-            isInRange,
-          });
-          //ss
+          // console.log('Checking workout:', {
+          //   date: workoutDate.toLocaleString(),
+          //   timestamp: workoutDate.getTime(),
+          //   weekStart: weekStart.getTime(),
+          //   weekEnd: weekEnd.getTime(),
+          //   isInRange,
+          // });
+
           return isInRange;
         }).length || 0;
 
@@ -852,7 +871,7 @@ const Profile = () => {
 
           <View className="mt-4">
             <View className="h-[250px] flex-row items-end justify-between mb-2">
-              {getWeeklyWorkoutData().counts.map((count, index) => (
+              {workoutData.counts.map((count, index) => (
                 <View key={index} className="w-16">
                   <View
                     className="w-full border-t border-green-600"
@@ -862,7 +881,6 @@ const Profile = () => {
                       position: 'relative',
                     }}
                   >
-                    {/* Add separator lines for each workout */}
                     {Array.from({ length: count - 1 }).map((_, i) => (
                       <View
                         key={i}
@@ -878,7 +896,7 @@ const Profile = () => {
             </View>
 
             <View className="flex-row justify-between h-[50px]">
-              {getWeeklyWorkoutData().weeks.map((date) => (
+              {workoutData.weeks.map((date) => (
                 <Text key={date} className="text-gray-500 text-sm">
                   {date}
                 </Text>
