@@ -2,13 +2,13 @@
 
 // import React from 'react';
 // import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import Shop from '@/app/(tabs)/shop'; // Update path if necessary
 import React from 'react';
 // import { useUserStore } from '@/store/user';
 // import { useItemStore } from '@/store/item';
 // import { BASE_ITEM } from '@/constants/item';
-// import { ItemType } from '@/types/item';
+import { ItemType } from '@/types/item';
 // import { purchaseItem } from '@/services/item';
 // import { BASE_USER } from '@/constants/user';
 // Mock Ionicons
@@ -37,41 +37,41 @@ jest.mock('@/services/item', () => ({
 //   consumables: [],
 // };
 
-// const mockItems = [
-//   {
-//     id: 'item-1',
-//     name: 'Sword',
-//     type: ItemType.WEAPON,
-//     cost: 50,
-//     power: 10,
-//     speed: 5,
-//     health: 0,
-//     spriteID: 'sprite-1',
-//     description: 'A sharp sword.',
-//   },
-//   {
-//     id: 'item-2',
-//     name: 'Shield',
-//     type: ItemType.ARMOR,
-//     cost: 75,
-//     power: 0,
-//     speed: -2,
-//     health: 20,
-//     spriteID: 'sprite-2',
-//     description: 'A sturdy shield.',
-//   },
-//   {
-//     id: 'item-3',
-//     name: 'Small Potion',
-//     type: ItemType.POTION_SMALL,
-//     cost: 10,
-//     power: 0,
-//     speed: 0,
-//     health: 5,
-//     spriteID: 'sprite-3',
-//     description: 'Restores a small amount of health.',
-//   },
-// ];
+const mockItems = [
+  {
+    id: 'item-1',
+    name: 'Sword',
+    type: ItemType.WEAPON,
+    cost: 50,
+    power: 10,
+    speed: 5,
+    health: 0,
+    spriteID: 'sprite-1',
+    description: 'A sharp sword.',
+  },
+  {
+    id: 'item-2',
+    name: 'Shield',
+    type: ItemType.ARMOR,
+    cost: 75,
+    power: 0,
+    speed: -2,
+    health: 20,
+    spriteID: 'sprite-2',
+    description: 'A sturdy shield.',
+  },
+  {
+    id: 'item-3',
+    name: 'Small Potion',
+    type: ItemType.POTION_SMALL,
+    cost: 10,
+    power: 0,
+    speed: 0,
+    health: 5,
+    spriteID: 'sprite-3',
+    description: 'Restores a small amount of health.',
+  },
+];
 
 // Set up mocks
 // beforeEach(() => {
@@ -110,15 +110,15 @@ describe('Shop Component', () => {
     // expect(getByText('Small Potion')).toBeTruthy();
   });
 
-  // it('opens and displays item details in a modal when an item is selected', () => {
-  //   const { getByText } = render(Shop());
-  //   fireEvent.press(getByText('Sword'));
+  it('opens and displays item details in a modal when an item is selected', () => {
+    const { getByText } = render(Shop());
+    fireEvent.press(getByText('Sword'));
 
-  //   // Check for modal content
-  //   expect(getByText('Equip Sword')).toBeTruthy();
-  //   expect(getByText('A sharp sword.')).toBeTruthy();
-  //   expect(getByText(`${mockItems[0].cost} Gold to purchase`)).toBeTruthy();
-  // });
+    // Check for modal content
+    expect(getByText('Equip Sword')).toBeTruthy();
+    expect(getByText('A sharp sword.')).toBeTruthy();
+    expect(getByText(`${mockItems[0].cost} Gold to purchase`)).toBeTruthy();
+  });
 
   // it('shows an alert if the user does not have enough gold to purchase an item', async () => {
   //   const { getByText } = render(Shop());
