@@ -10,6 +10,7 @@ import React from 'react';
 // import { BASE_ITEM } from '@/constants/item';
 // import { ItemType } from '@/types/item';
 // import { purchaseItem } from '@/services/item';
+// import { BASE_USER } from '@/constants/user';
 // Mock Ionicons
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: '',
@@ -31,7 +32,7 @@ jest.mock('@/services/item', () => ({
 // Test data
 // const mockUser = {
 //   id: 'user-1',
-//   gold: 100,
+//   gold: 0,
 //   equipments: [],
 //   consumables: [],
 // };
@@ -95,13 +96,13 @@ describe('Shop Component', () => {
     expect(true).toBe(true);
     // Check for Shop header and user gold
     expect(getByText('Shop')).toBeTruthy();
-    // expect(getByText(`${mockUser.gold} Gold`)).toBeTruthy();
+    expect(getByText(`0 Gold`)).toBeTruthy();
 
-    // // Check for item categories
-    // expect(getByText('WEAPONS')).toBeTruthy();
-    // expect(getByText('ARMORS')).toBeTruthy();
-    // expect(getByText('ACCESSORIES')).toBeTruthy();
-    // expect(getByText('POTIONS')).toBeTruthy();
+    // Check for item categories
+    expect(getByText('WEAPONS')).toBeTruthy();
+    expect(getByText('ARMORS')).toBeTruthy();
+    expect(getByText('ACCESSORIES')).toBeTruthy();
+    expect(getByText('POTIONS')).toBeTruthy();
 
     // // Check for items
     // expect(getByText('Sword')).toBeTruthy();
