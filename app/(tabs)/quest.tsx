@@ -266,7 +266,8 @@ const Quest = () => {
 
   const handleAdvance = async () => {
     if (activeQuest && user?.id) {
-      if (user.activeWorkoutMinutes < 1800) {
+      // TODO: Change this to 30 minutes
+      if (user.activeWorkoutMinutes < 10) {
         Alert.alert(
           'Not Strong Enough...',
           "You'll need to train more before challenging this foe. Return after training!",
