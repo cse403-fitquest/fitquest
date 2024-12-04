@@ -560,6 +560,8 @@ const NewWorkout = () => {
       workoutHistory: [newWorkout, ...user.workoutHistory],
       exp: userAfterExpGain.exp,
       attributePoints: userAfterExpGain.attributePoints,
+      activeWorkoutMinutes:
+        userAfterExpGain.activeWorkoutMinutes + newWorkout.duration,
     });
 
     console.log('User workout history and exp updated.');
