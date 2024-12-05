@@ -113,6 +113,19 @@ const Profile = () => {
     user?.profileInfo.weight?.toString() || '',
   );
 
+  const [workoutData, setWorkoutData] = useState<{
+    weeks: string[];
+    counts: number[];
+    rawCounts: number[];
+  }>({ weeks: [], counts: [], rawCounts: [] });
+
+  useEffect(() => {
+    if (user?.workoutHistory) {
+      const data = getWeeklyWorkoutData(user);
+      setWorkoutData(data);
+    }
+  }, [user?.workoutHistory]);
+
   const isItemEquipped = selectedItem
     ? user?.equippedItems.includes(selectedItem.id)
     : false;
@@ -670,6 +683,52 @@ const Profile = () => {
     );
   }
 
+  const getWeeklyWorkoutData = (user: User) => {
+    const weeks = [];
+    const counts = [];
+    const rawCounts = [];
+    const MAX_SEGMENTS = 6;
+
+    // Get this week's Monday
+    const today = new Date();
+    const currentWeekMonday = new Date(today);
+    const diff = currentWeekMonday.getDate() - currentWeekMonday.getDay() + 1;
+    currentWeekMonday.setDate(diff);
+    currentWeekMonday.setHours(0, 0, 0, 0);
+
+    // Go back 4 weeks from this Monday
+    const startDate = new Date(currentWeekMonday);
+    startDate.setDate(startDate.getDate() - 4 * 7);
+
+    // Move forward 5 weeks, starting from each Monday
+    for (let i = 0; i < 5; i++) {
+      const weekStart = new Date(startDate);
+      weekStart.setDate(startDate.getDate() + i * 7);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      const weekSunday = new Date(weekEnd);
+      const weekLabel = `${weekSunday.getMonth() + 1}/${weekSunday.getDate()}`;
+      weeks.push(weekLabel);
+
+      const workoutCount =
+        user?.workoutHistory?.filter((workout) => {
+          // For some reason, the date is stored as an object with seconds and nanoseconds
+          const workoutDate = workout.startedAt;
+          return (
+            workoutDate.getTime() >= weekStart.getTime() &&
+            workoutDate.getTime() <= weekEnd.getTime()
+          );
+        }).length || 0;
+
+      rawCounts.push(workoutCount);
+      counts.push(Math.min(workoutCount, MAX_SEGMENTS));
+    }
+
+    return { weeks, counts, rawCounts };
+  };
+
   return (
     <SafeAreaView className=" bg-offWhite">
       <ScrollView className="w-full h-full px-6 py-8">
@@ -789,31 +848,49 @@ const Profile = () => {
           )}
         </View>
 
-        {/* Workouts per Week */}
         <View className="mt-8">
           <Text className="font-bold mb-8 text-xl text-grayDark">
             WORKOUTS PER WEEK
           </Text>
 
           <View className="mt-4">
-            <View className="h-[250px] flex-row items-end justify-between mb-2">
-              {[5, 2, 3, 1, 4].map((value) => (
-                <View key={value} className="w-16">
-                  {[...Array(value)].map((_, blockIndex) => (
-                    <View
-                      key={blockIndex}
-                      className="h-12 w-full bg-green border-t border-green-600"
-                      style={{
-                        backgroundColor: '#22C55E',
-                      }}
-                    />
-                  ))}
+            <View className="h-[200px] flex-row items-end justify-between mb-2">
+              {workoutData.counts.map((count, index) => (
+                <View key={index} className="w-16 items-center">
+                  {/* Overflow count */}
+                  {workoutData.rawCounts[index] > 6 && (
+                    <Text className="text-xs text-gray-500 mb-1">
+                      +{workoutData.rawCounts[index] - 6}
+                    </Text>
+                  )}
+                  {/* Bar */}
+                  <View
+                    className="w-full border-t border-green-600"
+                    style={{
+                      height: Math.min(count, 6) * 30,
+                      backgroundColor: '#22C55E',
+                      position: 'relative',
+                    }}
+                  >
+                    {/* Segment lines */}
+                    {Array.from({ length: Math.min(count, 6) - 1 }).map(
+                      (_, i) => (
+                        <View
+                          key={i}
+                          className="absolute w-full border-b border-white"
+                          style={{
+                            top: (i + 1) * 30,
+                          }}
+                        />
+                      ),
+                    )}
+                  </View>
                 </View>
               ))}
             </View>
 
             <View className="flex-row justify-between h-[50px]">
-              {['9/16', '9/23', '9/30', '10/7', '10/14'].map((date) => (
+              {workoutData.weeks.map((date) => (
                 <Text key={date} className="text-gray-500 text-sm">
                   {date}
                 </Text>
