@@ -93,4 +93,8 @@ export enum AnimatedSpriteID {
   WEREWOLF_BROWN = 'werewolf_brown',
   BEAR_BROWN = 'bear_brown',
   BEAR_BLUE = 'bear_blue',
+
+  // Consumables
+  HEALTH_POTION_SMALL = 'health_potion_small',
+  HEALTH_POTION_LARGE = 'health_potion_large',
 }
