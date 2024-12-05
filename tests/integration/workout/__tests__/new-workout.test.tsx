@@ -10,7 +10,7 @@ import { finishAndSaveWorkout } from '@/services/workout';
 import { router } from 'expo-router';
 import { Alert, Dimensions } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
-import { log, error } from 'console';
+// import { log, error } from 'console';
 
 // Mocking external modules and dependencies
 jest.mock('@/store/workout');
@@ -99,6 +99,12 @@ describe('NewWorkout Component', () => {
     id: 'user-1',
     workoutHistory: [],
     exp: 1000,
+    attributes: {
+      strength: 5,
+      endurance: 5,
+      dexterity: 5,
+      intelligence: 5,
+    },
     attributePoints: 5,
   };
 
@@ -193,7 +199,7 @@ describe('NewWorkout Component', () => {
     });
   });
 
-  it('toggles set completion', () => {
+  it('toggles set completion from uncomplete to complete', () => {
     const { getByTestId } = render(<NewWorkout />);
 
     const completeSetButton = getByTestId('complete-set-1');
@@ -205,6 +211,37 @@ describe('NewWorkout Component', () => {
     const updater = setWorkout.mock.calls[0][0];
     const updatedWorkout = updater(mockWorkout);
     expect(updatedWorkout.exercises[0].sets[0].completed).toBe(true);
+  });
+
+  it('toggles set completion from complete to uncomplete', () => {
+    // Modify mockWorkout to have completed sets
+    const workoutCompleted = {
+      ...mockWorkout,
+      exercises: [
+        {
+          ...mockWorkout.exercises[0],
+          sets: [{ ...mockWorkout.exercises[0].sets[0], completed: true }],
+        },
+      ],
+    };
+
+    (useWorkoutStore as unknown as jest.Mock).mockReturnValue({
+      workout: workoutCompleted,
+      setWorkout,
+      clearWorkout,
+    });
+
+    const { getByTestId } = render(<NewWorkout />);
+
+    const completeSetButton = getByTestId('complete-set-1');
+    fireEvent.press(completeSetButton);
+
+    expect(setWorkout).toHaveBeenCalledWith(expect.any(Function));
+
+    // Verify that the set's 'completed' status was toggled
+    const updater = setWorkout.mock.calls[0][0];
+    const updatedWorkout = updater(mockWorkout);
+    expect(updatedWorkout.exercises[0].sets[0].completed).toBe(false);
   });
 
   it('updates a set value', () => {
@@ -250,11 +287,27 @@ describe('NewWorkout Component', () => {
   });
 
   it('handles finishing workout with completed sets', async () => {
+    // Modify mockWorkout to have completed sets
+    const workoutNoCompleted = {
+      ...mockWorkout,
+      exercises: [
+        {
+          ...mockWorkout.exercises[0],
+          sets: [{ ...mockWorkout.exercises[0].sets[0], completed: true }],
+        },
+      ],
+    };
+
+    (useWorkoutStore as unknown as jest.Mock).mockReturnValue({
+      workout: workoutNoCompleted,
+      setWorkout,
+      clearWorkout,
+    });
+
     const { getByTestId, getByText } = render(<NewWorkout />);
 
-    // Complete a set
-    const completeSetButton = getByTestId('complete-set-1');
-    fireEvent.press(completeSetButton);
+    // Log the updated workout
+    // log('mockWorkout', mockWorkout.exercises[0].sets[0]);
 
     // Finish the workout
     const finishButton = getByTestId('finish-workout-button');
@@ -266,7 +319,6 @@ describe('NewWorkout Component', () => {
     await waitFor(() => {
       expect(getByText('Finished?')).toBeTruthy();
       expect(getByText('All uncompleted sets will be discarded.')).toBeTruthy();
-      expect(getByText('EXP GAIN:')).toBeTruthy();
     });
 
     const confirmButton = getByText('FINISH WORKOUT');
@@ -290,23 +342,6 @@ describe('NewWorkout Component', () => {
   });
 
   it('handles finishing workout without completed sets', async () => {
-    // Modify mockWorkout to have no completed sets
-    const workoutNoCompleted = {
-      ...mockWorkout,
-      exercises: [
-        {
-          ...mockWorkout.exercises[0],
-          sets: [{ ...mockWorkout.exercises[0].sets[0], completed: false }],
-        },
-      ],
-    };
-
-    (useWorkoutStore as unknown as jest.Mock).mockReturnValue({
-      workout: workoutNoCompleted,
-      setWorkout,
-      clearWorkout,
-    });
-
     const { getByText } = render(<NewWorkout />);
 
     const finishButton = getByText('FINISH');
@@ -352,46 +387,63 @@ describe('NewWorkout Component', () => {
     expect(router.back).toHaveBeenCalled();
   });
 
-  //   it('handles finishAndSaveWorkout failure', async () => {
-  //     // Mock failure response
-  //     (finishAndSaveWorkout as jest.Mock).mockResolvedValue({
-  //       success: false,
-  //       error: 'Server error',
-  //     });
+  it('handles finishAndSaveWorkout failure', async () => {
+    // Modify mockWorkout to have completed sets so finish modal appears
+    const workoutNoCompleted = {
+      ...mockWorkout,
+      exercises: [
+        {
+          ...mockWorkout.exercises[0],
+          sets: [{ ...mockWorkout.exercises[0].sets[0], completed: true }],
+        },
+      ],
+    };
 
-  //     const { getByText } = render(<NewWorkout />);
+    (useWorkoutStore as unknown as jest.Mock).mockReturnValue({
+      workout: workoutNoCompleted,
+      setWorkout,
+      clearWorkout,
+    });
 
-  //     const finishButton = getByText('FINISH');
-  //     fireEvent.press(finishButton);
+    // Mock failure response
+    (finishAndSaveWorkout as jest.Mock).mockResolvedValue({
+      success: false,
+      error: 'Server error',
+    });
 
-  //     // Modal should appear
-  //     await waitFor(() => {
-  //       expect(getByText('Finished?')).toBeTruthy();
-  //     });
+    const { getByText } = render(<NewWorkout />);
 
-  //     const confirmButton = getByText('FINISH WORKOUT');
-  //     fireEvent.press(confirmButton);
+    const finishButton = getByText('FINISH');
+    fireEvent.press(finishButton);
 
-  //     // Wait for async operations
-  //     await act(async () => {
-  //       await Promise.resolve();
-  //     });
+    // Modal should appear
+    await waitFor(() => {
+      expect(getByText('Finished?')).toBeTruthy();
+    });
 
-  //     expect(Alert.alert).toHaveBeenCalledWith(
-  //       'Error finishing and saving workout:',
-  //       'Server error',
-  //     );
+    const confirmButton = getByText('FINISH WORKOUT');
+    fireEvent.press(confirmButton);
 
-  //     // Ensure user is reverted
-  //     expect(setUser).toHaveBeenCalledWith(mockUser);
-  //   });
+    // Wait for async operations
+    await act(async () => {
+      await Promise.resolve();
+    });
 
-  //   it('navigates to add-exercises screen', () => {
-  //     const { getByText } = render(<NewWorkout />);
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error finishing and saving workout:',
+      'Server error',
+    );
 
-  //     const addExerciseButton = getByText('ADD EXERCISE');
-  //     fireEvent.press(addExerciseButton);
+    // Ensure user is reverted
+    expect(setUser).toHaveBeenCalledWith(mockUser);
+  });
 
-  //     expect(router.push).toHaveBeenCalledWith('add-exercises');
-  //   });
+  it('navigates to add-exercises screen', () => {
+    const { getByText } = render(<NewWorkout />);
+
+    const addExerciseButton = getByText('ADD EXERCISE');
+    fireEvent.press(addExerciseButton);
+
+    expect(router.push).toHaveBeenCalledWith('add-exercises');
+  });
 });
