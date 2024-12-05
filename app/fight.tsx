@@ -82,9 +82,7 @@ const Combat = () => {
 
         if (isBoss === 'true') {
           const formattedQuestId = `quest_${questId}`;
-
           const questDocRef = doc(FIREBASE_DB, 'quests', formattedQuestId);
-
           const questDoc = await getDoc(questDocRef);
 
           if (questDoc.exists()) {
@@ -92,7 +90,7 @@ const Combat = () => {
             const bossData = questData.boss;
 
             setMonster({
-              name: questData.questName,
+              name: questData.questName.replace(/^hunt\s+/i, ''),
               maxHealth: Math.floor(
                 bossData.health * 20 * difficultyMultiplier,
               ),
