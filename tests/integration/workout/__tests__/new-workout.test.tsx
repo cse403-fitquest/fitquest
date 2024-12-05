@@ -317,8 +317,7 @@ describe('NewWorkout Component', () => {
 
     // Modal should appear
     await waitFor(() => {
-      expect(getByText('Finished?')).toBeTruthy();
-      expect(getByText('All uncompleted sets will be discarded.')).toBeTruthy();
+      expect(getByTestId('finish-workout-confirm-modal')).toBeTruthy();
     });
 
     const confirmButton = getByText('FINISH WORKOUT');
@@ -342,19 +341,14 @@ describe('NewWorkout Component', () => {
   });
 
   it('handles finishing workout without completed sets', async () => {
-    const { getByText } = render(<NewWorkout />);
+    const { getByText, getByTestId } = render(<NewWorkout />);
 
-    const finishButton = getByText('FINISH');
+    const finishButton = getByTestId('finish-workout-button');
     fireEvent.press(finishButton);
 
     // Modal should appear with "No Completed Sets"
     await waitFor(() => {
-      expect(getByText('No Completed Sets')).toBeTruthy();
-      expect(
-        getByText(
-          'There are no completed sets. Are you sure you want to finish? This will amount to cancelling this workout',
-        ),
-      ).toBeTruthy();
+      expect(getByTestId('finish-cancel-workout-confirm-modal')).toBeTruthy();
     });
 
     const confirmCancelButton = getByText('FINISH WORKOUT');
@@ -365,19 +359,14 @@ describe('NewWorkout Component', () => {
   });
 
   it('handles canceling workout', async () => {
-    const { getByText } = render(<NewWorkout />);
+    const { getByTestId, getByText } = render(<NewWorkout />);
 
-    const cancelButton = getByText('CANCEL WORKOUT');
+    const cancelButton = getByTestId('cancel-workout-button');
     fireEvent.press(cancelButton);
 
     // Modal should appear
     await waitFor(() => {
-      expect(getByText('Cancel Workout?')).toBeTruthy();
-      expect(
-        getByText(
-          'Are you sure you want to cancel and discard this workout? This cannot be undone.',
-        ),
-      ).toBeTruthy();
+      expect(getByTestId('cancel-workout-confirm-modal')).toBeTruthy();
     });
 
     const confirmCancelButton = getByText('CANCEL THIS WORKOUT');
@@ -411,14 +400,14 @@ describe('NewWorkout Component', () => {
       error: 'Server error',
     });
 
-    const { getByText } = render(<NewWorkout />);
+    const { getByText, getByTestId } = render(<NewWorkout />);
 
-    const finishButton = getByText('FINISH');
+    const finishButton = getByTestId('finish-workout-button');
     fireEvent.press(finishButton);
 
     // Modal should appear
     await waitFor(() => {
-      expect(getByText('Finished?')).toBeTruthy();
+      expect(getByTestId('finish-workout-confirm-modal')).toBeTruthy();
     });
 
     const confirmButton = getByText('FINISH WORKOUT');
@@ -439,9 +428,9 @@ describe('NewWorkout Component', () => {
   });
 
   it('navigates to add-exercises screen', () => {
-    const { getByText } = render(<NewWorkout />);
+    const { getByTestId } = render(<NewWorkout />);
 
-    const addExerciseButton = getByText('ADD EXERCISE');
+    const addExerciseButton = getByTestId('add-exercises-button');
     fireEvent.press(addExerciseButton);
 
     expect(router.push).toHaveBeenCalledWith('add-exercises');

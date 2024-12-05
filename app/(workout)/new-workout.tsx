@@ -415,7 +415,10 @@ const NewWorkout = () => {
       setModalContent({
         title: 'No Completed Sets',
         content: (
-          <View className="w-full justify-start items-start pt-3 pb-1">
+          <View
+            className="w-full justify-start items-start pt-3 pb-1"
+            testID="finish-cancel-workout-confirm-modal"
+          >
             <Text>
               There are no completed sets. Are you sure you want to finish? This
               will amount to cancelling this workout
@@ -441,7 +444,10 @@ const NewWorkout = () => {
     setModalContent({
       title: 'Finished?',
       content: (
-        <View className="w-full justify-start items-start pt-3 pb-1">
+        <View
+          className="w-full justify-start items-start pt-3 pb-1"
+          testID="finish-workout-confirm-modal"
+        >
           <Text className="mb-3">All uncompleted sets will be discarded.</Text>
 
           <Text className="text-md font-bold">
@@ -465,7 +471,10 @@ const NewWorkout = () => {
     setModalContent({
       title: 'Cancel Workout?',
       content: (
-        <View className="w-full justify-start items-start pt-3 pb-1">
+        <View
+          className="w-full justify-start items-start pt-3 pb-1"
+          testID="cancel-workout-confirm-modal"
+        >
           <Text>
             Are you sure you want to cancel and discard this workout? This
             cannot be undone.
@@ -752,7 +761,10 @@ const NewWorkout = () => {
             className="mb-4"
             onPress={() => router.push('add-exercises' as Href)}
           >
-            <Text className="text-blue text-lg font-semibold ">
+            <Text
+              className="text-blue text-lg font-semibold "
+              testID="add-exercises-button"
+            >
               ADD EXERCISE
             </Text>
           </TouchableOpacity>
