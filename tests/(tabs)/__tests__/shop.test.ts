@@ -25,6 +25,48 @@ jest.mock('@expo/vector-icons', () => ({
 jest.mock('@/services/item', () => ({
   purchaseItem: jest.fn(),
 }));
+// Mock UUID with unique IDs
+jest.mock('uuid', () => {
+  let uuidCounter = 0; // Define the counter inside the factory function
+  return {
+    v4: jest.fn(() => `unique-id-${++uuidCounter}`),
+  };
+});
+
+// Mock asyncstorage
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
+
+// Mock Ionicons
+jest.mock('@expo/vector-icons', () => ({
+  Ionicons: '',
+}));
+
+// Mock expo-router
+jest.mock('expo-router', () => ({
+  router: {
+    navigate: jest.fn(),
+    back: jest.fn(),
+  },
+}));
+
+// Mock Zustand stores
+jest.mock('@/store/user', () => ({
+  useUserStore: () => ({
+    user: { id: 'user-1', name: 'Test User' },
+    setUser: jest.fn(),
+  }),
+}));
+
+jest.mock('@/store/workout', () => ({
+  useWorkoutStore: () => ({
+    workout: {
+      exercises: [],
+    },
+    setWorkout: jest.fn(),
+  }),
+}));
 // jest.mock('react', () => ({
 //   useState: jest.fn(),
 // }));
@@ -111,7 +153,8 @@ describe('Shop Component', () => {
   });
 
   it('opens and displays item details in a modal when an item is selected', () => {
-    const { getByText } = render(Shop());
+    render(React.createElement<typeof Shop>(Shop));
+    const { getByText } = render(React.createElement<typeof Shop>(Shop));
     fireEvent.press(getByText('Sword'));
 
     // Check for modal content
