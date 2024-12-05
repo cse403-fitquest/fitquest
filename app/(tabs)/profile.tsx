@@ -119,16 +119,9 @@ const Profile = () => {
     rawCounts: number[];
   }>({ weeks: [], counts: [], rawCounts: [] });
 
-  // useEffect(() => {
-  //   console.log('Workout History length:', user?.workoutHistory.length);
-  //   const data = getWeeklyWorkoutData();
-  //   console.log('Generated Workout Data:', data);
-  //   setWorkoutData(data);
-  // }, [user?.workoutHistory]);
-
   useEffect(() => {
     if (user?.workoutHistory) {
-      const data = getWeeklyWorkoutData();
+      const data = getWeeklyWorkoutData(user);
       setWorkoutData(data);
     }
   }, [user?.workoutHistory]);
@@ -690,7 +683,7 @@ const Profile = () => {
     );
   }
 
-  const getWeeklyWorkoutData = () => {
+  const getWeeklyWorkoutData = (user: User) => {
     const weeks = [];
     const counts = [];
     const rawCounts = [];
@@ -721,10 +714,8 @@ const Profile = () => {
 
       const workoutCount =
         user?.workoutHistory?.filter((workout) => {
-          const workoutDate = new Date(
-            workout.startedAt['seconds'] * 1000 +
-            (workout.startedAt['nanoseconds'] || 0) / 1000000,
-          );
+          // For some reason, the date is stored as an object with seconds and nanoseconds
+          const workoutDate = workout.startedAt;
           return (
             workoutDate.getTime() >= weekStart.getTime() &&
             workoutDate.getTime() <= weekEnd.getTime()
