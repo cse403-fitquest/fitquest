@@ -173,8 +173,6 @@ const Combat = () => {
 
   // const NORMAL_ATTACK = 20;
   // const STRONG_ATTACK = 35;
-  const SMALL_POTION_HEAL = 30;
-  const LARGE_POTION_HEAL = 70;
 
   const [showVictoryModal, setShowVictoryModal] = useState(false);
   const [modalType, setModalType] = useState<'victory' | 'defeat'>('victory');
@@ -257,6 +255,7 @@ const Combat = () => {
     setCombatLog([]);
     setSmallPotionsAwarded(0);
     setLargePotionAwarded(false);
+    setGoldAwarded(0);
   };
 
   useEffect(() => {
@@ -324,7 +323,8 @@ const Combat = () => {
   };
 
   const handleAttack = async (isStrong = false) => {
-    if (isAnimating || !turnQueue[currentTurnIndex].isPlayer) return;
+    console.log('health', player.health);
+    if (isAnimating || !turnQueue[currentTurnIndex]?.isPlayer) return;
 
     const baseDamage = isStrong ? Math.floor(player.power * 1.5) : player.power;
     const damage = getRandomDamage(baseDamage);
@@ -368,7 +368,7 @@ const Combat = () => {
     if (
       !user?.id ||
       isAnimating ||
-      !turnQueue[currentTurnIndex].isPlayer ||
+      !turnQueue[currentTurnIndex]?.isPlayer ||
       potions[type] <= 0
     )
       return;
@@ -377,13 +377,13 @@ const Combat = () => {
 
     const potionId =
       type === 'small' ? 'health_potion_small' : 'health_potion_large';
-    const healAmount = type === 'small' ? SMALL_POTION_HEAL : LARGE_POTION_HEAL;
-    const newHealth = Math.min(
-      initialPlayer.health,
-      player.health + healAmount,
-    );
+    const healPercentage = type === 'small' ? 0.2 : 0.5; // 20% for small, 50% for large
+    const maxHealth = (user.attributes.health || 6) * 20; // Calculate max health directly
+    const healAmount = Math.floor(maxHealth * healPercentage);
+    const newHealth = Math.min(maxHealth, player.health + healAmount);
 
-    // Remove one potion from user's consumables
+    console.log('newHealth', newHealth);
+
     const updatedConsumables = [...user.consumables];
     const potionIndex = updatedConsumables.indexOf(potionId);
     if (potionIndex > -1) {
@@ -401,33 +401,16 @@ const Combat = () => {
           consumables: updatedConsumables,
         });
 
+        // Update player's health correctly
         setPlayer((prev) => ({ ...prev, health: newHealth }));
         setPotions((prev) => ({ ...prev, [type]: prev[type] - 1 }));
         setCombatLog((prev) => [...prev, `You healed for ${healAmount} HP!`]);
 
         setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        const monsterDamage = monster.power;
-        setPlayer((prev) => ({
-          ...prev,
-          health: Math.max(0, prev.health - monsterDamage),
-        }));
-        setCombatLog((prev) => [
-          ...prev,
-          `${monster.name} dealt ${monsterDamage} damage!`,
-        ]);
-
-        setMonsterSpriteState(SpriteState.DAMAGED);
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        setMonsterSpriteState(SpriteState.IDLE);
 
         if (strongAttackCooldown > 0) {
           setStrongAttackCooldown((prev) => prev - 1);
         }
-
-        setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
-        setIsAnimating(false);
       }
     } catch (error) {
       console.error('Failed to use potion:', error);
@@ -439,6 +422,7 @@ const Combat = () => {
 
   const [smallPotionsAwarded, setSmallPotionsAwarded] = useState(0);
   const [largePotionAwarded, setLargePotionAwarded] = useState(false);
+  const [goldAwarded, setGoldAwarded] = useState(0);
 
   const handleVictory = async () => {
     if (!user?.id) return;
@@ -447,8 +431,16 @@ const Combat = () => {
     const smallPotions = Math.floor(Math.random() * 4); // 0-3 small potions
     const largePotion = Math.random() < 0.25; // 25% chance for large potion
 
+    // Generate random gold reward
+    // Regular monsters: 10-30 gold
+    // Bosses: 50-100 gold
+    const baseGold = isBossFight ? 50 : 10;
+    const maxGoldBonus = isBossFight ? 50 : 20;
+    const goldReward = baseGold + Math.floor(Math.random() * maxGoldBonus);
+
     setSmallPotionsAwarded(smallPotions);
     setLargePotionAwarded(largePotion);
+    setGoldAwarded(goldReward);
 
     // Create array of new potions
     const newPotions = [
@@ -456,22 +448,25 @@ const Combat = () => {
       ...(largePotion ? ['health_potion_large'] : []),
     ];
 
-    // Add new potions to existing consumables
+    // Add new potions to existing consumables and update gold
     const updatedConsumables = [...user.consumables, ...newPotions];
+    const updatedGold = user.gold + goldReward;
 
     try {
       const result = await updateUserProfile(user.id, {
         consumables: updatedConsumables,
+        gold: updatedGold,
       });
 
       if (result.success) {
         setUser({
           ...user,
           consumables: updatedConsumables,
+          gold: updatedGold,
         });
       }
     } catch (error) {
-      console.error('Failed to update potions:', error);
+      console.error('Failed to update rewards:', error);
     }
 
     setModalType('victory');
@@ -487,7 +482,6 @@ const Combat = () => {
     if (user) {
       setPlayer((prev) => ({
         ...prev,
-        health: (user.attributes.health || 6) * 20,
         power: (user.attributes.power || 15) * 2,
         speed: user.attributes.speed || 15,
       }));
@@ -625,7 +619,7 @@ const Combat = () => {
   const handleMonsterTurn = async () => {
     if (
       isAnimating ||
-      turnQueue[currentTurnIndex].isPlayer ||
+      turnQueue[currentTurnIndex]?.isPlayer ||
       !isMonsterInitialized
     )
       return;
@@ -859,7 +853,8 @@ const Combat = () => {
               {modalType === 'victory' ? (
                 <>
                   <Text className="text-2xl font-bold mb-4">
-                    You have defeated {isBossFight ? 'the Boss' : 'the monster'}!
+                    You have defeated {isBossFight ? 'the Boss' : 'the monster'}
+                    !
                   </Text>
 
                   <View className="w-full relative items-center justify-center h-[160px] overflow-hidden mb-10">
@@ -887,9 +882,18 @@ const Combat = () => {
                     </View>
                   </View>
 
-                  {(smallPotionsAwarded > 0 || largePotionAwarded) && (
+                  {(smallPotionsAwarded > 0 ||
+                    largePotionAwarded ||
+                    goldAwarded > 0) && (
                     <>
-                      <Text className="text-lg font-bold mb-2">Victory Rewards:</Text>
+                      <Text className="text-lg font-bold mb-2">
+                        Victory Rewards:
+                      </Text>
+
+                      {goldAwarded > 0 && (
+                        <Text className="text-lg mb-2">{goldAwarded} Gold</Text>
+                      )}
+
                       <View className="flex-row items-center justify-center mb-4">
                         {smallPotionsAwarded > 0 && (
                           <View className="flex-row items-center">
@@ -897,7 +901,9 @@ const Combat = () => {
                               source={require('../assets/sprites/health_potion_small.png')}
                               style={{ width: 48, height: 48 }}
                             />
-                            <Text className="text-lg ml-1 mr-4">×{smallPotionsAwarded}</Text>
+                            <Text className="text-lg ml-1 mr-4">
+                              ×{smallPotionsAwarded}
+                            </Text>
                           </View>
                         )}
                         {largePotionAwarded && (
@@ -912,10 +918,6 @@ const Combat = () => {
                       </View>
                     </>
                   )}
-
-                  <Text className="text-sm text-gray-600 mb-4">
-                    Use your potions wisely in future battles!
-                  </Text>
                 </>
               ) : (
                 <>
