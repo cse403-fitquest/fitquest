@@ -694,21 +694,30 @@ const Profile = () => {
     const weeks = [];
     const counts = [];
     const rawCounts = [];
-    const today = new Date();
     const MAX_SEGMENTS = 6;
 
-    const endDate = new Date(today);
-    endDate.setHours(23, 59, 59, 999);
+    // Get this week's Monday
+    const today = new Date();
+    const currentWeekMonday = new Date(today);
+    const diff = currentWeekMonday.getDate() - currentWeekMonday.getDay() + 1;
+    currentWeekMonday.setDate(diff);
+    currentWeekMonday.setHours(0, 0, 0, 0);
 
+    // Go back 4 weeks from this Monday
+    const startDate = new Date(currentWeekMonday);
+    startDate.setDate(startDate.getDate() - 4 * 7);
+
+    // Move forward 5 weeks, starting from each Monday
     for (let i = 0; i < 5; i++) {
-      const weekEnd = new Date(endDate);
-      weekEnd.setDate(endDate.getDate() - i * 7);
-      const weekStart = new Date(weekEnd);
-      weekStart.setDate(weekEnd.getDate() - 6);
-      weekStart.setHours(0, 0, 0, 0);
+      const weekStart = new Date(startDate);
+      weekStart.setDate(startDate.getDate() + i * 7);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
 
-      const weekLabel = `${weekStart.getMonth() + 1}/${weekStart.getDate()}`;
-      weeks.unshift(weekLabel);
+      const weekSunday = new Date(weekEnd);
+      const weekLabel = `${weekSunday.getMonth() + 1}/${weekSunday.getDate()}`;
+      weeks.push(weekLabel);
 
       const workoutCount =
         user?.workoutHistory?.filter((workout) => {
@@ -722,8 +731,8 @@ const Profile = () => {
           );
         }).length || 0;
 
-      rawCounts.unshift(workoutCount);
-      counts.unshift(Math.min(workoutCount, MAX_SEGMENTS));
+      rawCounts.push(workoutCount);
+      counts.push(Math.min(workoutCount, MAX_SEGMENTS));
     }
 
     return { weeks, counts, rawCounts };
