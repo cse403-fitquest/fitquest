@@ -891,7 +891,9 @@ const Combat = () => {
                       </Text>
 
                       {goldAwarded > 0 && (
-                        <Text className="text-lg mb-2">{goldAwarded} Gold</Text>
+                        <Text className="text-lg mb-2 text-gold font-semibold">
+                          {goldAwarded} Gold
+                        </Text>
                       )}
 
                       <View className="flex-row items-center justify-center mb-4">
