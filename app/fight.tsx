@@ -10,6 +10,7 @@ import {
   ImageBackground,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
@@ -162,8 +163,12 @@ const Combat = () => {
   const [isAnimating, setIsAnimating] = useState(false);
 
   const [potions, setPotions] = useState({
-    small: 3,
-    large: 1,
+    small:
+      user?.consumables.filter((id) => id === 'health_potion_small').length ||
+      0,
+    large:
+      user?.consumables.filter((id) => id === 'health_potion_large').length ||
+      0,
   });
 
   // const NORMAL_ATTACK = 20;
@@ -240,12 +245,18 @@ const Combat = () => {
   const resetCombatState = () => {
     setStrongAttackCooldown(0);
     setPotions({
-      small: 3,
-      large: 1,
+      small:
+        user?.consumables.filter((id) => id === 'health_potion_small').length ||
+        0,
+      large:
+        user?.consumables.filter((id) => id === 'health_potion_large').length ||
+        0,
     });
     setIsAnimating(false);
     setShowVictoryModal(false);
     setCombatLog([]);
+    setSmallPotionsAwarded(0);
+    setLargePotionAwarded(false);
   };
 
   useEffect(() => {
@@ -355,49 +366,114 @@ const Combat = () => {
 
   const handlePotion = async (type: 'small' | 'large') => {
     if (
+      !user?.id ||
       isAnimating ||
       !turnQueue[currentTurnIndex].isPlayer ||
       potions[type] <= 0
     )
       return;
+
     setIsAnimating(true);
 
+    const potionId =
+      type === 'small' ? 'health_potion_small' : 'health_potion_large';
     const healAmount = type === 'small' ? SMALL_POTION_HEAL : LARGE_POTION_HEAL;
     const newHealth = Math.min(
       initialPlayer.health,
       player.health + healAmount,
     );
 
-    setPlayer((prev) => ({ ...prev, health: newHealth }));
-    setPotions((prev) => ({ ...prev, [type]: prev[type] - 1 }));
-    setCombatLog((prev) => [...prev, `You healed for ${healAmount} HP!`]);
-
-    setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const monsterDamage = monster.power;
-    setPlayer((prev) => ({
-      ...prev,
-      health: Math.max(0, prev.health - monsterDamage),
-    }));
-    setCombatLog((prev) => [
-      ...prev,
-      `${monster.name} dealt ${monsterDamage} damage!`,
-    ]);
-
-    setMonsterSpriteState(SpriteState.DAMAGED);
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    setMonsterSpriteState(SpriteState.IDLE);
-
-    if (strongAttackCooldown > 0) {
-      setStrongAttackCooldown((prev) => prev - 1);
+    // Remove one potion from user's consumables
+    const updatedConsumables = [...user.consumables];
+    const potionIndex = updatedConsumables.indexOf(potionId);
+    if (potionIndex > -1) {
+      updatedConsumables.splice(potionIndex, 1);
     }
 
-    setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
-    setIsAnimating(false);
+    try {
+      const result = await updateUserProfile(user.id, {
+        consumables: updatedConsumables,
+      });
+
+      if (result.success) {
+        setUser({
+          ...user,
+          consumables: updatedConsumables,
+        });
+
+        setPlayer((prev) => ({ ...prev, health: newHealth }));
+        setPotions((prev) => ({ ...prev, [type]: prev[type] - 1 }));
+        setCombatLog((prev) => [...prev, `You healed for ${healAmount} HP!`]);
+
+        setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        const monsterDamage = monster.power;
+        setPlayer((prev) => ({
+          ...prev,
+          health: Math.max(0, prev.health - monsterDamage),
+        }));
+        setCombatLog((prev) => [
+          ...prev,
+          `${monster.name} dealt ${monsterDamage} damage!`,
+        ]);
+
+        setMonsterSpriteState(SpriteState.DAMAGED);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        setMonsterSpriteState(SpriteState.IDLE);
+
+        if (strongAttackCooldown > 0) {
+          setStrongAttackCooldown((prev) => prev - 1);
+        }
+
+        setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
+        setIsAnimating(false);
+      }
+    } catch (error) {
+      console.error('Failed to use potion:', error);
+      Alert.alert('Error', 'Failed to use potion. Please try again.');
+    } finally {
+      setIsAnimating(false);
+    }
   };
 
+  const [smallPotionsAwarded, setSmallPotionsAwarded] = useState(0);
+  const [largePotionAwarded, setLargePotionAwarded] = useState(false);
+
   const handleVictory = async () => {
+    if (!user?.id) return;
+
+    // Generate random potion rewards
+    const smallPotions = Math.floor(Math.random() * 4); // 0-3 small potions
+    const largePotion = Math.random() < 0.25; // 25% chance for large potion
+
+    setSmallPotionsAwarded(smallPotions);
+    setLargePotionAwarded(largePotion);
+
+    // Create array of new potions
+    const newPotions = [
+      ...Array(smallPotions).fill('health_potion_small'),
+      ...(largePotion ? ['health_potion_large'] : []),
+    ];
+
+    // Add new potions to existing consumables
+    const updatedConsumables = [...user.consumables, ...newPotions];
+
+    try {
+      const result = await updateUserProfile(user.id, {
+        consumables: updatedConsumables,
+      });
+
+      if (result.success) {
+        setUser({
+          ...user,
+          consumables: updatedConsumables,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update potions:', error);
+    }
+
     setModalType('victory');
     setShowVictoryModal(true);
   };
@@ -782,8 +858,8 @@ const Combat = () => {
             <View className="bg-white m-5 p-6 rounded-2xl w-[85%] items-center">
               {modalType === 'victory' ? (
                 <>
-                  <Text className="text-2xl font-bold">
-                    You have defeated {isBossFight ? 'Boss' : 'the monster'}!
+                  <Text className="text-2xl font-bold mb-4">
+                    You have defeated {isBossFight ? 'the Boss' : 'the monster'}!
                   </Text>
 
                   <View className="w-full relative items-center justify-center h-[160px] overflow-hidden mb-10">
@@ -810,6 +886,36 @@ const Combat = () => {
                       </View>
                     </View>
                   </View>
+
+                  {(smallPotionsAwarded > 0 || largePotionAwarded) && (
+                    <>
+                      <Text className="text-lg font-bold mb-2">Victory Rewards:</Text>
+                      <View className="flex-row items-center justify-center mb-4">
+                        {smallPotionsAwarded > 0 && (
+                          <View className="flex-row items-center">
+                            <Image
+                              source={require('../assets/sprites/health_potion_small.png')}
+                              style={{ width: 48, height: 48 }}
+                            />
+                            <Text className="text-lg ml-1 mr-4">×{smallPotionsAwarded}</Text>
+                          </View>
+                        )}
+                        {largePotionAwarded && (
+                          <View className="flex-row items-center">
+                            <Image
+                              source={require('../assets/sprites/health_potion_large.png')}
+                              style={{ width: 48, height: 48 }}
+                            />
+                            <Text className="text-lg ml-1">×1</Text>
+                          </View>
+                        )}
+                      </View>
+                    </>
+                  )}
+
+                  <Text className="text-sm text-gray-600 mb-4">
+                    Use your potions wisely in future battles!
+                  </Text>
                 </>
               ) : (
                 <>
