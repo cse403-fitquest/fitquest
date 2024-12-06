@@ -266,8 +266,8 @@ const Quest = () => {
 
   const handleAdvance = async () => {
     if (activeQuest && user?.id) {
-      // TODO: Change this to 30 minutes
-      if (user.activeWorkoutMinutes < 10) {
+      // Now checking for 30 minutes
+      if (user.activeWorkoutMinutes < 30) {
         Alert.alert(
           'Not Strong Enough...',
           "You'll need to train more before challenging this foe. Return after training!",
@@ -292,13 +292,13 @@ const Quest = () => {
 
         try {
           const result = await updateUserProfile(user.id, {
-            activeWorkoutMinutes: user.activeWorkoutMinutes - 1800,
+            activeWorkoutMinutes: user.activeWorkoutMinutes - 30,
           });
 
           if (result.success) {
             setUser({
               ...user,
-              activeWorkoutMinutes: user.activeWorkoutMinutes - 1800,
+              activeWorkoutMinutes: user.activeWorkoutMinutes - 30,
             });
 
             router.replace({
@@ -385,13 +385,24 @@ const Quest = () => {
         </Text>
 
         <View
-          className="flex-row justify-between items-center"
+          className="flex-row justify-between items-center relative"
           style={{ height: 60 }}
         >
+          <View
+            className="absolute bg-gray"
+            style={{
+              height: 2,
+              width: '100%',
+              top: '50%',
+              transform: [{ translateY: -1 }],
+            }}
+          />
+
           {visualMilestones.map((milestone) => {
             const milestoneValue =
               milestone === 'start' ? 0 : Number(milestone);
             const isBossNode = milestoneValue === Number(quest.bossThreshold);
+            const isCompleted = progress >= milestoneValue;
 
             return (
               <View
@@ -413,9 +424,9 @@ const Quest = () => {
                       width: 24,
                       height: 24,
                       borderRadius: 12,
-                      backgroundColor: '#D3D3D3',
+                      backgroundColor: isCompleted ? '#4CAF50' : '#D3D3D3',
                       borderWidth: 2,
-                      borderColor: '#404040',
+                      borderColor: isCompleted ? '#388E3C' : '#404040',
                     }}
                   />
                 )}
