@@ -131,9 +131,9 @@ describe('Shop Component', () => {
     render(React.createElement<typeof Shop>(Shop));
     fireEvent.press(screen.getByText('50 Gold'));
 
-    expect(screen.getByText('Equip Sword')).toBeTruthy();
+    expect(screen.getByText('Purchase Sword')).toBeTruthy();
     expect(screen.getByText('CANCEL')).toBeTruthy();
-    expect(screen.getByText('BUY ITEM')).toBeTruthy();
+    expect(screen.getByText('PURCHASE ITEM')).toBeTruthy();
     expect(screen.getByText('A sharp sword.')).toBeTruthy();
     expect(
       screen.getByText(`${mockItems[0].cost} Gold to purchase`),
@@ -141,7 +141,7 @@ describe('Shop Component', () => {
 
     //should go back to main without decreasing money
     fireEvent.press(screen.getByText('CANCEL'));
-    expect(screen.queryByText('Equip Sword')).toBeNull();
+    expect(screen.queryByText('Purchase Sword')).toBeNull();
     expect(screen.getByText('60 Gold')).toBeTruthy();
   });
 
@@ -154,9 +154,9 @@ describe('Shop Component', () => {
 
     fireEvent.press(screen.getByText('50 Gold'));
 
-    expect(screen.getByText('Equip Sword')).toBeTruthy();
+    expect(screen.getByText('Purchase Sword')).toBeTruthy();
     expect(screen.getByText('CANCEL')).toBeTruthy();
-    expect(screen.getByText('BUY ITEM')).toBeTruthy();
+    expect(screen.getByText('PURCHASE ITEM')).toBeTruthy();
     expect(screen.getByText('A sharp sword.')).toBeTruthy();
     expect(
       screen.getByText(`${mockItems[0].cost} Gold to purchase`),
@@ -164,7 +164,7 @@ describe('Shop Component', () => {
 
     (purchaseItem as jest.Mock).mockResolvedValue({ success: true });
     // should fail to purchase when insufficient funds
-    fireEvent.press(screen.getByText('BUY ITEM'));
+    fireEvent.press(screen.getByText('PURCHASE ITEM'));
     expect(purchaseItem).toHaveBeenCalledWith(mockUser.id, mockItems[0].id);
 
     expect(mockSetUser).toHaveBeenCalledWith({
@@ -177,16 +177,16 @@ describe('Shop Component', () => {
     render(React.createElement<typeof Shop>(Shop));
     fireEvent.press(screen.getByText('70 Gold'));
 
-    expect(screen.getByText('Equip Small Potion')).toBeTruthy();
+    expect(screen.getByText('Purchase Small Potion')).toBeTruthy();
     expect(screen.getByText('CANCEL')).toBeTruthy();
-    expect(screen.getByText('BUY ITEM')).toBeTruthy();
+    expect(screen.getByText('PURCHASE ITEM')).toBeTruthy();
     expect(screen.getByText('Restores a small amount of health.')).toBeTruthy();
     expect(
       screen.getByText(`${mockItems[2].cost} Gold to purchase`),
     ).toBeTruthy();
 
     // should fail to purchase when insufficient funds
-    fireEvent.press(screen.getByText('BUY ITEM'));
-    expect(screen.getByText('Equip Small Potion')).toBeTruthy();
+    fireEvent.press(screen.getByText('PURCHASE ITEM'));
+    expect(screen.getByText('Purchase Small Potion')).toBeTruthy();
   });
 });
