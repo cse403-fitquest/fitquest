@@ -302,7 +302,7 @@ describe('NewWorkout Screen', () => {
       clearWorkout,
     });
 
-    const { getByTestId, getByText } = render(<NewWorkout />);
+    const { getByTestId } = render(<NewWorkout />);
 
     // Log the updated workout
     // log('mockWorkout', mockWorkout.exercises[0].sets[0]);
@@ -318,7 +318,7 @@ describe('NewWorkout Screen', () => {
       expect(getByTestId('finish-workout-confirm-modal')).toBeTruthy();
     });
 
-    const confirmButton = getByText('FINISH WORKOUT');
+    const confirmButton = getByTestId('FQModal-confirm-button');
     fireEvent.press(confirmButton);
 
     // Verify loading state
@@ -339,7 +339,7 @@ describe('NewWorkout Screen', () => {
   });
 
   it('handles finishing workout without completed sets', async () => {
-    const { getByText, getByTestId } = render(<NewWorkout />);
+    const { getByTestId } = render(<NewWorkout />);
 
     const finishButton = getByTestId('finish-workout-button');
     fireEvent.press(finishButton);
@@ -349,7 +349,7 @@ describe('NewWorkout Screen', () => {
       expect(getByTestId('finish-cancel-workout-confirm-modal')).toBeTruthy();
     });
 
-    const confirmCancelButton = getByText('FINISH WORKOUT');
+    const confirmCancelButton = getByTestId('FQModal-confirm-button');
     fireEvent.press(confirmCancelButton);
 
     expect(clearWorkout).toHaveBeenCalled();
@@ -357,7 +357,7 @@ describe('NewWorkout Screen', () => {
   });
 
   it('handles canceling workout', async () => {
-    const { getByTestId, getByText } = render(<NewWorkout />);
+    const { getByTestId } = render(<NewWorkout />);
 
     const cancelButton = getByTestId('cancel-workout-button');
     fireEvent.press(cancelButton);
@@ -367,7 +367,7 @@ describe('NewWorkout Screen', () => {
       expect(getByTestId('cancel-workout-confirm-modal')).toBeTruthy();
     });
 
-    const confirmCancelButton = getByText('CANCEL THIS WORKOUT');
+    const confirmCancelButton = getByTestId('FQModal-confirm-button');
     fireEvent.press(confirmCancelButton);
 
     expect(clearWorkout).toHaveBeenCalled();
@@ -398,7 +398,7 @@ describe('NewWorkout Screen', () => {
       error: 'Server error',
     });
 
-    const { getByText, getByTestId } = render(<NewWorkout />);
+    const { getByTestId } = render(<NewWorkout />);
 
     const finishButton = getByTestId('finish-workout-button');
     fireEvent.press(finishButton);
@@ -408,7 +408,7 @@ describe('NewWorkout Screen', () => {
       expect(getByTestId('finish-workout-confirm-modal')).toBeTruthy();
     });
 
-    const confirmButton = getByText('FINISH WORKOUT');
+    const confirmButton = getByTestId('FQModal-confirm-button');
     fireEvent.press(confirmButton);
 
     // Wait for async operations
