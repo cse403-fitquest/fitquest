@@ -59,11 +59,7 @@ const Shop = () => {
     });
   }, [user, items]);
 
-  const [
-    userSmallHealthPotCount,
-    userMediumHealthPotCount,
-    userLargeHealthPotCount,
-  ] = useMemo(() => {
+  const [userSmallHealthPotCount, userLargeHealthPotCount] = useMemo(() => {
     return getUserHealthPotionsCountFromItems(userConsumables);
   }, [user, userConsumables]);
 
@@ -288,8 +284,6 @@ const Shop = () => {
 
     if (selectedItem.type === ItemType.POTION_SMALL) {
       healthPotionsCount = userSmallHealthPotCount;
-    } else if (selectedItem.type === ItemType.POTION_MEDIUM) {
-      healthPotionsCount = userMediumHealthPotCount;
     } else if (selectedItem.type === ItemType.POTION_LARGE) {
       healthPotionsCount = userLargeHealthPotCount;
     }
@@ -416,24 +410,6 @@ const Shop = () => {
               data={filterItemsByTypeAndSortByCost(
                 items,
                 ItemType.POTION_SMALL,
-              )}
-              renderItem={({ item }) => (
-                <ItemCard
-                  item={item}
-                  onPress={() => {
-                    setSelectedItem(item);
-                    setModalVisible(true);
-                  }}
-                />
-              )}
-              ItemSeparatorComponent={() => <View className="w-3" />}
-              className="grow-0 m-0"
-              horizontal
-            />
-            <FlatList
-              data={filterItemsByTypeAndSortByCost(
-                items,
-                ItemType.POTION_MEDIUM,
               )}
               renderItem={({ item }) => (
                 <ItemCard

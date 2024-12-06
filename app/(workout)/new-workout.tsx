@@ -415,14 +415,17 @@ const NewWorkout = () => {
       setModalContent({
         title: 'No Completed Sets',
         content: (
-          <View className="w-full justify-start items-start pt-3 pb-1">
+          <View
+            className="w-full justify-start items-start pt-3 pb-1"
+            testID="finish-cancel-workout-confirm-modal"
+          >
             <Text>
               There are no completed sets. Are you sure you want to finish? This
               will amount to cancelling this workout
             </Text>
           </View>
         ),
-        confirmText: 'CANCEL WORKOUT',
+        confirmText: 'FINISH WORKOUT',
         onConfirm: () => {
           setModalVisible(false);
           // Cancel workout
@@ -441,7 +444,10 @@ const NewWorkout = () => {
     setModalContent({
       title: 'Finished?',
       content: (
-        <View className="w-full justify-start items-start pt-3 pb-1">
+        <View
+          className="w-full justify-start items-start pt-3 pb-1"
+          testID="finish-workout-confirm-modal"
+        >
           <Text className="mb-3">All uncompleted sets will be discarded.</Text>
 
           <Text className="text-md font-bold">
@@ -465,14 +471,17 @@ const NewWorkout = () => {
     setModalContent({
       title: 'Cancel Workout?',
       content: (
-        <View className="w-full justify-start items-start pt-3 pb-1">
+        <View
+          className="w-full justify-start items-start pt-3 pb-1"
+          testID="cancel-workout-confirm-modal"
+        >
           <Text>
             Are you sure you want to cancel and discard this workout? This
             cannot be undone.
           </Text>
         </View>
       ),
-      confirmText: 'CANCEL WORKOUT',
+      confirmText: 'CANCEL THIS WORKOUT',
       onConfirm: () => {
         if (!user) {
           console.error('User not found');
@@ -560,6 +569,8 @@ const NewWorkout = () => {
       workoutHistory: [newWorkout, ...user.workoutHistory],
       exp: userAfterExpGain.exp,
       attributePoints: userAfterExpGain.attributePoints,
+      activeWorkoutMinutes:
+        userAfterExpGain.activeWorkoutMinutes + newWorkout.duration,
     });
 
     console.log('User workout history and exp updated.');
@@ -607,7 +618,11 @@ const NewWorkout = () => {
       <ScrollView className="w-full">
         <View className="relative w-full justify-start items-start px-6 pt-8">
           <View className="w-full flex-row justify-end">
-            <TouchableOpacity onPress={onFinishWorkoutPress} className="p-1">
+            <TouchableOpacity
+              onPress={onFinishWorkoutPress}
+              className="p-1"
+              testID="finish-workout-button"
+            >
               <Text className="text-blue text-lg font-semibold">FINISH</Text>
             </TouchableOpacity>
           </View>
@@ -748,11 +763,17 @@ const NewWorkout = () => {
             className="mb-4"
             onPress={() => router.push('add-exercises' as Href)}
           >
-            <Text className="text-blue text-lg font-semibold ">
+            <Text
+              className="text-blue text-lg font-semibold "
+              testID="add-exercises-button"
+            >
               ADD EXERCISE
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={onCancelWorkoutPress}>
+          <TouchableOpacity
+            onPress={onCancelWorkoutPress}
+            testID="cancel-workout-button"
+          >
             <Text className="text-red-500 text-lg font-semibold">
               CANCEL WORKOUT
             </Text>
@@ -774,6 +795,8 @@ const SetItem: React.FC<{
   onDeleteSet: () => void;
 }> = ({ exercise, set, setIndex, onCompleteSet, onUpdateSet, onDeleteSet }) => {
   const translateX = useRef(new Animated.Value(0)).current;
+
+  const windowWidth = Dimensions.get('window').width;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -806,10 +829,8 @@ const SetItem: React.FC<{
     }),
   ).current;
 
-  const windowWidth = Dimensions.get('window').width;
-
   return (
-    <View className="relative">
+    <View className="relative" testID={`set-item-${set.id}`}>
       <Animated.View
         style={{
           flex: 1,
@@ -853,10 +874,9 @@ const SetItem: React.FC<{
                 className={clsx('text-md text-center bg-white rounded', {
                   'mr-5': index !== exercise.tags.length - 1,
                 })}
-                onChange={(e) => {
-                  // Get keystroke value
-                  const text = e.nativeEvent.text;
-
+                testID={`set-input-${set.id}-${tag}`}
+                selectTextOnFocus={tag !== ExerciseTag.TIME}
+                onChangeText={(text) => {
                   if (tag !== ExerciseTag.TIME) {
                     // Parse the new value
                     const newValue = text === '' ? 0 : parseInt(text);
@@ -872,6 +892,13 @@ const SetItem: React.FC<{
 
                   // Handle set for time
 
+                  // Check if the input doesnt have exactly 5 characters
+                  // If it does, default to 0
+                  if (text.length < 5 || text.length > 6) {
+                    setValue(0);
+                    return;
+                  }
+
                   // Shift the value to the rightmost side of the input string (mm:ss)
                   const m2 = text.charAt(1);
                   const s1 = text.charAt(3);
@@ -886,13 +913,13 @@ const SetItem: React.FC<{
 
                   const totalSeconds = minutes * 60 + seconds;
 
-                  // const newValue = text === '' ? 0 : parseInt(text);
                   setValue(totalSeconds);
                 }}
                 onEndEditing={() => {
                   onUpdateSet(tag, value);
                 }}
                 onBlur={() => {
+                  console.log('onBlur');
                   onUpdateSet(tag, value);
                 }}
                 value={
@@ -906,6 +933,7 @@ const SetItem: React.FC<{
           <TouchableOpacity
             className="ml-auto p-1"
             onPress={() => onCompleteSet()}
+            testID={`complete-set-${set.id}`}
           >
             <View
               className={clsx('w-6 h-6 rounded justify-center items-center', {
@@ -930,6 +958,11 @@ const SetItem: React.FC<{
           <Text className="text-white font-bold text-left pl-5">
             SWIPE LEFT TO DELETE
           </Text>
+          <TouchableOpacity
+            testID={`set-item-delete-${set.id}`}
+            className="w-0 h-0"
+            onPress={onDeleteSet}
+          />
         </View>
       </Animated.View>
     </View>

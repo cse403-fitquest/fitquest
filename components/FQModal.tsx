@@ -50,7 +50,7 @@ const FQModal: FC<IFQModal> = ({
       onRequestClose={() => {
         setVisible(false);
       }}
-      testID="FQButton"
+      testID="FQModal"
     >
       <View className="relative h-full justify-center items-center w-full">
         <View
@@ -63,7 +63,7 @@ const FQModal: FC<IFQModal> = ({
             <View className="flex-row justify-between items-center">
               <Text
                 className="text-xl text-black font-bold"
-                testID="FQButton-title"
+                testID="FQModal-title"
               >
                 {title}
               </Text>
@@ -76,7 +76,7 @@ const FQModal: FC<IFQModal> = ({
             {subtitle && (
               <Text
                 className="text-black font-medium"
-                testID="FQButton-subtitle"
+                testID="FQModal-subtitle"
               >
                 {subtitle}
               </Text>
@@ -86,11 +86,11 @@ const FQModal: FC<IFQModal> = ({
           <View className="flex-row justify-between mt-5">
             <View>
               {cancelText && (
-                <TouchableOpacity onPress={handleCancel}>
-                  <Text
-                    className="text-red-500 font-semibold"
-                    testID="FQButton-cancel"
-                  >
+                <TouchableOpacity
+                  onPress={handleCancel}
+                  testID="FQModal-cancel-button"
+                >
+                  <Text className="text-red-500 font-semibold">
                     {cancelText}
                   </Text>
                 </TouchableOpacity>
@@ -98,11 +98,11 @@ const FQModal: FC<IFQModal> = ({
             </View>
 
             <View>
-              <TouchableOpacity onPress={onConfirm}>
-                <Text
-                  className="text-blue font-semibold"
-                  testID="FQButton-confirm"
-                >
+              <TouchableOpacity
+                onPress={onConfirm}
+                testID="FQModal-confirm-button"
+              >
+                <Text className="text-blue font-semibold">
                   {confirmText ? confirmText : 'CONFIRM'}
                 </Text>
               </TouchableOpacity>

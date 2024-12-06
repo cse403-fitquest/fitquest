@@ -5,7 +5,11 @@ import {
 } from '@/constants/workout';
 import { useUserStore } from '@/store/user';
 import { useWorkoutStore } from '@/store/workout';
-import { Exercise, ExerciseDisplay, ExerciseSetDisplay } from '@/types/workout';
+import {
+  AddExerciseDisplay,
+  ExerciseDisplay,
+  ExerciseSetDisplay,
+} from '@/types/workout';
 import { printExerciseDisplays } from '@/utils/workout';
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
@@ -21,10 +25,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
-
-type AddExerciseDisplay = Exercise & {
-  selected: boolean;
-};
 
 const AddExercises = () => {
   const [exercises, setExercises] = useState<AddExerciseDisplay[]>([]);
@@ -241,6 +241,7 @@ const AddExercises = () => {
         <TouchableOpacity
           className="absolute bottom-10 right-10 z-50"
           onPress={onCheckmarkPress}
+          testID="checkmark-button"
         >
           <View className="flex-row justify-center items-center bg-blue w-16 h-16 rounded-full shadow shadow-black">
             <Ionicons name="checkmark" size={30} color="white" />
@@ -269,21 +270,25 @@ const AddExercises = () => {
             />
           </View>
         }
-        renderItem={({ item: exercise }) => (
+        renderItem={({ item: section }) => (
           <View>
             <Text className="text-lg font-medium mb-2 px-6">
-              {exercise.title}
+              {section.title}
             </Text>
 
             <FlatList
-              data={exercise.data}
+              data={section.data}
               keyExtractor={(item) => item.id}
               renderItem={({ item: exercise }) => (
-                <TouchableOpacity onPress={() => onExercisePress(exercise.id)}>
+                <TouchableOpacity
+                  onPress={() => onExercisePress(exercise.id)}
+                  testID={`exercise-${exercise.name}`}
+                >
                   <View
                     className={clsx('justify-center items-start py-2', {
                       'bg-blue': exercise.selected,
                     })}
+                    data-selected={exercise.selected}
                   >
                     <View className="px-10">
                       <Text
