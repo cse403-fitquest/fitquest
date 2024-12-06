@@ -168,11 +168,9 @@ describe('NewWorkout Screen', () => {
       jest.advanceTimersByTime(2000);
     });
 
-    // Update state
+    // Update timerstate
     expect(setWorkout).not.toHaveBeenCalled(); // setWorkout is not called by timer
-    // To check if the timer updates, you might need to access the displayed text again
-    // However, @testing-library/react-native does not update the component automatically
-    // unless the state changes trigger a re-render, which is handled by the component itself.
+    expect(getByText('00:01:02')).toBeTruthy();
   });
 
   it('allows adding a new set', () => {
