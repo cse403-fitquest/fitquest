@@ -374,21 +374,21 @@ const Quest = () => {
     // const percentage = calculateQuestPercentage(quest, progress);
 
     const getProgressText = () => {
-      if (!user?.activeWorkoutMinutes) return '0% ready to advance';
+      if (!user?.activeWorkoutMinutes) return '0% ready to advance!';
 
       if (user.activeWorkoutMinutes >= 30) {
-        return 'Ready to advance! ✨';
+        return 'Ready to advance!';
       }
 
       const readyPercentage = Math.round(
         (user.activeWorkoutMinutes / 30) * 100,
       );
-      return `${readyPercentage}% ready to advance`;
+      return `${readyPercentage}% ready to advance!`;
     };
 
     return (
       <View className="mt-4 mb-2">
-        <Text className="text-sm text-gray-600 mb-2">{getProgressText()}</Text>
+        <Text className="text-md mb-5 font-bold">{getProgressText()}</Text>
 
         <View
           className="flex-row justify-between items-center relative"
