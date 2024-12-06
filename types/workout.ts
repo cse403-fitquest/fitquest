@@ -47,3 +47,7 @@ export type WorkoutTemplate = {
   duration: number;
   exercises: Exercise[];
 };
+
+export type AddExerciseDisplay = Exercise & {
+  selected: boolean;
+};

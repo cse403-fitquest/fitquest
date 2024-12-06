@@ -191,6 +191,8 @@ const WorkoutScreen = () => {
               <View>
                 <FQButton
                   onPress={() => {
+                    // TODO: Check if there is an active workout
+                    // If there is an active workout, ask the user if they want to resume it
                     console.log('Start an empty workout');
 
                     setWorkout(() => ({
