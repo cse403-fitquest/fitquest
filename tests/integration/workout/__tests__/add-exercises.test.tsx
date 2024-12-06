@@ -56,7 +56,7 @@ jest.mock('@/store/workout', () => ({
   }),
 }));
 
-describe('AddExercises', () => {
+describe('AddExercises Screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -75,20 +75,17 @@ describe('AddExercises', () => {
 
   it('should first render exercises unselected', async () => {
     render(<AddExercises />);
-    await waitFor(
-      () => {
-        ALL_EXERCISES_STUB.forEach((exercise) => {
-          const exerciseTouchableOpacity = screen.getByTestId(
-            `exercise-${exercise.name}`,
-          );
+    await waitFor(() => {
+      ALL_EXERCISES_STUB.forEach((exercise) => {
+        const exerciseTouchableOpacity = screen.getByTestId(
+          `exercise-${exercise.name}`,
+        );
 
-          const exerciseView = exerciseTouchableOpacity.props.children[0];
+        const exerciseView = exerciseTouchableOpacity.props.children[0];
 
-          expect(exerciseView.props['data-selected']).toBeFalsy();
-        });
-      },
-      { timeout: 1000 },
-    );
+        expect(exerciseView.props['data-selected']).toBeFalsy();
+      });
+    });
   });
 
   it('should allow selecting and deselecting an exercise', async () => {
@@ -106,27 +103,21 @@ describe('AddExercises', () => {
     // Select the exercise
     fireEvent.press(exerciseTouchableOpacity);
 
-    await waitFor(
-      () => {
-        const exerciseTouchableOpacity2 = screen.getByTestId(
-          `exercise-${exercise.name}`,
-        );
+    await waitFor(() => {
+      const exerciseTouchableOpacity2 = screen.getByTestId(
+        `exercise-${exercise.name}`,
+      );
 
-        const exerciseView2 = exerciseTouchableOpacity2.props.children[0];
+      const exerciseView2 = exerciseTouchableOpacity2.props.children[0];
 
-        expect(exerciseView2.props['data-selected']).toBeTruthy();
-      },
-      // { timeout: 1000 },
-    );
+      expect(exerciseView2.props['data-selected']).toBeTruthy();
+    });
 
     // Deselect the exercise
     fireEvent.press(exerciseTouchableOpacity);
-    await waitFor(
-      () => {
-        expect(exerciseView.props['data-selected']).toBeFalsy();
-      },
-      // { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(exerciseView.props['data-selected']).toBeFalsy();
+    });
   });
 
   it('should display the checkmark button when exercises are selected', async () => {
@@ -160,11 +151,8 @@ describe('AddExercises', () => {
     const checkmarkButton = screen.getByTestId('checkmark-button');
     fireEvent.press(checkmarkButton);
 
-    await waitFor(
-      () => {
-        expect(router.back).toHaveBeenCalled();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(router.back).toHaveBeenCalled();
+    });
   });
 });

@@ -69,7 +69,7 @@ jest.mock('react-native', () => {
 // Mock Dimensions.get to return a specific window width
 Dimensions.get = jest.fn().mockReturnValue({ width: 400, height: 800 }); // Adjust as needed
 
-describe('NewWorkout Component', () => {
+describe('NewWorkout Screen', () => {
   // Mock data
   const mockWorkout = {
     id: 'workout-1',
