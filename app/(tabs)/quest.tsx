@@ -266,7 +266,7 @@ const Quest = () => {
 
   const handleAdvance = async () => {
     if (activeQuest && user?.id) {
-      // Now checking for 30 minutes
+      // TODO: Change this to 30 minutes
       if (user.activeWorkoutMinutes < 30) {
         Alert.alert(
           'Not Strong Enough...',
@@ -360,11 +360,6 @@ const Quest = () => {
     }
   };
 
-  const calculateQuestPercentage = (quest: ActiveQuest, progress: number) => {
-    const finalMilestone = quest.milestones[quest.milestones.length - 1];
-    return Math.round((progress / finalMilestone) * 100);
-  };
-
   const renderMilestoneNodes = (quest: ActiveQuest, progress: number) => {
     const startingPoint = 'start';
     const selectedQuest = availableQuests.find(
@@ -376,25 +371,36 @@ const Quest = () => {
     const nextMilestones = getNextMilestones(selectedQuest, progress);
     const visualMilestones = [startingPoint, ...nextMilestones];
 
-    const percentage = calculateQuestPercentage(quest, progress);
+    // const percentage = calculateQuestPercentage(quest, progress);
+
+    const getProgressText = () => {
+      if (!user?.activeWorkoutMinutes) return '0% ready to advance';
+
+      if (user.activeWorkoutMinutes >= 30) {
+        return 'Ready to advance! ✨';
+      }
+
+      const readyPercentage = Math.round(
+        (user.activeWorkoutMinutes / 30) * 100,
+      );
+      return `${readyPercentage}% ready to advance`;
+    };
 
     return (
-      <View className="mt-6 mb-4">
-        <Text className="text-base text-gray-600 mb-3">
-          Progress: {percentage}%
-        </Text>
+      <View className="mt-4 mb-2">
+        <Text className="text-sm text-gray-600 mb-2">{getProgressText()}</Text>
 
         <View
           className="flex-row justify-between items-center relative"
-          style={{ height: 60 }}
+          style={{ height: 50 }}
         >
           <View
             className="absolute bg-gray"
             style={{
-              height: 2,
+              height: 3,
               width: '100%',
               top: '50%',
-              transform: [{ translateY: -1 }],
+              transform: [{ translateY: -1.5 }],
             }}
           />
 
@@ -410,23 +416,30 @@ const Quest = () => {
                 className="items-center"
               >
                 {isBossNode ? (
-                  <View style={{ width: 70, height: 120 }}>
+                  <View
+                    style={{
+                      width: 60,
+                      height: 60,
+                      marginTop: -50,
+                      marginLeft: -20,
+                    }}
+                  >
                     <AnimatedSprite
                       id={activeQuest?.boss.spriteId}
-                      width={85}
-                      height={85}
+                      width={80}
+                      height={80}
                       state={SpriteState.IDLE}
                     />
                   </View>
                 ) : (
                   <View
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
+                      width: 20,
+                      height: 20,
+                      borderRadius: 20,
                       backgroundColor: isCompleted ? '#4CAF50' : '#D3D3D3',
                       borderWidth: 2,
-                      borderColor: isCompleted ? '#388E3C' : '#404040',
+                      borderColor: isCompleted ? '#45a049' : '#c0c0c0',
                     }}
                   />
                 )}
