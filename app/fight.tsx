@@ -17,10 +17,11 @@ import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
-import { getRandomMonster } from '@/services/monster';
+// import { getRandomMonster } from '@/services/monster';
 import { getDoc, doc } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { updateUserProfile } from '@/services/user';
+import { getMonsterById } from '@/services/monster';
 
 type TurnInfo = {
   id: string;
@@ -103,29 +104,44 @@ const Combat = () => {
             setDefaultMonster(difficultyMultiplier);
           }
         } else {
-          const monsterIds = (questMonsters as string).split(',');
-          const selectedMonster = await getRandomMonster(monsterIds);
+          const monsterIds =
+            typeof questMonsters === 'string'
+              ? questMonsters.split(',').filter((id) => id.trim() !== '')
+              : [];
 
-          if (selectedMonster) {
-            setMonster({
-              name: selectedMonster.name,
-              maxHealth: Math.floor(
-                selectedMonster.attributes.health * 20 * difficultyMultiplier,
-              ),
-              health: Math.floor(
-                selectedMonster.attributes.health * 20 * difficultyMultiplier,
-              ),
-              power: Math.floor(
-                selectedMonster.attributes.power * difficultyMultiplier,
-              ),
-              speed: Math.floor(selectedMonster.attributes.speed),
-              spriteId: selectedMonster.spriteId as AnimatedSpriteID,
-            });
+          console.log('monsterIds', monsterIds);
+
+          if (monsterIds.length > 0) {
+            const randomIndex = Math.floor(Math.random() * monsterIds.length);
+            const selectedMonsterId = monsterIds[randomIndex];
+
+            const selectedMonster = await getMonsterById(selectedMonsterId);
+
+            console.log('selectedMonster', selectedMonster);
+
+            if (selectedMonster) {
+              setMonster({
+                name: selectedMonster.name,
+                maxHealth: Math.floor(
+                  selectedMonster.attributes.health * 20 * difficultyMultiplier,
+                ),
+                health: Math.floor(
+                  selectedMonster.attributes.health * 20 * difficultyMultiplier,
+                ),
+                power: Math.floor(
+                  selectedMonster.attributes.power * difficultyMultiplier,
+                ),
+                speed: Math.floor(selectedMonster.attributes.speed),
+                spriteId: selectedMonster.spriteId as AnimatedSpriteID,
+              });
+              setIsMonsterInitialized(true);
+            } else {
+              setDefaultMonster(difficultyMultiplier);
+            }
           } else {
             setDefaultMonster(difficultyMultiplier);
           }
         }
-        setIsMonsterInitialized(true);
       } catch (error) {
         console.error('Error initializing monster:', error);
         setDefaultMonster();

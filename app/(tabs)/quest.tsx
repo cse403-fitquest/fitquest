@@ -58,7 +58,10 @@ interface ActiveQuest {
 interface QuestNode {
   milestone: number;
   isBoss: boolean;
-  possibleMonsters: AnimatedSpriteID[];
+  possibleMonsters: {
+    monsterId: string;
+    spriteId: AnimatedSpriteID;
+  }[];
   description: string;
 }
 
@@ -86,13 +89,6 @@ const Quest = () => {
       const existingProgress = user?.currentQuest?.progress || {};
       const questProgress = existingProgress[questID] || 0;
 
-      const monsterSprites = await Promise.all(
-        selectedQuest.monsters.map(async (monsterId) => {
-          const monster = await getMonsterById(monsterId);
-          return monster?.spriteId || '';
-        }),
-      );
-
       const newActiveQuest: ActiveQuest = {
         questID: selectedQuest.questId,
         questName: selectedQuest.questName,
@@ -103,8 +99,10 @@ const Quest = () => {
         spriteId: selectedQuest.spriteId,
         bossDefeated: false,
         boss: selectedQuest.boss,
-        monsters: monsterSprites.filter((sprite) => sprite !== ''),
+        monsters: selectedQuest.monsters,
       };
+
+      console.log('newActiveQuest.monsters', newActiveQuest.monsters);
 
       setActiveQuest(newActiveQuest);
       await updateUserCurrentQuest(questID, existingProgress);
@@ -132,42 +130,30 @@ const Quest = () => {
   }, []);
 
   useEffect(() => {
-    const loadActiveQuest = async () => {
-      if (user?.currentQuest?.id && availableQuests.length > 0) {
-        const currentQuest = availableQuests.find(
-          (quest) => quest.questId === user.currentQuest.id,
-        );
+    if (user?.currentQuest?.id && availableQuests.length > 0) {
+      const currentQuest = availableQuests.find(
+        (quest) => quest.questId === user.currentQuest.id,
+      );
 
-        if (currentQuest) {
-          const progress =
-            user.currentQuest.progress[currentQuest.questId] || 0;
+      if (currentQuest) {
+        const progress = user.currentQuest.progress[currentQuest.questId] || 0;
 
-          const monsterSprites = await Promise.all(
-            currentQuest.monsters.map(async (monsterId) => {
-              const monster = await getMonsterById(monsterId);
-              return monster?.spriteId || '';
-            }),
-          );
-
-          setActiveQuest({
-            questID: currentQuest.questId,
-            questName: currentQuest.questName,
-            progress: progress,
-            milestones: currentQuest.milestones,
-            timer: Date.now(),
-            bossThreshold: currentQuest.bossThreshold,
-            spriteId: currentQuest.spriteId,
-            bossDefeated: false,
-            boss: currentQuest.boss,
-            monsters: monsterSprites.filter((sprite) => sprite !== ''),
-          });
-        }
-      } else if (!user?.currentQuest?.id) {
-        setActiveQuest(null);
+        setActiveQuest({
+          questID: currentQuest.questId,
+          questName: currentQuest.questName,
+          progress: progress,
+          milestones: currentQuest.milestones,
+          timer: Date.now(),
+          bossThreshold: currentQuest.bossThreshold,
+          spriteId: currentQuest.spriteId,
+          bossDefeated: false,
+          boss: currentQuest.boss,
+          monsters: currentQuest.monsters,
+        });
       }
-    };
-
-    loadActiveQuest();
+    } else if (!user?.currentQuest?.id) {
+      setActiveQuest(null);
+    }
   }, [user?.currentQuest, availableQuests]);
 
   const getNextMilestones = (quest: Quest, currentProgress: number) => {
@@ -297,7 +283,7 @@ const Quest = () => {
   const handleAdvance = async () => {
     if (activeQuest && user?.id) {
       // TODO: Change this to 30 minutes
-      if (user.activeWorkoutMinutes < 30) {
+      if (user.activeWorkoutMinutes < 1) {
         Alert.alert(
           'Not Strong Enough...',
           "You'll need to train more before challenging this foe. Return after training!",
@@ -322,15 +308,16 @@ const Quest = () => {
 
         try {
           const result = await updateUserProfile(user.id, {
-            activeWorkoutMinutes: user.activeWorkoutMinutes - 30,
+            activeWorkoutMinutes: user.activeWorkoutMinutes - 1,
           });
 
           if (result.success) {
             setUser({
               ...user,
-              activeWorkoutMinutes: user.activeWorkoutMinutes - 30,
+              activeWorkoutMinutes: user.activeWorkoutMinutes - 1,
             });
 
+            console.log('activeQuest.monsters', activeQuest.monsters);
             router.replace({
               pathname: '/fight',
               params: {
@@ -390,15 +377,21 @@ const Quest = () => {
     }
   };
 
-  const getNodeInfo = (
+  const getNodeInfo = async (
     milestone: number | string,
     quest: ActiveQuest,
-  ): QuestNode | null => {
+  ): Promise<QuestNode | null> => {
     const milestoneNum = Number(milestone);
 
-    // Convert monster IDs to AnimatedSpriteID type
-    const monsterSprites = quest.monsters.map(
-      (monsterId) => monsterId as AnimatedSpriteID,
+    // Map the monster IDs to their corresponding sprite IDs
+    const monsters = await Promise.all(
+      quest.monsters.map(async (monsterId) => {
+        const monster = await getMonsterById(monsterId);
+        return {
+          monsterId,
+          spriteId: monster?.spriteId as AnimatedSpriteID, // Cast to AnimatedSpriteID
+        };
+      }),
     );
 
     return {
@@ -406,8 +399,8 @@ const Quest = () => {
       isBoss: milestoneNum === quest.bossThreshold,
       possibleMonsters:
         milestoneNum === quest.bossThreshold
-          ? [quest.boss.spriteId]
-          : monsterSprites,
+          ? [{ monsterId: quest.boss.spriteId, spriteId: quest.boss.spriteId }]
+          : monsters,
       description:
         milestoneNum === quest.bossThreshold
           ? 'Boss Battle!'
@@ -431,13 +424,11 @@ const Quest = () => {
     const getProgressText = () => {
       if (!user?.activeWorkoutMinutes) return '0% ready to advance!';
 
-      if (user.activeWorkoutMinutes >= 30) {
+      if (user.activeWorkoutMinutes >= 1) {
         return 'Ready to advance!';
       }
 
-      const readyPercentage = Math.round(
-        (user.activeWorkoutMinutes / 30) * 100,
-      );
+      const readyPercentage = Math.round((user.activeWorkoutMinutes / 1) * 100);
       return `${readyPercentage}% ready to advance!`;
     };
 
@@ -470,9 +461,9 @@ const Quest = () => {
               <TouchableOpacity
                 key={milestone === 'start' ? 'start-node' : milestone}
                 className="items-center"
-                onPress={() => {
+                onPress={async () => {
                   if (nodeInfo && milestoneValue > progress) {
-                    setSelectedNode(nodeInfo);
+                    setSelectedNode(await nodeInfo);
                     setModalVisible(true);
                   }
                 }}
@@ -631,7 +622,17 @@ const Quest = () => {
       <QuestNodeModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        nodeInfo={selectedNode}
+        nodeInfo={{
+          isBoss: selectedNode?.isBoss || false,
+          milestone: selectedNode?.milestone || 0,
+          possibleMonsters:
+            selectedNode?.possibleMonsters?.map(
+              (monster: { monsterId: string; spriteId: AnimatedSpriteID }) => ({
+                monsterId: monster.monsterId,
+                spriteId: monster.spriteId,
+              }),
+            ) || [],
+        }}
       />
     </SafeAreaView>
   );

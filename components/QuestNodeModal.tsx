@@ -9,7 +9,10 @@ interface QuestNodeModalProps {
   nodeInfo: {
     isBoss: boolean;
     milestone: number;
-    possibleMonsters: AnimatedSpriteID[];
+    possibleMonsters: {
+      monsterId: string;
+      spriteId: AnimatedSpriteID;
+    }[];
   } | null;
 }
 
@@ -19,6 +22,8 @@ export const QuestNodeModal = ({
   nodeInfo,
 }: QuestNodeModalProps) => {
   if (!nodeInfo) return null;
+
+  console.log('possible monsters', nodeInfo.possibleMonsters);
 
   return (
     <Modal
@@ -38,10 +43,10 @@ export const QuestNodeModal = ({
 
           <Text style={styles.subtitle}>Possible encounters:</Text>
           <View style={styles.monstersGrid}>
-            {nodeInfo.possibleMonsters.map((monsterId, index) => (
-              <View key={index} style={styles.monsterContainer}>
+            {nodeInfo.possibleMonsters.map(({ monsterId, spriteId }) => (
+              <View key={monsterId} style={styles.monsterContainer}>
                 <AnimatedSprite
-                  id={monsterId as AnimatedSpriteID}
+                  id={spriteId}
                   width={120}
                   height={120}
                   state={SpriteState.IDLE}
