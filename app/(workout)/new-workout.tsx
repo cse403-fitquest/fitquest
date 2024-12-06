@@ -29,6 +29,7 @@ import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
 import {
   convertSecondsToMMSS,
+  didUserLevelUp,
   getTagColumnWidth,
   printExerciseDisplays,
   turnTagIntoString,
@@ -430,7 +431,7 @@ const NewWorkout = () => {
           setModalVisible(false);
           // Cancel workout
           clearWorkout();
-          router.back();
+          router.replace('/workout' as Href);
         },
         cancelText: 'CANCEL',
       });
@@ -597,8 +598,22 @@ const NewWorkout = () => {
     // Clear workout
     clearWorkout();
 
-    // Redirect to workout screen
-    router.replace('workout' as Href);
+    // Check if user leveled up
+    if (didUserLevelUp(user, userAfterExpGain)) {
+      console.log('User leveled up');
+      // Redirect to workout screen
+      router.replace({
+        pathname: '/workout',
+        params: { didUserLevelUp: 'true' },
+      });
+    } else {
+      console.log('User did not level up');
+      // Redirect to workout screen
+      router.replace({
+        pathname: '/workout',
+        params: { didUserLevelUp: 'false' },
+      });
+    }
   };
 
   return (

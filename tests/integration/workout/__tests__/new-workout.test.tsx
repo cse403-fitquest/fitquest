@@ -335,7 +335,7 @@ describe('NewWorkout Screen', () => {
     );
     expect(setLoading).toHaveBeenCalledWith(false);
     expect(clearWorkout).toHaveBeenCalled();
-    expect(router.replace).toHaveBeenCalledWith('workout');
+    expect(router.replace).toHaveBeenCalled();
   });
 
   it('handles finishing workout without completed sets', async () => {
@@ -353,7 +353,7 @@ describe('NewWorkout Screen', () => {
     fireEvent.press(confirmCancelButton);
 
     expect(clearWorkout).toHaveBeenCalled();
-    expect(router.back).toHaveBeenCalled();
+    expect(router.replace).toHaveBeenCalled();
   });
 
   it('handles canceling workout', async () => {

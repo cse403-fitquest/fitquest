@@ -3,18 +3,20 @@ import { FC, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUserStore } from '@/store/user';
 import FQModal from '@/components/FQModal';
-// import { AnimatedSprite } from '@/components/AnimatedSprite';
-// import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+import { AnimatedSprite } from '@/components/AnimatedSprite';
+import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { ExerciseDisplay, ExerciseSetDisplay, Workout } from '@/types/workout';
 import FQButton from '@/components/FQButton';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/colors';
 import { SUGGESTED_TEMPLATES } from '@/constants/workout';
-import { Href, router } from 'expo-router';
+import { Href, router, useLocalSearchParams } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
 import { v4 as uuidv4 } from 'uuid';
 
 const WorkoutScreen = () => {
+  const { didUserLevelUp } = useLocalSearchParams<{ didUserLevelUp: string }>();
+
   const { user } = useUserStore();
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -50,6 +52,52 @@ const WorkoutScreen = () => {
       }
     };
   }, [timer]);
+
+  useEffect(() => {
+    console.log('Workout: Did user level up:', didUserLevelUp);
+    if (didUserLevelUp === 'true') {
+      setModalVisible(true);
+      setModalContent({
+        title: 'You Leveled Up!',
+        content: (
+          <View>
+            <View className="w-full relative items-center justify-center h-[140px] overflow-hidden">
+              <View className="absolute bottom-0 flex-row justify-center items-end">
+                <View className="relative">
+                  <AnimatedSprite
+                    id={user?.spriteID}
+                    state={SpriteState.ATTACK_3}
+                    width={120}
+                    height={120}
+                    duration={600}
+                  />
+                </View>
+                <View className="relative">
+                  <AnimatedSprite
+                    id={AnimatedSpriteID.FIRE_SKULL_RED}
+                    state={SpriteState.DAMAGED}
+                    direction="left"
+                    width={120}
+                    height={120}
+                    duration={600}
+                    delay={200}
+                  />
+                </View>
+              </View>
+            </View>
+            <Text className="mt-8">
+              You have leveled up! Continue to the profile screen to allocate
+              your new attribute point to get even stronger!
+            </Text>
+          </View>
+        ),
+        onConfirm: () => {
+          setModalVisible(false);
+        },
+        confirmText: 'CONTINUE',
+      });
+    }
+  }, [didUserLevelUp]);
 
   const onAddWorkoutTemplateClick = () => {
     console.log('Add workout template clicked');
@@ -167,44 +215,6 @@ const WorkoutScreen = () => {
         width={300}
       >
         {modalContent.content}
-        {/* <View>
-          {expGainModalData.type === 'levelUp' ? (
-            <View className="w-full relative items-center justify-center h-[140px] overflow-hidden">
-              <View className="absolute bottom-0 flex-row justify-center items-end">
-                <View className="relative">
-                  <AnimatedSprite
-                    id={user?.spriteID}
-                    state={SpriteState.ATTACK_3}
-                    width={120}
-                    height={120}
-                    duration={600}
-                  />
-                </View>
-                <View className="relative">
-                  <AnimatedSprite
-                    id={AnimatedSpriteID.FIRE_SKULL_RED}
-                    state={SpriteState.DAMAGED}
-                    direction="left"
-                    width={120}
-                    height={120}
-                    duration={600}
-                    delay={200}
-                  />
-                </View>
-              </View>
-            </View>
-          ) : null}
-          <View className="mt-8 mb-8">
-            <Text className="text-lg text-center font-bold">
-              EXP GAIN:{' '}
-              <Text className="text-yellow font-bold">
-                {expGainModalData.expGain} XP
-              </Text>
-            </Text>
-          </View>
-
-          <Text>{expGainModalData.description} </Text>
-        </View> */}
       </FQModal>
       <FlatList
         data={[]}

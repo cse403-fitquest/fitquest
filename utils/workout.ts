@@ -144,3 +144,20 @@ export const printExerciseDisplays = (exercises: ExerciseDisplay[]) => {
     }
   }
 };
+
+export const didUserLevelUp = (oldUser: User, newUser: User) => {
+  // Compare user's aggregate attributes
+  const oldPoints =
+    oldUser.attributes.power +
+    oldUser.attributes.speed +
+    oldUser.attributes.health +
+    oldUser.attributePoints;
+
+  const newPoints =
+    newUser.attributes.power +
+    newUser.attributes.speed +
+    newUser.attributes.health +
+    newUser.attributePoints;
+
+  return newPoints > oldPoints;
+};
