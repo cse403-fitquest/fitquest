@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // import { v4 as uuidv4 } from 'uuid';
 
 const WorkoutTemplate = () => {
-  const { workout } = useWorkoutStore();
+  const { workoutDisplay, setWorkout } = useWorkoutStore();
   const { user, setUser } = useUserStore();
   const { setLoading } = useGeneralStore();
 
@@ -148,7 +148,7 @@ const WorkoutTemplate = () => {
     setLoading(true);
 
     const updatedTemplates = user.savedWorkoutTemplates.filter(
-      (template) => template.id !== workout.id,
+      (template) => template.id !== workoutDisplay.id,
     );
 
     const oldUser = { ...user };
@@ -158,7 +158,7 @@ const WorkoutTemplate = () => {
     });
 
     // Update the user's saved workout templates
-    const response = await deleteWorkoutTemplate(user.id, workout.id);
+    const response = await deleteWorkoutTemplate(user.id, workoutDisplay.id);
 
     setLoading(false);
 
@@ -174,6 +174,14 @@ const WorkoutTemplate = () => {
   };
 
   const onPerformWorkoutPress = () => {
+    // Set the workout to the active workout
+    setWorkout(() => ({
+      id: workoutDisplay.id,
+      name: workoutDisplay.name,
+      exercises: workoutDisplay.exercises,
+      startedAt: new Date(),
+    }));
+
     // Navigate to the workout screen
     router.push('/new-workout' as Href);
   };
@@ -207,7 +215,7 @@ const WorkoutTemplate = () => {
                 <TouchableOpacity onPress={onEditTemplatePress}>
                   <Text className="font-semibold text-blue p-1">EDIT</Text>
                 </TouchableOpacity>
-                {!workout.isSuggested ? (
+                {!workoutDisplay.isSuggested ? (
                   <TouchableOpacity
                     className="ml-5"
                     onPress={onDeleteTemplatePress}
@@ -220,14 +228,14 @@ const WorkoutTemplate = () => {
               </View>
             </View>
             <Text className="w-full text-3xl font-semibold mb-2">
-              {workout.name}
+              {workoutDisplay.name}
             </Text>
             <Text className="text-grayDark text-sm mb-8">
               {turnDateIntoString(new Date())}
             </Text>
 
             <FlatList
-              data={workout.exercises}
+              data={workoutDisplay.exercises}
               keyExtractor={(item) => item.id}
               renderItem={({ item: exercise }) => (
                 <View className="w-full mb-8">

@@ -35,7 +35,7 @@ const WorkoutScreen = () => {
 
   const [timer] = useState<ReturnType<typeof setInterval> | null>(null);
 
-  const { workout, setWorkout } = useWorkoutStore();
+  const { workout, setWorkout, setWorkoutDisplay } = useWorkoutStore();
 
   useEffect(() => {
     return () => {
@@ -49,7 +49,7 @@ const WorkoutScreen = () => {
   const onAddWorkoutTemplateClick = () => {
     console.log('Add workout template clicked');
 
-    setWorkout(() => ({
+    setWorkoutDisplay(() => ({
       id: uuidv4(),
       name: 'New Workout Template',
       exercises: [],
@@ -72,7 +72,7 @@ const WorkoutScreen = () => {
       }),
     );
 
-    setWorkout(() => ({
+    setWorkoutDisplay(() => ({
       id: workoutTemplate.id,
       name: workoutTemplate.title,
       exercises: workoutExercises,
@@ -95,7 +95,7 @@ const WorkoutScreen = () => {
       }),
     );
 
-    setWorkout(() => ({
+    setWorkoutDisplay(() => ({
       id: uuidv4(), // Generate a new ID for the workout if it's a suggested template
       name: workoutTemplate.title,
       exercises: workoutExercises,
