@@ -109,7 +109,7 @@ const mockItems = [
   },
 ];
 
-describe('Shop Screen', () => {
+describe('Shop Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
