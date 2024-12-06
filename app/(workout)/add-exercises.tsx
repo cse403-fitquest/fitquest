@@ -13,7 +13,7 @@ import {
 import { printExerciseDisplays } from '@/utils/workout';
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   View,
@@ -27,11 +27,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
 
 const AddExercises = () => {
+  const { isActiveWorkout } = useLocalSearchParams<{
+    isActiveWorkout: string;
+  }>();
+
   const [exercises, setExercises] = useState<AddExerciseDisplay[]>([]);
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
   const [search, setSearch] = useState('');
 
-  const { setWorkout } = useWorkoutStore();
+  const { setWorkout, setWorkoutDisplay } = useWorkoutStore();
   const { user } = useUserStore();
 
   useEffect(() => {
@@ -220,17 +224,31 @@ const AddExercises = () => {
 
     printExerciseDisplays(selectedExercises);
 
-    setWorkout((prevWorkout) => {
-      const newExercises = [
-        ...prevWorkout.exercises,
-        ...selectedExercises,
-      ] as ExerciseDisplay[];
+    if (isActiveWorkout === 'true') {
+      setWorkout((prevWorkout) => {
+        const newExercises = [
+          ...prevWorkout.exercises,
+          ...selectedExercises,
+        ] as ExerciseDisplay[];
 
-      return {
-        ...prevWorkout,
-        exercises: newExercises,
-      };
-    });
+        return {
+          ...prevWorkout,
+          exercises: newExercises,
+        };
+      });
+    } else {
+      setWorkoutDisplay((prevWorkout) => {
+        const newExercises = [
+          ...prevWorkout.exercises,
+          ...selectedExercises,
+        ] as ExerciseDisplay[];
+
+        return {
+          ...prevWorkout,
+          exercises: newExercises,
+        };
+      });
+    }
 
     router.back();
   };

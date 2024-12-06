@@ -431,6 +431,9 @@ describe('NewWorkout Screen', () => {
     const addExerciseButton = getByTestId('add-exercises-button');
     fireEvent.press(addExerciseButton);
 
-    expect(router.push).toHaveBeenCalledWith('add-exercises');
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/add-exercises',
+      params: { isActiveWorkout: 'true' },
+    });
   });
 });

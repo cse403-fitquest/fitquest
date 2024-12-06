@@ -781,7 +781,14 @@ const NewWorkout = () => {
         <View className="w-full justify-center items-center mt-5 pb-8">
           <TouchableOpacity
             className="mb-4"
-            onPress={() => router.push('add-exercises' as Href)}
+            onPress={() =>
+              router.push({
+                pathname: '/add-exercises',
+                params: {
+                  isActiveWorkout: 'true',
+                },
+              })
+            }
           >
             <Text
               className="text-blue text-lg font-semibold "

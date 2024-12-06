@@ -37,6 +37,9 @@ jest.mock('expo-router', () => ({
     navigate: jest.fn(),
     back: jest.fn(),
   },
+  useLocalSearchParams: jest.fn(() => ({
+    isActiveWorkout: 'true',
+  })),
 }));
 
 // Mock Zustand stores

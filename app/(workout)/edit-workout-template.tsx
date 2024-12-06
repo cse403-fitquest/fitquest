@@ -25,7 +25,7 @@ import {
   ExerciseTag,
   Workout,
 } from '@/types/workout';
-import { Href, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
 import {
   convertSecondsToMMSS,
@@ -501,7 +501,14 @@ const NewWorkout = () => {
         <View className="w-full justify-center items-center mt-5 pb-8">
           <TouchableOpacity
             className="mb-4"
-            onPress={() => router.push('add-exercises' as Href)}
+            onPress={() =>
+              router.push({
+                pathname: '/add-exercises',
+                params: {
+                  isActiveWorkout: 'false',
+                },
+              })
+            }
           >
             <Text className="text-blue text-lg font-semibold ">
               ADD EXERCISE
