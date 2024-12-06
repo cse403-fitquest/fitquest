@@ -5,12 +5,11 @@
 import { screen, render, fireEvent } from '@testing-library/react-native';
 import Shop from '@/app/(tabs)/shop'; // Update path if necessary
 import React from 'react';
-// import { useUserStore } from '@/store/user';
+import { useUserStore } from '@/store/user';
 // import { useItemStore } from '@/store/item';
 // import { BASE_ITEM } from '@/constants/item';
 import { ItemType } from '@/types/item';
 import { purchaseItem } from '@/services/item';
-// import { useUserStore } from '@/store/user';
 // import { purchaseItem } from '@/services/item';
 // import { BASE_USER } from '@/constants/user';
 // Mock stores and services
@@ -20,12 +19,18 @@ import { purchaseItem } from '@/services/item';
 // jest.mock('@/store/item', () => ({
 //   useItemStore: jest.fn(),
 // }));
-jest.mock('@/services/item', () => ({
-  purchaseItem: jest.fn(),
-}));
+// jest.mock('@/services/item', () => ({
+//   purchaseItem: jest.fn(),
+// }));
+
+let mockUser = { id: 'user-1', name: 'Test User', gold: 60 };
+
+const mockSetUser = jest.fn((updatedUser) => {
+  mockUser = updatedUser;
+});
 // Mock UUID with unique IDs
 jest.mock('uuid', () => {
-  let uuidCounter = 0; // Define the counter inside the factory function
+  let uuidCounter = 0;
   return {
     v4: jest.fn(() => `unique-id-${++uuidCounter}`),
   };
@@ -51,20 +56,20 @@ jest.mock('expo-router', () => ({
 
 // Mock Zustand stores
 jest.mock('@/store/user', () => ({
-  useUserStore: () => ({
-    user: { id: 'user-1', name: 'Test User', gold: 60 },
-    setUser: jest.fn(),
-  }),
+  useUserStore: jest.fn(() => ({
+    user: mockUser,
+    setUser: mockSetUser,
+  })),
 }));
 
 jest.mock('@/store/item', () => ({
   useItemStore: jest.fn(() => ({
-    items: mockItems, // Provide the mock items here
+    items: mockItems,
   })),
 }));
 
 jest.mock('@/services/item', () => ({
-  purchaseItem: jest.fn(), //.mockResolvedValue({ success: true }), // Mock success response
+  purchaseItem: jest.fn(),
 }));
 
 const mockItems = [
@@ -104,20 +109,6 @@ const mockItems = [
   },
 ];
 
-// Set up mocks
-// beforeEach(() => {
-//   (useUserStore as jest.Mock).mockReturnValue({
-//     user: mockUser,
-//     setUser: jest.fn(),
-//   });
-
-//   (useItemStore as jest.Mock).mockReturnValue({
-//     items: mockItems,
-//   });
-
-//   (purchaseItem as jest.Mock).mockResolvedValue({ success: true });
-// });
-
 describe('Shop Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -138,10 +129,8 @@ describe('Shop Component', () => {
 
   it('opens and displays item details in a modal when an item is selected and goes back when canceled', () => {
     render(React.createElement<typeof Shop>(Shop));
-    // const { getByText } = render(React.createElement<typeof Shop>(Shop));
     fireEvent.press(screen.getByText('50 Gold'));
-    expect(true).toBe(true);
-    // // Check for modal content
+
     expect(screen.getByText('Equip Sword')).toBeTruthy();
     expect(screen.getByText('CANCEL')).toBeTruthy();
     expect(screen.getByText('BUY ITEM')).toBeTruthy();
@@ -157,17 +146,14 @@ describe('Shop Component', () => {
   });
 
   it('opens and displays item details then complete purchase when funds sufficient', async () => {
-    //TODO: implment user to finish correct buy
-    const mockSetUser = jest.fn();
-    (useUserStore as jest.Mock).mockReturnValue({
-      user: { id: 'user-1', name: 'Test User', gold: 50 },
+    (useUserStore as unknown as jest.Mock).mockReturnValue({
+      user: mockUser,
       setUser: mockSetUser,
     });
     render(React.createElement<typeof Shop>(Shop));
-    // const { getByText } = render(React.createElement<typeof Shop>(Shop));
+
     fireEvent.press(screen.getByText('50 Gold'));
-    expect(true).toBe(true);
-    // // Check for modal content
+
     expect(screen.getByText('Equip Sword')).toBeTruthy();
     expect(screen.getByText('CANCEL')).toBeTruthy();
     expect(screen.getByText('BUY ITEM')).toBeTruthy();
@@ -176,20 +162,21 @@ describe('Shop Component', () => {
       screen.getByText(`${mockItems[0].cost} Gold to purchase`),
     ).toBeTruthy();
 
-    (purchaseItem as jest.Mock).mockResolvedValue({ success: false });
+    (purchaseItem as jest.Mock).mockResolvedValue({ success: true });
     // should fail to purchase when insufficient funds
     fireEvent.press(screen.getByText('BUY ITEM'));
-    expect(screen.getByText('10 Gold')).toBeTruthy();
-    //expect(screen.queryByText('10 Gold')).toBeTruthy();
-    //expect(screen.getByText('70 Gold')).toBeTruthy();
+    expect(purchaseItem).toHaveBeenCalledWith(mockUser.id, mockItems[0].id);
+
+    expect(mockSetUser).toHaveBeenCalledWith({
+      ...mockUser,
+      gold: 10,
+    });
   });
 
   it('opens and displays item details then doesnt complete purchase when not enough funds', () => {
     render(React.createElement<typeof Shop>(Shop));
-    // const { getByText } = render(React.createElement<typeof Shop>(Shop));
     fireEvent.press(screen.getByText('70 Gold'));
-    expect(true).toBe(true);
-    // // Check for modal content
+
     expect(screen.getByText('Equip Small Potion')).toBeTruthy();
     expect(screen.getByText('CANCEL')).toBeTruthy();
     expect(screen.getByText('BUY ITEM')).toBeTruthy();
@@ -202,83 +189,4 @@ describe('Shop Component', () => {
     fireEvent.press(screen.getByText('BUY ITEM'));
     expect(screen.getByText('Equip Small Potion')).toBeTruthy();
   });
-
-  // it('shows an alert if the user does not have enough gold to purchase an item', async () => {
-  //   const { getByText } = render(Shop());
-  //   fireEvent.press(getByText('Shield'));
-
-  //   const buyButton = getByText('BUY ITEM');
-  //   fireEvent.press(buyButton);
-
-  //   await waitFor(() => {
-  //     expect(getByText('Not enough gold')).toBeTruthy();
-  //   });
-  // });
-
-  // it('purchases a consumable item and updates the user store', async () => {
-  //   const setUserMock = jest.fn();
-  //   (useUserStore as unknown as jest.Mock).mockReturnValue({
-  //     user: mockUser,
-  //     setUser: setUserMock,
-  //   });
-
-  //   const { getByText } = render(Shop());
-  //   fireEvent.press(getByText('Small Potion'));
-
-  //   const buyButton = getByText('BUY ITEM');
-  //   fireEvent.press(buyButton);
-
-  //   await waitFor(() => {
-  //     expect(purchaseItem).toHaveBeenCalledWith(mockUser.id, mockItems[2].id);
-  //     expect(setUserMock).toHaveBeenCalledWith({
-  //       ...mockUser,
-  //       gold: mockUser.gold - mockItems[2].cost,
-  //       consumables: [...mockUser.consumables, mockItems[2].id],
-  //     });
-  //   });
-  // });
-
-  // it('purchases an equipment item and updates the user store', async () => {
-  //   const setUserMock = jest.fn();
-  //   (useUserStore as unknown as jest.Mock).mockReturnValue({
-  //     user: mockUser,
-  //     setUser: setUserMock,
-  //   });
-
-  //   const { getByText } = render(Shop());
-  //   fireEvent.press(getByText('Sword'));
-
-  //   const buyButton = getByText('BUY ITEM');
-  //   fireEvent.press(buyButton);
-
-  //   await waitFor(() => {
-  //     expect(purchaseItem).toHaveBeenCalledWith(mockUser.id, mockItems[0].id);
-  //     expect(setUserMock).toHaveBeenCalledWith({
-  //       ...mockUser,
-  //       gold: mockUser.gold - mockItems[0].cost,
-  //       equipments: [...mockUser.equipments, mockItems[0].id],
-  //     });
-  //   });
-  // });
-
-  // it('does not purchase an item if the API request fails', async () => {
-  //   (purchaseItem as jest.Mock).mockResolvedValueOnce({ success: false });
-
-  //   const setUserMock = jest.fn();
-  //   (useUserStore as unknown as jest.Mock).mockReturnValue({
-  //     user: mockUser,
-  //     setUser: setUserMock,
-  //   });
-
-  //   const { getByText } = render(Shop());
-  //   fireEvent.press(getByText('Sword'));
-
-  //   const buyButton = getByText('BUY ITEM');
-  //   fireEvent.press(buyButton);
-
-  //   await waitFor(() => {
-  //     expect(setUserMock).toHaveBeenCalledTimes(0); // Ensure no state change
-  //     expect(getByText('Error purchasing equipment')).toBeTruthy();
-  //   });
-  // });
 });
