@@ -3,8 +3,8 @@ import { FC, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUserStore } from '@/store/user';
 import FQModal from '@/components/FQModal';
-import { AnimatedSprite } from '@/components/AnimatedSprite';
-import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
+// import { AnimatedSprite } from '@/components/AnimatedSprite';
+// import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { ExerciseDisplay, ExerciseSetDisplay, Workout } from '@/types/workout';
 import FQButton from '@/components/FQButton';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,18 +16,23 @@ import { v4 as uuidv4 } from 'uuid';
 
 const WorkoutScreen = () => {
   const { user } = useUserStore();
-  const [expGainModalVisible, setExpGainModalVisible] = useState(false);
-  const [expGainModalData] = useState<{
-    type: 'levelUp' | 'expGain';
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalContent, setModalContent] = useState<{
     title: string;
-    expGain: number;
-    description: string;
-  }>({
-    type: 'expGain',
-    title: 'You gained EXP!',
-    expGain: 0,
-    description: 'You have gained experience points!',
-  });
+    content: React.ReactNode;
+    onConfirm: () => void;
+    confirmText?: string;
+    onCancel?: () => void;
+    cancelText?: string;
+  }>(
+    // Default modal content
+    {
+      title: '',
+      content: <></>,
+      onConfirm: () => {},
+    },
+  );
 
   if (!user) {
     throw new Error('User data not found.');
@@ -106,17 +111,63 @@ const WorkoutScreen = () => {
     router.push('/workout-template' as Href);
   };
 
+  const onNewWorkoutClick = () => {
+    console.log('New workout clicked');
+
+    // Check if there is an active workout
+    // If there is, show a modal to confirm if the user wants to start a new workout
+    if (workout.id) {
+      setModalVisible(true);
+      setModalContent({
+        title: 'Start New Workout',
+        content: (
+          <Text>
+            Are you sure you want to start a new workout? Your current workout
+            will be lost.
+          </Text>
+        ),
+        onConfirm: () => {
+          setModalVisible(false);
+
+          setWorkout(() => ({
+            id: uuidv4(),
+            name: 'Empty Workout',
+            exercises: [],
+            startedAt: new Date(),
+          }));
+
+          router.push('/new-workout' as Href);
+        },
+        confirmText: 'START NEW WORKOUT',
+        onCancel: () => setModalVisible(false),
+        cancelText: 'Cancel',
+      });
+    } else {
+      setWorkout(() => ({
+        id: uuidv4(),
+        name: 'Empty Workout',
+        exercises: [],
+        startedAt: new Date(),
+      }));
+
+      router.push('/new-workout' as Href);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
       <FQModal
-        visible={expGainModalVisible}
-        setVisible={setExpGainModalVisible}
-        onConfirm={() => setExpGainModalVisible(false)}
-        title={expGainModalData.title}
-        confirmText="CLOSE"
+        title={modalContent.title}
+        visible={modalVisible}
+        setVisible={setModalVisible}
+        onCancel={modalContent.onCancel}
+        onConfirm={modalContent.onConfirm}
+        confirmText={modalContent.confirmText}
+        cancelText={modalContent.cancelText}
         width={300}
       >
-        <View>
+        {modalContent.content}
+        {/* <View>
           {expGainModalData.type === 'levelUp' ? (
             <View className="w-full relative items-center justify-center h-[140px] overflow-hidden">
               <View className="absolute bottom-0 flex-row justify-center items-end">
@@ -153,7 +204,7 @@ const WorkoutScreen = () => {
           </View>
 
           <Text>{expGainModalData.description} </Text>
-        </View>
+        </View> */}
       </FQModal>
       <FlatList
         data={[]}
@@ -189,22 +240,7 @@ const WorkoutScreen = () => {
                 QUICK START
               </Text>
               <View>
-                <FQButton
-                  onPress={() => {
-                    // TODO: Check if there is an active workout
-                    // If there is an active workout, ask the user if they want to resume it
-                    console.log('Start an empty workout');
-
-                    setWorkout(() => ({
-                      id: uuidv4(),
-                      name: 'Empty Workout',
-                      startedAt: new Date(),
-                      exercises: [],
-                    }));
-
-                    router.push('/new-workout' as Href);
-                  }}
-                >
+                <FQButton onPress={onNewWorkoutClick}>
                   START AN EMPTY WORKOUT
                 </FQButton>
               </View>

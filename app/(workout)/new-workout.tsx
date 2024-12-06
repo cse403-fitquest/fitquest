@@ -617,14 +617,19 @@ const NewWorkout = () => {
 
       <ScrollView className="w-full">
         <View className="relative w-full justify-start items-start px-6 pt-8">
-          <View className="w-full flex-row justify-end">
-            <TouchableOpacity
-              onPress={onFinishWorkoutPress}
-              className="p-1"
-              testID="finish-workout-button"
-            >
-              <Text className="text-blue text-lg font-semibold">FINISH</Text>
+          <View className="w-full flex-row justify-between items-center mb-5">
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={35} color="black" />
             </TouchableOpacity>
+            <View className="flex-row">
+              <TouchableOpacity
+                onPress={onFinishWorkoutPress}
+                className="p-1"
+                testID="finish-workout-button"
+              >
+                <Text className="text-blue text-lg font-semibold">FINISH</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           <TextInput
             className="w-full text-lg font-semibold mb-2"

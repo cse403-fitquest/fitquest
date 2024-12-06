@@ -7,32 +7,32 @@ import { useWorkoutStore } from '@/store/workout';
 import { ExerciseTag } from '@/types/workout';
 import { Ionicons } from '@expo/vector-icons';
 import { Href, router } from 'expo-router';
-import { ReactNode, useState } from 'react';
+import { useState } from 'react';
 import { Text, TouchableOpacity, View, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // import { v4 as uuidv4 } from 'uuid';
 
 const WorkoutTemplate = () => {
-  const { workoutDisplay, setWorkout } = useWorkoutStore();
+  const { workout, workoutDisplay, setWorkout } = useWorkoutStore();
   const { user, setUser } = useUserStore();
   const { setLoading } = useGeneralStore();
 
-  const [setModalVisible, setSetModalVisible] = useState(false);
-  const [setModalContent, setSetModalContent] = useState<{
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalContent, setModalContent] = useState<{
     title: string;
-    content: ReactNode;
-    confirmText: string;
+    content: React.ReactNode;
     onConfirm: () => void;
-  }>({
-    title: '',
-    content: null,
-    confirmText: '',
-    onConfirm: () => {},
-  });
-
-  // useEffect(() => {
-  //   setTemplate(EXERCISES_STUB);
-  // }, []);
+    confirmText?: string;
+    onCancel?: () => void;
+    cancelText?: string;
+  }>(
+    // Default modal content
+    {
+      title: '',
+      content: <></>,
+      onConfirm: () => {},
+    },
+  );
 
   const turnDateIntoString = (date: Date) => {
     const dayIndex = date.getDay();
@@ -123,7 +123,7 @@ const WorkoutTemplate = () => {
   };
 
   const onDeleteTemplatePress = () => {
-    setSetModalContent({
+    setModalContent({
       title: 'Delete Template',
       content: (
         <Text className="pt-1">
@@ -134,11 +134,11 @@ const WorkoutTemplate = () => {
       confirmText: 'DELETE',
       onConfirm: () => {
         handleDeleteTemplate();
-        setSetModalVisible(false);
+        setModalVisible(false);
       },
     });
 
-    setSetModalVisible(true);
+    setModalVisible(true);
   };
 
   const handleDeleteTemplate = async () => {
@@ -174,31 +174,59 @@ const WorkoutTemplate = () => {
   };
 
   const onPerformWorkoutPress = () => {
-    // Set the workout to the active workout
-    setWorkout(() => ({
-      id: workoutDisplay.id,
-      name: workoutDisplay.name,
-      exercises: workoutDisplay.exercises,
-      startedAt: new Date(),
-    }));
+    // Check if there is an active workout
+    // If there is, show a modal to confirm if the user wants to start a new workout
+    if (workout.id) {
+      setModalVisible(true);
+      setModalContent({
+        title: 'Start New Workout',
+        content: (
+          <Text>
+            Are you sure you want to start a new workout? Your current workout
+            will be lost.
+          </Text>
+        ),
+        onConfirm: () => {
+          setModalVisible(false);
 
-    // Navigate to the workout screen
-    router.push('/new-workout' as Href);
+          setWorkout(() => ({
+            id: workoutDisplay.id,
+            name: workoutDisplay.name,
+            exercises: workoutDisplay.exercises,
+            startedAt: new Date(),
+          }));
+
+          router.push('/new-workout' as Href);
+        },
+        confirmText: 'START NEW WORKOUT',
+        onCancel: () => setModalVisible(false),
+        cancelText: 'Cancel',
+      });
+    } else {
+      setWorkout(() => ({
+        id: workoutDisplay.id,
+        name: workoutDisplay.name,
+        exercises: workoutDisplay.exercises,
+        startedAt: new Date(),
+      }));
+
+      router.push('/new-workout' as Href);
+    }
   };
 
   return (
     <SafeAreaView className="relative w-full h-full justify-start items-start bg-offWhite ">
       <FQModal
-        visible={setModalVisible}
-        setVisible={setSetModalVisible}
-        title={setModalContent.title}
-        confirmText={setModalContent.confirmText}
-        onConfirm={setModalContent.onConfirm}
-        onCancel={() => setSetModalVisible(false)}
+        visible={modalVisible}
+        setVisible={setModalVisible}
+        title={modalContent.title}
+        confirmText={modalContent.confirmText}
+        onConfirm={modalContent.onConfirm}
+        onCancel={() => setModalVisible(false)}
         cancelText="CANCEL"
         width={300}
       >
-        {setModalContent.content}
+        {modalContent.content}
       </FQModal>
 
       <FlatList
