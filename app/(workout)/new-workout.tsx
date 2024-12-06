@@ -29,6 +29,7 @@ import { Href, router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
 import {
   convertSecondsToMMSS,
+  didUserLevelUp,
   getTagColumnWidth,
   printExerciseDisplays,
   turnTagIntoString,
@@ -430,7 +431,7 @@ const NewWorkout = () => {
           setModalVisible(false);
           // Cancel workout
           clearWorkout();
-          router.back();
+          router.replace('/workout' as Href);
         },
         cancelText: 'CANCEL',
       });
@@ -597,8 +598,22 @@ const NewWorkout = () => {
     // Clear workout
     clearWorkout();
 
-    // Redirect to workout screen
-    router.replace('workout' as Href);
+    // Check if user leveled up
+    if (didUserLevelUp(user, userAfterExpGain)) {
+      console.log('User leveled up');
+      // Redirect to workout screen
+      router.replace({
+        pathname: '/workout',
+        params: { didUserLevelUp: 'true' },
+      });
+    } else {
+      console.log('User did not level up');
+      // Redirect to workout screen
+      router.replace({
+        pathname: '/workout',
+        params: { didUserLevelUp: 'false' },
+      });
+    }
   };
 
   return (
@@ -617,14 +632,19 @@ const NewWorkout = () => {
 
       <ScrollView className="w-full">
         <View className="relative w-full justify-start items-start px-6 pt-8">
-          <View className="w-full flex-row justify-end">
-            <TouchableOpacity
-              onPress={onFinishWorkoutPress}
-              className="p-1"
-              testID="finish-workout-button"
-            >
-              <Text className="text-blue text-lg font-semibold">FINISH</Text>
+          <View className="w-full flex-row justify-between items-center mb-5">
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={35} color="black" />
             </TouchableOpacity>
+            <View className="flex-row">
+              <TouchableOpacity
+                onPress={onFinishWorkoutPress}
+                className="p-1"
+                testID="finish-workout-button"
+              >
+                <Text className="text-blue text-lg font-semibold">FINISH</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           <TextInput
             className="w-full text-lg font-semibold mb-2"
@@ -761,7 +781,14 @@ const NewWorkout = () => {
         <View className="w-full justify-center items-center mt-5 pb-8">
           <TouchableOpacity
             className="mb-4"
-            onPress={() => router.push('add-exercises' as Href)}
+            onPress={() =>
+              router.push({
+                pathname: '/add-exercises',
+                params: {
+                  isActiveWorkout: 'true',
+                },
+              })
+            }
           >
             <Text
               className="text-blue text-lg font-semibold "
