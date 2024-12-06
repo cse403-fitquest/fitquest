@@ -627,14 +627,17 @@ const Combat = () => {
     if (isMonsterInitialized && player && monster) {
       const initialTurns = calculateTurnOrder(player.speed, monster.speed);
       setTurnQueue(initialTurns);
+    } else if (isBossFight && player && monster) {
+      const initialTurns = calculateTurnOrder(player.speed, monster.speed);
+      setTurnQueue(initialTurns);
     }
-  }, [isMonsterInitialized, player, monster]);
+  }, [isMonsterInitialized, player, monster, isBossFight]);
 
   const handleMonsterTurn = async () => {
     if (
       isAnimating ||
       turnQueue[currentTurnIndex]?.isPlayer ||
-      !isMonsterInitialized
+      (!isMonsterInitialized && !isBossFight)
     )
       return;
 
