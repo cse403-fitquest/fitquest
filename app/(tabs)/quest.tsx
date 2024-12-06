@@ -15,6 +15,8 @@ import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { useUserStore } from '@/store/user';
 import { updateUserProfile } from '@/services/user';
 import { getAvailableQuests } from '@/services/quest';
+import { QuestNodeModal } from '@/components/QuestNodeModal';
+import { getMonsterById } from '@/services/monster';
 
 interface Quest {
   monsters: AnimatedSpriteID[];
@@ -53,6 +55,13 @@ interface ActiveQuest {
   monsters: string[];
 }
 
+interface QuestNode {
+  milestone: number;
+  isBoss: boolean;
+  possibleMonsters: AnimatedSpriteID[];
+  description: string;
+}
+
 const Quest = () => {
   const [activeQuest, setActiveQuest] = useState<ActiveQuest | null>(null);
   const [, setShowAbandonModal] = useState<boolean>(false);
@@ -62,6 +71,8 @@ const Quest = () => {
   const { user, setUser } = useUserStore();
   const [availableQuests, setAvailableQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<QuestNode | null>(null);
 
   const startQuest = async (
     userID: string,
@@ -75,6 +86,13 @@ const Quest = () => {
       const existingProgress = user?.currentQuest?.progress || {};
       const questProgress = existingProgress[questID] || 0;
 
+      const monsterSprites = await Promise.all(
+        selectedQuest.monsters.map(async (monsterId) => {
+          const monster = await getMonsterById(monsterId);
+          return monster?.spriteId || '';
+        }),
+      );
+
       const newActiveQuest: ActiveQuest = {
         questID: selectedQuest.questId,
         questName: selectedQuest.questName,
@@ -85,7 +103,7 @@ const Quest = () => {
         spriteId: selectedQuest.spriteId,
         bossDefeated: false,
         boss: selectedQuest.boss,
-        monsters: selectedQuest.monsters,
+        monsters: monsterSprites.filter((sprite) => sprite !== ''),
       };
 
       setActiveQuest(newActiveQuest);
@@ -114,30 +132,42 @@ const Quest = () => {
   }, []);
 
   useEffect(() => {
-    if (user?.currentQuest?.id && availableQuests.length > 0) {
-      const currentQuest = availableQuests.find(
-        (quest) => quest.questId === user.currentQuest.id,
-      );
+    const loadActiveQuest = async () => {
+      if (user?.currentQuest?.id && availableQuests.length > 0) {
+        const currentQuest = availableQuests.find(
+          (quest) => quest.questId === user.currentQuest.id,
+        );
 
-      if (currentQuest) {
-        const progress = user.currentQuest.progress[currentQuest.questId] || 0;
+        if (currentQuest) {
+          const progress =
+            user.currentQuest.progress[currentQuest.questId] || 0;
 
-        setActiveQuest({
-          questID: currentQuest.questId,
-          questName: currentQuest.questName,
-          progress: progress,
-          milestones: currentQuest.milestones,
-          timer: Date.now(),
-          bossThreshold: currentQuest.bossThreshold,
-          spriteId: currentQuest.spriteId,
-          bossDefeated: false,
-          boss: currentQuest.boss,
-          monsters: currentQuest.monsters,
-        });
+          const monsterSprites = await Promise.all(
+            currentQuest.monsters.map(async (monsterId) => {
+              const monster = await getMonsterById(monsterId);
+              return monster?.spriteId || '';
+            }),
+          );
+
+          setActiveQuest({
+            questID: currentQuest.questId,
+            questName: currentQuest.questName,
+            progress: progress,
+            milestones: currentQuest.milestones,
+            timer: Date.now(),
+            bossThreshold: currentQuest.bossThreshold,
+            spriteId: currentQuest.spriteId,
+            bossDefeated: false,
+            boss: currentQuest.boss,
+            monsters: monsterSprites.filter((sprite) => sprite !== ''),
+          });
+        }
+      } else if (!user?.currentQuest?.id) {
+        setActiveQuest(null);
       }
-    } else if (!user?.currentQuest?.id) {
-      setActiveQuest(null);
-    }
+    };
+
+    loadActiveQuest();
   }, [user?.currentQuest, availableQuests]);
 
   const getNextMilestones = (quest: Quest, currentProgress: number) => {
@@ -360,6 +390,31 @@ const Quest = () => {
     }
   };
 
+  const getNodeInfo = (
+    milestone: number | string,
+    quest: ActiveQuest,
+  ): QuestNode | null => {
+    const milestoneNum = Number(milestone);
+
+    // Convert monster IDs to AnimatedSpriteID type
+    const monsterSprites = quest.monsters.map(
+      (monsterId) => monsterId as AnimatedSpriteID,
+    );
+
+    return {
+      milestone: milestoneNum,
+      isBoss: milestoneNum === quest.bossThreshold,
+      possibleMonsters:
+        milestoneNum === quest.bossThreshold
+          ? [quest.boss.spriteId]
+          : monsterSprites,
+      description:
+        milestoneNum === quest.bossThreshold
+          ? 'Boss Battle!'
+          : `Quest checkpoint: ${milestoneNum}`,
+    };
+  };
+
   const renderMilestoneNodes = (quest: ActiveQuest, progress: number) => {
     const startingPoint = 'start';
     const selectedQuest = availableQuests.find(
@@ -409,11 +464,19 @@ const Quest = () => {
               milestone === 'start' ? 0 : Number(milestone);
             const isBossNode = milestoneValue === Number(quest.bossThreshold);
             const isCompleted = progress >= milestoneValue;
+            const nodeInfo = getNodeInfo(milestone, quest);
 
             return (
-              <View
+              <TouchableOpacity
                 key={milestone === 'start' ? 'start-node' : milestone}
                 className="items-center"
+                onPress={() => {
+                  if (nodeInfo && milestoneValue > progress) {
+                    setSelectedNode(nodeInfo);
+                    setModalVisible(true);
+                  }
+                }}
+                disabled={milestoneValue <= progress}
               >
                 {isBossNode ? (
                   <View
@@ -443,7 +506,7 @@ const Quest = () => {
                     }}
                   />
                 )}
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>
@@ -564,6 +627,11 @@ const Quest = () => {
             )}
           </View>
         }
+      />
+      <QuestNodeModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        nodeInfo={selectedNode}
       />
     </SafeAreaView>
   );
