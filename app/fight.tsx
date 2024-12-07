@@ -39,7 +39,7 @@ const calculatePlayerLevel = (attributes: {
 
 const calculateDifficultyMultiplier = (playerLevel: number) => {
   const levelFactor = Math.floor(playerLevel / 10);
-  return 1 + levelFactor * 0.2;
+  return 1 + levelFactor * 0.15;
 };
 
 const Combat = () => {
@@ -53,8 +53,8 @@ const Combat = () => {
   const initialPlayer = {
     id: user?.id || '',
     name: user?.profileInfo.username || 'Player',
-    health: (user?.attributes.health || 6) * 20,
-    power: (user?.attributes.power || 15) * 2,
+    health: (user?.attributes.health || 6) * 25,
+    power: (user?.attributes.power || 15) * 3,
     speed: user?.attributes.speed || 15,
   };
 
