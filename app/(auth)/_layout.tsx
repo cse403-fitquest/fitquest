@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Audio } from 'expo-av';
 
 const AuthLayout = () => {
   return (

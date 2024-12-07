@@ -12,6 +12,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
+import { Audio } from 'expo-av';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -24,9 +25,46 @@ export default function RootLayout() {
 
   const { setUser } = useUserStore();
 
-  const { loading, setLoading } = useGeneralStore();
+  const { loading, setLoading, sound, setSound } = useGeneralStore();
 
   const { setWorkout, clearWorkout } = useWorkoutStore();
+
+  // Play auth theme song
+  const playAuthBGM = async () => {
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/songs/bgm_auth_screens.mp3'),
+      {
+        isLooping: true,
+      },
+    );
+
+    setSound(sound);
+
+    await sound.playAsync();
+  };
+
+  // Play logged in theme song
+  const playLoggedInBGM = async () => {
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/songs/bgm_tab_screens.mp3'),
+      {
+        isLooping: true,
+      },
+    );
+
+    setSound(sound);
+
+    await sound.playAsync();
+  };
+
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        // Unload sound when component unmounts
+        sound.unloadAsync();
+      }
+    };
+  }, [sound]);
 
   useEffect(() => {
     // Setup observer to reroute user based on auth state change
@@ -75,6 +113,14 @@ export default function RootLayout() {
 
         setLoading(false);
 
+        // Turn off auth theme song
+        if (sound) {
+          await sound.unloadAsync();
+        }
+
+        // Play logged in theme song
+        playLoggedInBGM();
+
         // Navigate to the appropriate screen
         if (userData.isOnboardingCompleted) {
           router.replace('/profile' as Href);
@@ -82,6 +128,14 @@ export default function RootLayout() {
           router.replace('/01-welcome' as Href);
         }
       } else {
+        // Turn off logged in theme song
+        if (sound) {
+          await sound.unloadAsync();
+        }
+
+        // Play auth theme song
+        playAuthBGM();
+
         // User is signed out
         console.log('User is signed out');
 
