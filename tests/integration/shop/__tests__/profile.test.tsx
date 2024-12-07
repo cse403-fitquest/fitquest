@@ -1,16 +1,21 @@
 // __tests__/shop.test.ts
 import Profile from '@/app/(tabs)/profile';
-import { ItemType } from '@/types/item';
+// import { ItemType } from '@/types/item';
 import { screen, render } from '@testing-library/react-native';
 
-// Mock expo-router
-jest.mock('expo-router', () => ({
-  router: {
-    navigate: jest.fn(),
-    back: jest.fn(),
-  },
+////////////////////////////////// FIREBASE MOCKS //////////////////////////////////
+jest.mock('firebase/firestore');
+jest.mock('firebase/auth', () => ({
+  signInWithEmailAndPassword: jest.fn(),
+  createUserWithEmailAndPassword: jest.fn(),
+  initializeAuth: jest.fn(),
+  getReactNativePersistence: jest.fn(),
+  signOut: jest.fn(),
+  currentUser: mockUser,
 }));
 
+////////////////////////////////// EXPO MOCKS //////////////////////////////////
+// Mock expo-router
 jest.mock('expo-router', () => ({
   router: {
     navigate: jest.fn(),
@@ -23,59 +28,143 @@ jest.mock('@expo/vector-icons', () => ({
   Ionicons: '',
 }));
 
-// Mock asyncstorage
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
-);
-
-jest.mock('@/services/auth', () => ({
-  signOut: jest.fn(),
-}));
-
-jest.mock('@/store/item', () => ({
-  useItemStore: jest.fn(() => ({
-    items: [],
-    addItem: jest.fn(),
-  })),
-}));
-
+////////////////////////////////// STORE MOCKS //////////////////////////////////
 jest.mock('@/store/social', () => ({
   useSocialStore: jest.fn(() => ({
     friends: [],
     addFriend: jest.fn(),
   })),
 }));
-
-jest.mock('@/utils/user', () => ({
-  getUserExpThreshold: jest.fn(() => 100),
-}));
-
 jest.mock('@/store/item', () => ({
   useItemStore: jest.fn(() => ({
     items: [],
     addItem: jest.fn(),
   })),
 }));
-
+// Mock Zustand stores
 jest.mock('@/store/user', () => ({
   useUserStore: jest.fn(() => ({
-    user: { id: 'user-1', name: 'Test User', gold: 60 },
-    setUser: jest.fn(),
+    user: mockUser,
+    setUser: mockSetUser,
   })),
 }));
 
-jest.mock('@/services/user', () => ({
-  updateUserProfile: jest.fn(),
+////////////////////////////////// reactnative mocks //////////////////////////////////
+// Mock asyncstorage
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
+// Mock Animated to prevent warnings
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  RN.Animated = {
+    ...RN.Animated,
+    spring: jest.fn(() => ({
+      start: jest.fn(),
+    })),
+    Value: jest.fn().mockImplementation(() => ({
+      setValue: jest.fn(),
+    })),
+  };
+  return RN;
+});
+
+jest.mock('react-native', () => {
+  const ReactNative = jest.requireActual('react-native');
+  return {
+    ...ReactNative,
+    Animated: {
+      ...ReactNative.Animated,
+      timing: jest.fn(() => ({
+        start: jest.fn((callback) => callback && callback()),
+        stopAnimation: jest.fn(),
+      })),
+    },
+  };
+});
+jest.mock('react-native-reanimated', () => ({
+  Easing: {
+    steps: jest.fn(() => jest.fn()),
+  },
 }));
+////////////////////////////////// ASSETS mocks  //////////////////////////////////
+
+jest.mock(
+  '@/assets/sprites/animated/heroes/hero_01.png',
+  () => 'mockHeroImage',
+);
+jest.mock(
+  '@/assets/sprites/animated/heroes/hero_02.png',
+  () => 'mockHeroImage',
+);
+// Repeat for all assets used or use a wildcard mock:
+jest.mock('@/assets/sprites/animated/*', () => 'mockSpriteImage');
+////////////////////////////////// UTILS mocks  //////////////////////////////////
+
+jest.mock('@/utils/user', () => ({
+  getUserExpThreshold: jest.fn(() => 100),
+}));
+jest.mock('@/utils/sprite', () => ({
+  isHeroSprite: jest.fn((id) => id.startsWith('HERO')),
+  isMonsterSprite: jest.fn((id) => id.startsWith('MONSTER')),
+  isBossSprite: jest.fn((id) => id.startsWith('BOSS')),
+}));
+
+////////////////////////////////// CONSTANTS mocks  //////////////////////////////////
+
+jest.mock('@/constants/sprite', () => ({
+  AnimatedSpriteID: {
+    HERO_01: 'HERO_01',
+    MONSTER_01: 'MONSTER_01',
+    BOSS_01: 'BOSS_01',
+  },
+  SpriteState: {
+    IDLE: 'IDLE',
+    MOVE: 'MOVE',
+    ATTACK_1: 'ATTACK_1',
+  },
+}));
+////////////////////////////////// SERVICES mocks //////////////////////////////////
 
 jest.mock('@/services/auth', () => ({
+  signInWithEmailAndPassword: jest.fn(),
+  createUserWithEmailAndPassword: jest.fn(),
+  initializeAuth: jest.fn(),
+  getReactNativePersistence: jest.fn(),
   signOut: jest.fn(),
+  signUp: jest.fn(),
+  isLoggedIn: jest.fn(),
+  deleteAccount: jest.fn(),
 }));
 
+jest.mock('@/services/user', () => {
+  return {
+    getUserFromDatabase: jest.fn(() => Promise.resolve(mockUser)),
+    updateAllUsersInDB: jest.fn(() => Promise.resolve(mockUser)),
+    updateUserProfile: jest.fn(() => Promise.resolve()),
+    createUser: jest.fn(() => Promise.resolve()),
+    getUser: jest.fn(() => Promise.resolve()),
+    createUserFriends: jest.fn(() => Promise.resolve()),
+    fillMissingUserFields: jest.fn(() => Promise.resolve()),
+    userConverter: mockUser,
+  };
+});
+
+////////////////////////////////// Components mocks //////////////////////////////////
 jest.mock('@/components/FQModal', () => 'FQModal');
 jest.mock('@/components/Sprite', () => 'Sprite');
 jest.mock('@/components/AnimatedSprite', () => 'AnimatedSprite');
+jest.mock('@/components/AnimatedSprite', () => {
+  const React = require('react');
+  const { View } = require('react-native');
 
+  return jest.fn((props) => (
+    <View testID="mock-animated-sprite">
+      Mock AnimatedSprite - id: {props.id}, state: {props.state}, width:{' '}
+      {props.width}
+    </View>
+  ));
+});
 // Mock UUID with unique IDs
 jest.mock('uuid', () => {
   let uuidCounter = 0;
@@ -84,71 +173,35 @@ jest.mock('uuid', () => {
   };
 });
 
-jest.mock('@/store/item', () => ({
-  useItemStore: jest.fn(() => ({
-    items: mockItems,
-  })),
-}));
-const mockItems = [
-  {
-    id: 'item-1',
-    name: 'Sword',
-    type: ItemType.WEAPON,
-    cost: 50,
-    power: 10,
-    speed: 5,
-    health: 0,
-    spriteID: 'sprite-1',
-    description: 'A sharp sword.',
-  },
-  {
-    id: 'item-2',
-    name: 'Shield',
-    type: ItemType.ARMOR,
-    cost: 75,
-    power: 0,
-    speed: -2,
-    health: 20,
-    spriteID: 'sprite-2',
-    description: 'A sturdy shield.',
-    testId: 'Shield',
-  },
-  {
-    id: 'item-3',
-    name: 'Small Potion',
-    type: ItemType.POTION_SMALL,
-    cost: 70,
-    power: 0,
-    speed: 0,
-    health: 5,
-    spriteID: 'sprite-3',
-    description: 'Restores a small amount of health.',
-  },
-];
-
 let mockUser = {
-  id: 'user-1',
-  name: 'Test User',
-  gold: 60,
+  attributes: { power: 5, speed: 5, health: 10 },
+  consumables: [],
+  equipments: [],
+  equippedItems: [],
+  exp: 0,
+  gold: 100,
+  id: '1aA0I6IwN5Ts8BBr68CH19wzlQz1',
+  isOnboardingCompleted: true,
+  profileInfo: {
+    age: 20,
+    email: 'lex@gmail.com',
+    height: 5.9,
+    username: 'lexbrawlstars',
+    weight: 0,
+  },
   privacySettings: {
     isCurrentQuestPublic: true,
+    isLastWorkoutPublic: true,
   },
-  profileInfo: {
-    username: 'poopoo',
-  },
+  savedWorkoutTemplates: [],
+  savedWorkouts: [],
+  spriteID: 'hero_01',
+  workoutHistory: [],
 };
 
 const mockSetUser = jest.fn((updatedUser) => {
   mockUser = updatedUser;
 });
-
-// Mock Zustand stores
-jest.mock('@/store/user', () => ({
-  useUserStore: jest.fn(() => ({
-    user: mockUser,
-    setUser: mockSetUser,
-  })),
-}));
 
 describe('tests for profile screen', () => {
   beforeEach(() => {
