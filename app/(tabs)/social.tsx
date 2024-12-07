@@ -88,7 +88,7 @@ const Social = () => {
                 onChangeText={(text) =>
                   setModalDataOption({ ...modalDataOption, username: text })
                 }
-                label="Email"
+                label="Username"
                 value={modalDataOption.username}
                 error={modalDataOption.usernameError}
               />
