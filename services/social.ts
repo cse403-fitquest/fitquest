@@ -10,20 +10,65 @@ import {
   query,
   where,
   getDocs,
+  Timestamp,
 } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
 import {
   Friend,
+  FriendRequest,
   GetUserByEmailResponse,
+  GetUserByUsernameResponse,
   GetUserFriendsResponse,
   UserFriend,
+  UserFriendInDB,
 } from '@/types/social';
 import { userConverter } from './user';
+import { fromTimestampToDate } from '@/utils/general';
 
 export const userFriendConverter = {
-  toFirestore: (data: UserFriend) => data,
-  fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as UserFriend,
+  toFirestore: (data: UserFriendInDB) => data,
+  fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as UserFriendInDB,
+};
+
+export const resetAllUserFriendsInDB: () => Promise<APIResponse> = async () => {
+  try {
+    const userFriendCollection = collection(
+      FIREBASE_DB,
+      'friends',
+    ).withConverter(userFriendConverter);
+
+    const userFriendSnapshots = await getDocs(userFriendCollection);
+
+    userFriendSnapshots.forEach(async (userFriendSnap) => {
+      const userFriendData = userFriendSnap.data();
+
+      if (!userFriendData) {
+        return;
+      }
+
+      await setDoc(doc(userFriendCollection, userFriendData.id), {
+        id: userFriendData.id,
+        friends: [],
+        sentRequests: [],
+        pendingRequests: [],
+      });
+    });
+
+    return {
+      data: null,
+      success: true,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error resetting all user friends: ', error);
+
+    return {
+      data: null,
+      success: false,
+      error: 'Error resetting all user friends.',
+    };
+  }
 };
 
 /**
@@ -46,11 +91,98 @@ export const getUserFriends: (
 
     // Get user data
     const userFriendSnap = await getDoc(userFriendRef);
-    const userFriendData = userFriendSnap.data();
+    const userFriendDataInDB = userFriendSnap.data();
 
-    if (!userFriendData) {
+    if (!userFriendDataInDB) {
       throw new Error('User friend data not found.');
     }
+
+    // For each friend and request, get the user data
+    const userFriendsIDs = userFriendDataInDB.friends;
+    const userSentRequestsIDs = userFriendDataInDB.sentRequests;
+    const userPendingRequestsIDs = userFriendDataInDB.pendingRequests;
+
+    // Get user collection reference
+    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
+      userConverter,
+    );
+
+    // Get friends data
+    const friendsData: (Friend | null)[] = await Promise.all(
+      userFriendsIDs.map(async (friend) => {
+        const friendSnap = await getDoc(doc(userCollection, friend));
+
+        if (!friendSnap.exists()) {
+          return null;
+        }
+
+        const workoutHistory = friendSnap.data()?.workoutHistory;
+        let lastWorkoutDate = null;
+        if (workoutHistory.length > 0) {
+          lastWorkoutDate = workoutHistory[workoutHistory.length - 1].startedAt;
+        }
+
+        return {
+          id: friend,
+          privacySettings: friendSnap.data()?.privacySettings,
+          profileInfo: friendSnap.data()?.profileInfo,
+          spriteID: friendSnap.data()?.spriteID,
+          lastWorkoutDate: fromTimestampToDate(
+            lastWorkoutDate as unknown as Timestamp,
+          ),
+          currentQuest: null,
+        };
+      }),
+    );
+
+    // Get sent requests data
+    const sentRequestsData: (FriendRequest | null)[] = await Promise.all(
+      userSentRequestsIDs.map(async (id) => {
+        const requestSnap = await getDoc(doc(userCollection, id));
+
+        if (!requestSnap.exists()) {
+          return null;
+        }
+
+        return {
+          id: id,
+          username: requestSnap.data()?.profileInfo.username,
+          email: requestSnap.data()?.profileInfo.email,
+        };
+      }),
+    );
+
+    // Get pending requests data
+    const pendingRequestsData: (FriendRequest | null)[] = await Promise.all(
+      userPendingRequestsIDs.map(async (id) => {
+        const requestSnap = await getDoc(doc(userCollection, id));
+
+        if (!requestSnap.exists()) {
+          return null;
+        }
+
+        return {
+          id: id,
+          username: requestSnap.data()?.profileInfo.username,
+          email: requestSnap.data()?.profileInfo.email,
+        };
+      }),
+    );
+
+    const userFriendData: UserFriend = {
+      id: userID,
+      friends: [],
+      sentRequests: [],
+      pendingRequests: [],
+    };
+
+    userFriendData.friends = friendsData.filter((friend) => friend !== null);
+    userFriendData.sentRequests = sentRequestsData.filter(
+      (request) => request !== null,
+    );
+    userFriendData.pendingRequests = pendingRequestsData.filter(
+      (request) => request !== null,
+    );
 
     return {
       success: true,
@@ -79,7 +211,7 @@ export const createUserFriends: (
     ).withConverter(userFriendConverter);
 
     // Create user friend data
-    const newUserFriends: UserFriend = {
+    const newUserFriends: UserFriendInDB = {
       id: userID,
       friends: [],
       sentRequests: [],
@@ -107,36 +239,49 @@ export const createUserFriends: (
 // Function to handle cancelling sent friend requests
 /**
  * Purchase an item for the user.
- * @param {string} senderID - The user that sent the friend request.
- * @param {string} receiverEmail - The user receiving the friend request.
+ * @param {string} senderID - The ID of the user that sent the friend request.
+ * @param {string} receiverID - The ID of the user receiving the friend request.
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
 export const cancelFriendRequest: (
   senderID: string,
-  receiverEmail: string,
-) => Promise<APIResponse> = async (senderID, receiverEmail) => {
+  receiverID: string,
+) => Promise<APIResponse> = async (senderID, receiverID) => {
   try {
     const userFriendCollection = collection(
       FIREBASE_DB,
       'friends',
     ).withConverter(userFriendConverter);
 
+    const userCollection = collection(FIREBASE_DB, 'users').withConverter(
+      userConverter,
+    );
+
     // Get sender reference
     const senderUserFriendsRef = doc(userFriendCollection, senderID);
 
-    // Get receiver data
-    const getUserByEmailResponse = await getUserByEmail(receiverEmail);
+    // Get receiver data by ID
+    const getUserByIDResponse = await getDoc(doc(userCollection, receiverID));
 
-    if (!getUserByEmailResponse.success || !getUserByEmailResponse.data) {
+    if (!getUserByIDResponse.exists()) {
       return {
         data: null,
         success: false,
-        error: 'User not found.',
+        error: 'Receiver not found.',
       };
     }
-    console.log('User using email found!', getUserByEmailResponse.data.id);
 
-    const receiverUserData = getUserByEmailResponse.data;
+    const receiverUserData = getUserByIDResponse.data();
+
+    if (!receiverUserData) {
+      return {
+        data: null,
+        success: false,
+        error: 'Receiver not found.',
+      };
+    }
+
+    console.log('User using ID found');
 
     if (receiverUserData.id === senderID) {
       return {
@@ -173,7 +318,7 @@ export const cancelFriendRequest: (
       };
     }
 
-    // Check if the users are already friends
+    // Check if the users are already friends or already have a pending request from the sender
     const senderUserFriendsData = senderUserFriendsSnap.data();
     const receiverUserFriendsData = receiverUserFriendSnap.data();
 
@@ -181,9 +326,9 @@ export const cancelFriendRequest: (
       senderUserFriendsData &&
       receiverUserFriendsData &&
       senderUserFriendsData.friends.some(
-        (friend) => friend.id === receiverEmail,
+        (friendID) => friendID === receiverID,
       ) &&
-      receiverUserFriendsData.friends.some((friend) => friend.id === senderID)
+      receiverUserFriendsData.friends.some((friendID) => friendID === senderID)
     ) {
       return {
         data: null,
@@ -197,7 +342,7 @@ export const cancelFriendRequest: (
     // Remove sender from receiver's pending requests and add to friends
     const receiverNewPendingRequests =
       receiverUserFriendsData.pendingRequests.filter(
-        (friend) => friend.id !== senderID,
+        (friendID) => friendID !== senderID,
       );
 
     await updateDoc(receiverUserFriendsRef, {
@@ -315,6 +460,13 @@ export const acceptFriendRequest: (
       };
     }
 
+    const senderWorkoutHistory = senderUserData.workoutHistory;
+    let senderLastWorkoutDate = null;
+    if (senderWorkoutHistory.length > 0) {
+      senderLastWorkoutDate =
+        senderWorkoutHistory[senderWorkoutHistory.length - 1].startedAt;
+    }
+
     const senderAsFriend: Friend = {
       id: senderID,
       privacySettings: senderUserData.privacySettings,
@@ -322,8 +474,17 @@ export const acceptFriendRequest: (
         username: senderUserData.profileInfo.username,
         email: senderUserData.profileInfo.email,
       },
+      spriteID: senderUserData.spriteID,
+      lastWorkoutDate: senderLastWorkoutDate,
       currentQuest: null,
     };
+
+    const receiverWorkoutHistory = receiverUserData.workoutHistory;
+    let receiverLastWorkoutDate = null;
+    if (receiverWorkoutHistory.length > 0) {
+      receiverLastWorkoutDate =
+        receiverWorkoutHistory[receiverWorkoutHistory.length - 1].startedAt;
+    }
 
     const receiverAsFriend: Friend = {
       id: receiverID,
@@ -332,6 +493,8 @@ export const acceptFriendRequest: (
         username: receiverUserData.profileInfo.username,
         email: receiverUserData.profileInfo.email,
       },
+      spriteID: receiverUserData.spriteID,
+      lastWorkoutDate: receiverLastWorkoutDate,
       currentQuest: null,
     };
 
@@ -343,9 +506,9 @@ export const acceptFriendRequest: (
       senderUserFriendsData &&
       receiverUserFriendsData &&
       senderUserFriendsData.friends.some(
-        (friend) => friend.id === receiverID,
+        (friendID) => friendID === receiverID,
       ) &&
-      receiverUserFriendsData.friends.some((friend) => friend.id === senderID)
+      receiverUserFriendsData.friends.some((friendID) => friendID === senderID)
     ) {
       return {
         data: null,
@@ -355,10 +518,9 @@ export const acceptFriendRequest: (
     }
 
     // Remove sender from receiver's pending requests and add to friends
-
     const receiverNewPendingRequests =
       receiverUserFriendsData.pendingRequests.filter(
-        (friend) => friend.id !== senderID,
+        (friendID) => friendID !== senderID,
       );
 
     await updateDoc(receiverUserFriendsRef, {
@@ -389,17 +551,17 @@ export const acceptFriendRequest: (
   }
 };
 
-// Function to handle accepting friend requests
+// Function to handle sending friend requests
 /**
  * Purchase an item for the user.
  * @param {string} senderID - The user that sent the friend request.
- * @param {string} receiverEmail - The user receiving the friend request.
+ * @param {string} receiverUsername - The user receiving the friend request.
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
  */
 export const sendFriendRequest: (
   senderID: string,
-  receiverEmail: string,
-) => Promise<APIResponse> = async (senderID, receiverEmail) => {
+  receiverUsername: string,
+) => Promise<APIResponse> = async (senderID, receiverUsername) => {
   try {
     const userFriendCollection = collection(
       FIREBASE_DB,
@@ -414,7 +576,7 @@ export const sendFriendRequest: (
     const senderUserFriendsRef = doc(userFriendCollection, senderID);
 
     // Get receiver data
-    const getUserByEmailResponse = await getUserByEmail(receiverEmail);
+    const getUserByEmailResponse = await getUserByUsername(receiverUsername);
 
     if (!getUserByEmailResponse.success || !getUserByEmailResponse.data) {
       return {
@@ -469,8 +631,10 @@ export const sendFriendRequest: (
     if (
       senderUserFriends &&
       receiverUserFriendsData &&
-      senderUserFriends.friends.some((friend) => friend.id === receiverEmail) &&
-      receiverUserFriendsData.friends.some((friend) => friend.id === senderID)
+      senderUserFriends.friends.some(
+        (friendID) => friendID === receiverUserData.id,
+      ) &&
+      receiverUserFriendsData.friends.some((friendID) => friendID === senderID)
     ) {
       return {
         data: null,
@@ -495,12 +659,12 @@ export const sendFriendRequest: (
 
     // Check if current user have already sent or received a friend request to/from the receiver
     if (
-      senderUserFriends.sentRequests.includes(receiverEmail) ||
+      senderUserFriends.sentRequests.includes(receiverUserData.id) ||
       senderUserFriends.pendingRequests.some(
-        (friend) => friend.id === receiverUserData.id,
+        (friendID) => friendID === receiverUserData.id,
       ) ||
       receiverUserFriendsData.pendingRequests.some(
-        (friend) => friend.id === senderID,
+        (friendID) => friendID === senderID,
       ) ||
       receiverUserFriendsData.sentRequests.includes(
         senderUserData.profileInfo.email,
@@ -515,7 +679,7 @@ export const sendFriendRequest: (
 
     // Add receiver to sender's sent friend requests
     await updateDoc(senderUserFriendsRef, {
-      sentRequests: arrayUnion(receiverEmail),
+      sentRequests: arrayUnion(receiverUserData.id),
     });
 
     console.log('User email added to sent requests');
@@ -528,6 +692,13 @@ export const sendFriendRequest: (
       };
     }
 
+    const senderWorkoutHistory = senderUserData.workoutHistory;
+    let senderLastWorkoutDate = null;
+    if (senderWorkoutHistory.length > 0) {
+      senderLastWorkoutDate =
+        senderWorkoutHistory[senderWorkoutHistory.length - 1].startedAt;
+    }
+
     const senderAsFriend: Friend = {
       id: senderUserData.id,
       privacySettings: senderUserData.privacySettings,
@@ -535,6 +706,8 @@ export const sendFriendRequest: (
         username: senderUserData.profileInfo.username,
         email: senderUserData.profileInfo.email,
       },
+      spriteID: senderUserData.spriteID,
+      lastWorkoutDate: senderLastWorkoutDate,
       currentQuest: null,
     };
 
@@ -658,9 +831,9 @@ export const denyFriendRequest: (
       senderUserFriendsData &&
       receiverUserFriendsData &&
       senderUserFriendsData.friends.some(
-        (friend) => friend.id === receiverID,
+        (friendID) => friendID === receiverID,
       ) &&
-      receiverUserFriendsData.friends.some((friend) => friend.id === senderID)
+      receiverUserFriendsData.friends.some((friendID) => friendID === senderID)
     ) {
       return {
         data: null,
@@ -672,7 +845,7 @@ export const denyFriendRequest: (
     // Remove sender from receiver's pending requests
     const receiverNewPendingRequests =
       receiverUserFriendsData.pendingRequests.filter(
-        (friend) => friend.id !== senderID,
+        (friendID) => friendID !== senderID,
       );
 
     await updateDoc(receiverUserFriendsRef, {
@@ -702,9 +875,8 @@ export const denyFriendRequest: (
   }
 };
 
-// Function to handle removing friends
 /**
- * Purchase an item for the user.
+ * Function to handle removing friends.
  * @param {string} user1ID - Friend of receiver.
  * @param {string} user2ID - The user deleting the friend request.
  * @returns {Promise<APIResponse>} Returns an APIResponse object.
@@ -796,7 +968,7 @@ export const removeFriend: (
 
     // Remove user2 from user1's friend's list
     const user1NewFriends = user1UserFriendsData.friends.filter(
-      (friend) => friend.id !== user2ID,
+      (friendID) => friendID !== user2ID,
     );
     await updateDoc(user1UserFriendsRef, {
       friends: user1NewFriends,
@@ -804,7 +976,7 @@ export const removeFriend: (
 
     // Remove user1 from user2's friend's list
     const user2NewFriends = user2UserFriendsData.friends.filter(
-      (friend) => friend.id !== user1ID,
+      (friendID) => friendID !== user1ID,
     );
     await updateDoc(user2UserFriendsRef, {
       friends: user2NewFriends,
@@ -835,6 +1007,28 @@ export const getUserByEmail: (
 ) => Promise<GetUserByEmailResponse> = async (email) => {
   const userRef = collection(FIREBASE_DB, 'users').withConverter(userConverter);
   const q = query(userRef, where('profileInfo.email', '==', email));
+  const querySnapshot = await getDocs(q);
+
+  if (querySnapshot.empty) {
+    return {
+      success: false,
+      error: 'User not found.',
+      data: null,
+    };
+  }
+
+  return {
+    success: true,
+    error: null,
+    data: querySnapshot.docs[0].data(),
+  };
+};
+
+export const getUserByUsername: (
+  username: string,
+) => Promise<GetUserByUsernameResponse> = async (username) => {
+  const userRef = collection(FIREBASE_DB, 'users').withConverter(userConverter);
+  const q = query(userRef, where('profileInfo.username', '==', username));
   const querySnapshot = await getDocs(q);
 
   if (querySnapshot.empty) {
