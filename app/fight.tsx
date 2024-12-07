@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
   Pressable,
@@ -22,6 +21,7 @@ import { getDoc, doc } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { updateUserProfile } from '@/services/user';
 import { getMonsterById } from '@/services/monster';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type TurnInfo = {
   id: string;
@@ -691,7 +691,7 @@ const Combat = () => {
   }, []);
 
   const battleBackgrounds = [
-    require('@/assets/backgrounds/battle_background_1.png'),
+    require('@/assets/backgrounds/bg_fight_screen.png'),
     // Add more backgrounds as needed
   ];
 

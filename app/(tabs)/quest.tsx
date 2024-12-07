@@ -17,6 +17,7 @@ import { updateUserProfile } from '@/services/user';
 import { getAvailableQuests } from '@/services/quest';
 import { QuestNodeModal } from '@/components/QuestNodeModal';
 import { getMonsterById } from '@/services/monster';
+import { useGeneralStore } from '@/store/general';
 
 interface Quest {
   monsters: AnimatedSpriteID[];
@@ -73,9 +74,9 @@ const Quest = () => {
   const [, setCurrentNodeIndex] = useState(0);
   const { user, setUser } = useUserStore();
   const [availableQuests, setAvailableQuests] = useState<Quest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedNode, setSelectedNode] = useState<QuestNode | null>(null);
+  const { loading, setLoading } = useGeneralStore();
 
   const startQuest = async (
     userID: string,
@@ -111,7 +112,7 @@ const Quest = () => {
 
   useEffect(() => {
     const loadQuests = async () => {
-      setIsLoading(true);
+      setLoading(true);
       try {
         const result = await getAvailableQuests();
         if (result.success && result.data) {
@@ -122,7 +123,7 @@ const Quest = () => {
       } catch (error) {
         console.error('Error loading quests:', error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
@@ -297,6 +298,8 @@ const Quest = () => {
         return;
       }
 
+      setLoading(true);
+
       const newProgress = activeQuest.progress + 50;
       const nextMilestone = activeQuest.milestones.find(
         (milestone) => milestone >= newProgress,
@@ -306,68 +309,68 @@ const Quest = () => {
         const isBoss = newProgress === activeQuest.bossThreshold;
         const uniqueKey = Date.now();
 
-        try {
-          const result = await updateUserProfile(user.id, {
+        const result = await updateUserProfile(user.id, {
+          activeWorkoutMinutes: user.activeWorkoutMinutes - 1,
+        });
+
+        if (result.success) {
+          setUser({
+            ...user,
             activeWorkoutMinutes: user.activeWorkoutMinutes - 1,
           });
 
-          if (result.success) {
-            setUser({
-              ...user,
-              activeWorkoutMinutes: user.activeWorkoutMinutes - 1,
-            });
+          console.log('activeQuest.monsters', activeQuest.monsters);
+          router.replace({
+            pathname: '/fight',
+            params: {
+              isBoss: isBoss ? 'true' : 'false',
+              questName: activeQuest.questName,
+              questId: activeQuest.questID,
+              uniqueKey,
+              questMonsters: activeQuest.monsters,
+              nextProgress: newProgress.toString(),
+            },
+          });
 
-            console.log('activeQuest.monsters', activeQuest.monsters);
-            router.replace({
-              pathname: '/fight',
-              params: {
-                isBoss: isBoss ? 'true' : 'false',
-                questName: activeQuest.questName,
-                questId: activeQuest.questID,
-                uniqueKey,
-                questMonsters: activeQuest.monsters,
-                nextProgress: newProgress.toString(),
-              },
-            });
-          }
-        } catch (error) {
-          console.error('Failed to update workout minutes:', error);
+          setLoading(false);
+        } else {
+          console.error('Failed to update workout minutes:', result.error);
           Alert.alert('Error', 'Failed to start battle. Please try again.');
         }
       } else {
-        try {
-          const updatedProgress = {
-            ...user.currentQuest.progress,
-            [activeQuest.questID]: 0,
-          };
+        const updatedProgress = {
+          ...user.currentQuest.progress,
+          [activeQuest.questID]: 0,
+        };
 
-          const result = await updateUserProfile(user.id, {
+        const result = await updateUserProfile(user.id, {
+          currentQuest: {
+            id: '',
+            progress: updatedProgress,
+          },
+        });
+
+        if (result.success) {
+          setUser({
+            ...user,
             currentQuest: {
               id: '',
               progress: updatedProgress,
             },
           });
+          Alert.alert(
+            'Quest Complete!',
+            'Congratulations! You have completed the quest!',
+            [{ text: 'OK' }],
+          );
+          setActiveQuest(null);
+          setCurrentNodeIndex(0);
+          setVisualProgress(0);
+          setShowAbandonModal(false);
 
-          if (result.success) {
-            setUser({
-              ...user,
-              currentQuest: {
-                id: '',
-                progress: updatedProgress,
-              },
-            });
-            Alert.alert(
-              'Quest Complete!',
-              'Congratulations! You have completed the quest!',
-              [{ text: 'OK' }],
-            );
-            setActiveQuest(null);
-            setCurrentNodeIndex(0);
-            setVisualProgress(0);
-            setShowAbandonModal(false);
-          }
-        } catch (error) {
-          console.error('Failed to reset quest progress:', error);
+          setLoading(false);
+        } else {
+          console.error('Failed to reset quest progress:', result.error);
           Alert.alert(
             'Error',
             'Failed to reset quest progress. Please try again.',
@@ -557,7 +560,7 @@ const Quest = () => {
                 ACTIVE QUEST
               </Text>
 
-              {isLoading ? (
+              {loading ? (
                 <View className="bg-white p-6 rounded-xl border border-gray min-h-[180px] items-center justify-center">
                   <ActivityIndicator size="large" color="#0000ff" />
                   <Text className="mt-4 text-gray-600">
@@ -600,7 +603,7 @@ const Quest = () => {
             <Text className="text-xl mb-4 font-bold text-grayDark">
               QUEST BOARD
             </Text>
-            {isLoading ? (
+            {loading ? (
               <View className="items-center justify-center py-8">
                 <ActivityIndicator size="large" color="#0000ff" />
                 <Text className="mt-4 text-gray-600">
