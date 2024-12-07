@@ -145,6 +145,7 @@ export const updateAllUsersInDB: () => Promise<APIResponse> = async () => {
           ...user.privacySettings,
         },
         createdAt: user.createdAt || new Date(),
+        activeWorkoutMinutes: 60,
       };
 
       const userDocRef = doc(userCollection, user.id);

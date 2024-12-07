@@ -22,6 +22,8 @@ import { getDoc, doc } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { updateUserProfile } from '@/services/user';
 import { getMonsterById } from '@/services/monster';
+import { useGeneralStore } from '@/store/general';
+import { Audio, AVPlaybackStatus, AVPlaybackStatusSuccess } from 'expo-av';
 
 type TurnInfo = {
   id: string;
@@ -50,6 +52,7 @@ const Combat = () => {
 
   const { isBoss, uniqueKey, questMonsters } = params;
   const { user, setUser } = useUserStore();
+  const { sound, setSound } = useGeneralStore();
 
   const initialPlayer = {
     id: user?.id || '',
@@ -71,6 +74,78 @@ const Combat = () => {
   });
 
   const [isMonsterInitialized, setIsMonsterInitialized] = useState(false);
+
+  const [songFinished, setSongFinished] = useState(false);
+
+  const onPlaybackStatusUpdate: ((status: AVPlaybackStatus) => void) | null = (
+    status,
+  ) => {
+    // console.log('Playback status:', status);
+    // console.log('Sound:', sound);
+    const realStatus = status as AVPlaybackStatusSuccess;
+    console.log('status:', realStatus);
+    if (realStatus && realStatus.didJustFinish) {
+      console.log('Song finished');
+      setSongFinished(true);
+    }
+  };
+
+  // Play logged in theme song
+  const playLoggedInBGM = async () => {
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/songs/bgm_tab_screens.mp3'),
+      {
+        isLooping: true,
+      },
+    );
+
+    setSound(sound);
+
+    await sound.playAsync();
+  };
+
+  const playFightBGM = async () => {
+    // Play fight theme song
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/songs/bgm_fight_screen.mp3'),
+      { isLooping: true },
+    );
+
+    sound.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
+
+    setSound(sound);
+
+    await sound.playAsync();
+  };
+
+  useEffect(() => {
+    playFightBGM();
+  }, []);
+
+  useEffect(() => {
+    const replaySong = async () => {
+      console.log('songFinished:', songFinished);
+      console.log('sound:', !!sound);
+      if (songFinished) {
+        if (sound) {
+          console.log('Replaying sound');
+          await playLoggedInBGM();
+        }
+        setSongFinished(false);
+      }
+    };
+    replaySong();
+  }, [songFinished, sound]);
+
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        console.log('Quest: Unloading current BGM:', sound);
+        // Unload sound when component unmounts
+        sound.unloadAsync();
+      }
+    };
+  }, [sound]);
 
   useEffect(() => {
     const initializeMonster = async () => {
@@ -309,6 +384,15 @@ const Combat = () => {
       }
     }
 
+    // Unload fight BGM and play logged in BGM
+    if (sound) {
+      await sound.unloadAsync();
+      setSound(null);
+    }
+
+    playLoggedInBGM();
+
+    // Navigate back to quest screen
     router.replace('/(tabs)/quest');
     resetCombatState();
   };

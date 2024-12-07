@@ -9,10 +9,10 @@ import { Href, router, Slot, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { onAuthStateChanged } from 'firebase/auth';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
-import { Audio } from 'expo-av';
+import { Audio, AVPlaybackStatus, AVPlaybackStatusSuccess } from 'expo-av';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -23,45 +23,96 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  const { setUser } = useUserStore();
+  const { user, setUser } = useUserStore();
 
   const { loading, setLoading, sound, setSound } = useGeneralStore();
 
   const { setWorkout, clearWorkout } = useWorkoutStore();
 
+  const [songFinished, setSongFinished] = useState(false);
+
+  const onPlaybackStatusUpdate: ((status: AVPlaybackStatus) => void) | null = (
+    status,
+  ) => {
+    // console.log('Playback status:', status);
+    // console.log('Sound:', sound);
+    const realStatus = status as AVPlaybackStatusSuccess;
+    console.log('status:', realStatus);
+    if (realStatus && realStatus.didJustFinish) {
+      console.log('Song finished');
+      setSongFinished(true);
+    }
+  };
+
   // Play auth theme song
   const playAuthBGM = async () => {
-    const { sound } = await Audio.Sound.createAsync(
+    const { sound: newSound } = await Audio.Sound.createAsync(
       require('@/assets/songs/bgm_auth_screens.mp3'),
-      {
-        isLooping: true,
-      },
     );
 
-    setSound(sound);
+    await newSound.setPositionAsync(120000);
 
-    await sound.playAsync();
+    newSound.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
+
+    // await newSound.setIsLoopingAsync(true);
+
+    setSound(newSound);
+
+    await newSound.playAsync();
   };
 
   // Play logged in theme song
   const playLoggedInBGM = async () => {
-    const { sound } = await Audio.Sound.createAsync(
+    const { sound: newSound } = await Audio.Sound.createAsync(
       require('@/assets/songs/bgm_tab_screens.mp3'),
-      {
-        isLooping: true,
-      },
     );
 
-    setSound(sound);
+    await newSound.setPositionAsync(95000);
 
-    await sound.playAsync();
+    newSound.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
+
+    // await newSound.setIsLoopingAsync(true);
+
+    setSound(newSound);
+
+    await newSound.playAsync();
   };
 
+  console.log('sound:', sound);
+
   useEffect(() => {
+    const replaySong = async () => {
+      console.log('songFinished:', songFinished);
+      console.log('sound:', !!sound);
+      if (songFinished) {
+        if (sound) {
+          console.log('Replaying sound');
+          if (user) {
+            await playLoggedInBGM();
+          } else {
+            await playAuthBGM();
+          }
+        }
+        setSongFinished(false);
+      }
+    };
+    replaySong();
+  }, [songFinished, sound]);
+
+  useEffect(() => {
+    // Unload and loop the sound
+    // if (sound) {
+    //   sound.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
+    //   sound.setPositionAsync(0);
+    //   sound.playAsync();
+    // }
+
     return () => {
       if (sound) {
+        console.log('Unloading sound');
         // Unload sound when component unmounts
         sound.unloadAsync();
+        setSound(null);
       }
     };
   }, [sound]);
@@ -119,7 +170,7 @@ export default function RootLayout() {
         }
 
         // Play logged in theme song
-        playLoggedInBGM();
+        await playLoggedInBGM();
 
         // Navigate to the appropriate screen
         if (userData.isOnboardingCompleted) {
