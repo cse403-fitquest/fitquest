@@ -108,7 +108,7 @@ export default function RootLayout() {
   return (
     <>
       {loading ? (
-        <View className="absolute z-10 w-full h-full bg-black opacity-50 justify-center items-center">
+        <View className="absolute z-50 w-full h-full bg-black opacity-50 justify-center items-center">
           <ActivityIndicator size={100} color="white" />
           <StatusBar style="light" />
         </View>

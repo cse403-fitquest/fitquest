@@ -24,6 +24,9 @@ import {
   sendFriendRequest,
 } from '@/services/social';
 import { useUserStore } from '@/store/user';
+import { useGeneralStore } from '@/store/general';
+import { AnimatedSprite } from '@/components/AnimatedSprite';
+import { SpriteState } from '@/constants/sprite';
 
 enum ModalDataOptions {
   ADD_FRIEND = 'ADD_FRIEND',
@@ -44,7 +47,7 @@ const Social = () => {
     user: null,
     friend: null,
   });
-  const [loading, setLoading] = useState(false);
+  const { loading, setLoading } = useGeneralStore();
   const { user } = useUserStore();
   const { userFriend, setFriends, setPendingRequests, setSentRequests } =
     useSocialStore();
@@ -385,7 +388,7 @@ const Social = () => {
                 }}
               />
             )}
-            ItemSeparatorComponent={() => <View className="h-1" />}
+            ItemSeparatorComponent={() => <View className="h-2" />}
             ListEmptyComponent={() => (
               <Text className="text-lg font-medium">No friends</Text>
             )}
@@ -516,6 +519,7 @@ const Social = () => {
         onConfirm={() => handleModalConfirm()}
         confirmText={modalData.confirmButtonText}
         cancelText="CANCEL"
+        loading={loading}
       >
         {modalData.children}
       </FQModal>
@@ -598,6 +602,39 @@ const FriendItem: React.FC<{ user: Friend; onDelete: () => void }> = ({
     }),
   ).current;
 
+  // Display last workout date in the format of
+  // "2 days ago"
+  //  or "1 day ago"
+  //  or "1 week ago"
+  //  or "1 month ago"
+  // or "1 year ago"
+  const displayLastWorkoutDate = (date: Date) => {
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.ceil(diffDays / 7);
+    const diffMonths = Math.ceil(diffDays / 30);
+    const diffYears = Math.ceil(diffDays / 365);
+
+    if (diffDays === 1) {
+      return '1 day ago';
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else if (diffWeeks === 1) {
+      return '1 week ago';
+    } else if (diffWeeks < 4) {
+      return `${diffWeeks} weeks ago`;
+    } else if (diffMonths === 1) {
+      return '1 month ago';
+    } else if (diffMonths < 12) {
+      return `${diffMonths} months ago`;
+    } else if (diffYears === 1) {
+      return '1 year ago';
+    } else {
+      return `${diffYears} years ago`;
+    }
+  };
+
   return (
     <View className="relative">
       <Animated.View
@@ -606,22 +643,43 @@ const FriendItem: React.FC<{ user: Friend; onDelete: () => void }> = ({
           transform: [{ translateX: translateX }],
         }}
       >
-        <View {...panResponder.panHandlers} className=" z-10">
-          <View className="flex-row justify-between items-end w-full">
-            <Text className="text-lg font-medium">
-              {user.profileInfo.username}
-            </Text>
-            {user.privacySettings.isLastWorkoutPublic ? (
-              <Text className="text-xs font-medium">Last Workout: 3d ago</Text>
-            ) : null}
+        <View
+          {...panResponder.panHandlers}
+          className="relative flex-row justify-start items-center z-10 w-full h-[60px]"
+        >
+          <View className="w-[60px] h-[50px] relative">
+            <View className="absolute top-[-22px] left-[-10px]">
+              <AnimatedSprite
+                id={user.spriteID}
+                state={SpriteState.IDLE}
+                width={70}
+                height={70}
+              />
+            </View>
           </View>
-          {user.privacySettings.isCurrentQuestPublic ? (
-            <Text className="font-medium text-xs">
-              On Quest: <Text className="font-bold">Hunt Big Chungus</Text>
-            </Text>
-          ) : (
-            <Text className="font-medium text-xs">-</Text>
-          )}
+
+          <View className="relative flex-1">
+            <View className="flex-row justify-between">
+              <Text className="text-lg font-medium">
+                {user.profileInfo.username}
+              </Text>
+              {user.privacySettings.isLastWorkoutPublic ? (
+                <Text className="text-xs float-right font-medium">
+                  Last Workout:{' '}
+                  {user.lastWorkoutDate
+                    ? displayLastWorkoutDate(user.lastWorkoutDate)
+                    : '-'}
+                </Text>
+              ) : null}
+            </View>
+            {user.privacySettings.isCurrentQuestPublic ? (
+              <Text className="font-medium text-xs">
+                On Quest: <Text className="font-bold">Hunt Big Chungus</Text>
+              </Text>
+            ) : (
+              <Text className="font-medium text-xs">-</Text>
+            )}
+          </View>
         </View>
         <TouchableOpacity
           onPress={onDelete}

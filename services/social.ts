@@ -10,7 +10,6 @@ import {
   query,
   where,
   getDocs,
-  Timestamp,
 } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
@@ -26,7 +25,6 @@ import {
   UserFriendInDB,
 } from '@/types/social';
 import { userConverter } from './user';
-import { fromTimestampToDate } from '@/utils/general';
 
 export const userFriendConverter = {
   toFirestore: (data: UserFriendInDB) => data,
@@ -132,9 +130,7 @@ export const getUserFriends: (
           privacySettings: friendSnap.data()?.privacySettings,
           profileInfo: friendSnap.data()?.profileInfo,
           spriteID: friendSnap.data()?.spriteID,
-          lastWorkoutDate: lastWorkoutDate
-            ? fromTimestampToDate(lastWorkoutDate as unknown as Timestamp)
-            : null,
+          lastWorkoutDate: lastWorkoutDate,
           currentQuest: null,
         };
       }),
@@ -358,7 +354,7 @@ export const cancelFriendRequest: (
 
     // Remove receiver from sender's sent requests and add to friends
     await updateDoc(senderUserFriendsRef, {
-      sentRequests: arrayRemove(receiverUserData.profileInfo.email),
+      sentRequests: arrayRemove(receiverUserData.id),
     });
 
     console.log('Sent friend request cancelled!');
