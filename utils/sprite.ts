@@ -64,6 +64,7 @@ export const isBossSprite: (id: AnimatedSpriteID) => boolean = (id) => {
     case AnimatedSpriteID.CHOMPBUG_GREEN:
     case AnimatedSpriteID.CHOMPBUG_RED:
     case AnimatedSpriteID.CHOMPBUG_BLACK:
+    case AnimatedSpriteID.WEREWOLF_BROWN:
       return true;
     default:
       return false;

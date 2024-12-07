@@ -102,8 +102,6 @@ const Quest = () => {
         monsters: selectedQuest.monsters,
       };
 
-      console.log('newActiveQuest.monsters', newActiveQuest.monsters);
-
       setActiveQuest(newActiveQuest);
       await updateUserCurrentQuest(questID, existingProgress);
     }
@@ -116,7 +114,7 @@ const Quest = () => {
         const result = await getAvailableQuests();
         if (result.success && result.data) {
           setAvailableQuests(
-            (result.data as { quests: Quest[] }).quests?.slice(0, 2) || [],
+            (result.data as { quests: Quest[] }).quests?.slice(0, 3) || [],
           );
         }
       } catch (error) {
@@ -317,7 +315,6 @@ const Quest = () => {
               activeWorkoutMinutes: user.activeWorkoutMinutes - 1,
             });
 
-            console.log('activeQuest.monsters', activeQuest.monsters);
             router.replace({
               pathname: '/fight',
               params: {

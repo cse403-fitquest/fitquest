@@ -109,15 +109,11 @@ const Combat = () => {
               ? questMonsters.split(',').filter((id) => id.trim() !== '')
               : [];
 
-          console.log('monsterIds', monsterIds);
-
           if (monsterIds.length > 0) {
             const randomIndex = Math.floor(Math.random() * monsterIds.length);
             const selectedMonsterId = monsterIds[randomIndex];
 
             const selectedMonster = await getMonsterById(selectedMonsterId);
-
-            console.log('selectedMonster', selectedMonster);
 
             if (selectedMonster) {
               setMonster({
@@ -337,7 +333,6 @@ const Combat = () => {
   };
 
   const handleAttack = async (isStrong = false) => {
-    console.log('health', player.health);
     if (isAnimating || !turnQueue[currentTurnIndex]?.isPlayer) return;
 
     const baseDamage = isStrong ? Math.floor(player.power * 1.5) : player.power;
@@ -395,8 +390,6 @@ const Combat = () => {
     const maxHealth = (user.attributes.health || 6) * 20; // Calculate max health directly
     const healAmount = Math.floor(maxHealth * healPercentage);
     const newHealth = Math.min(maxHealth, player.health + healAmount);
-
-    console.log('newHealth', newHealth);
 
     const updatedConsumables = [...user.consumables];
     const potionIndex = updatedConsumables.indexOf(potionId);
