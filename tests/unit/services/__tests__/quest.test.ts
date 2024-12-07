@@ -14,11 +14,8 @@ import {
   abandonQuest,
 } from '@/services/quest';
 
-// Mock Firebase Firestore
 jest.mock('@/firebaseConfig', () => ({
-  FIREBASE_DB: {
-    // Add any specific properties your code expects
-  },
+  FIREBASE_DB: {},
 }));
 
 jest.mock('firebase/firestore', () => {
