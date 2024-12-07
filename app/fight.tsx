@@ -684,7 +684,8 @@ const Combat = () => {
   }, []);
 
   const battleBackgrounds = [
-    require('@/assets/backgrounds/battle_background_1.png'),
+    require('@/assets/backgrounds/bg_fight_screen_1.png'),
+    require('@/assets/backgrounds/bg_fight_screen_2.png'),
     // Add more backgrounds as needed
   ];
 
@@ -695,22 +696,28 @@ const Combat = () => {
 
   if (isInitializing) {
     return (
-      <ImageBackground source={battleBackground} className="flex-1">
-        <SafeAreaView className="flex-1 items-center justify-center">
+      <SafeAreaView className="flex-1">
+        <ImageBackground
+          source={battleBackground}
+          className="flex-1 items-center justify-center"
+        >
           <View className="bg-black/50 p-6 rounded-xl items-center">
             <ActivityIndicator size="large" color="#ffffff" />
             <Text className="text-xl text-white mt-4">
               Preparing for battle...
             </Text>
           </View>
-        </SafeAreaView>
-      </ImageBackground>
+        </ImageBackground>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ImageBackground source={battleBackground} className="flex-1">
-      <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
+    <SafeAreaView className="flex-1">
+      <ImageBackground
+        source={battleBackground}
+        className="flex-1 p-4 pb-20 px-6 mt-[20px]"
+      >
         <View className="h-2 bg-gray-200/50 rounded-full mb-12">
           <View className="h-full bg-blue-500/70 rounded-full w-1/2" />
         </View>
@@ -983,8 +990,8 @@ const Combat = () => {
         </Modal>
 
         <StatusBar backgroundColor="#161622" style="light" />
-      </SafeAreaView>
-    </ImageBackground>
+      </ImageBackground>
+    </SafeAreaView>
   );
 };
 
