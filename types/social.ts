@@ -9,7 +9,7 @@ export type Friend = Pick<User, 'id' | 'privacySettings'> & {
   };
   lastWorkoutDate: Date | null;
   spriteID: AnimatedSpriteID;
-  currentQuest: string | null;
+  currentQuestName: string | null;
 };
 
 export type FriendRequest = {

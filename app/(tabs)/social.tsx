@@ -674,7 +674,10 @@ const FriendItem: React.FC<{ user: Friend; onDelete: () => void }> = ({
             </View>
             {user.privacySettings.isCurrentQuestPublic ? (
               <Text className="font-medium text-xs">
-                On Quest: <Text className="font-bold">Hunt Big Chungus</Text>
+                On Quest:{' '}
+                <Text className="font-bold">
+                  {user.currentQuestName ?? '-'}
+                </Text>
               </Text>
             ) : (
               <Text className="font-medium text-xs">-</Text>

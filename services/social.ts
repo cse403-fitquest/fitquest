@@ -25,6 +25,7 @@ import {
   UserFriendInDB,
 } from '@/types/social';
 import { userConverter } from './user';
+import { getQuestByID } from './quest';
 
 export const userFriendConverter = {
   toFirestore: (data: UserFriendInDB) => data,
@@ -118,25 +119,33 @@ export const getUserFriends: (
           return null;
         }
 
+        const friendData = friendSnap.data();
+
         console.log('Friend ID: ', friendID);
-        const workoutHistory = friendSnap.data()?.workoutHistory || [];
+        const workoutHistory = friendData.workoutHistory || [];
         let lastWorkoutDate = null;
         if (workoutHistory.length > 0) {
           lastWorkoutDate = workoutHistory[0].startedAt;
         }
 
+        // Get user's current quest by quest ID
+        let friendCurrentQuest = null;
+        if (friendData.currentQuest.id) {
+          friendCurrentQuest = await getQuestByID(friendData.currentQuest.id);
+        }
+
         return {
           id: friendID,
-          privacySettings: friendSnap.data()?.privacySettings,
-          profileInfo: friendSnap.data()?.profileInfo,
-          spriteID: friendSnap.data()?.spriteID,
+          privacySettings: friendData.privacySettings,
+          profileInfo: friendData.profileInfo,
+          spriteID: friendData.spriteID,
           lastWorkoutDate: lastWorkoutDate,
-          currentQuest: null,
+          currentQuestName: friendCurrentQuest?.questName || null,
         };
       }),
     );
 
-    console.log('Friends data: ', friendsData);
+    // console.log('Friends data: ', friendsData);
 
     // Get sent requests data
     const sentRequestsData: (FriendRequest | null)[] = await Promise.all(
@@ -463,13 +472,6 @@ export const acceptFriendRequest: (
       };
     }
 
-    const receiverWorkoutHistory = receiverUserData.workoutHistory;
-    let receiverLastWorkoutDate = null;
-    if (receiverWorkoutHistory.length > 0) {
-      receiverLastWorkoutDate =
-        receiverWorkoutHistory[receiverWorkoutHistory.length - 1].startedAt;
-    }
-
     // Check if the users are already friends
     const senderUserFriendsData = senderUserFriendsSnap.data();
     const receiverUserFriendsData = receiverUserFriendsSnap.data();
@@ -508,6 +510,20 @@ export const acceptFriendRequest: (
 
     console.log('Friend request accepted!');
 
+    const receiverWorkoutHistory = receiverUserData.workoutHistory;
+    let receiverLastWorkoutDate = null;
+    if (receiverWorkoutHistory.length > 0) {
+      receiverLastWorkoutDate =
+        receiverWorkoutHistory[receiverWorkoutHistory.length - 1].startedAt;
+    }
+
+    let receiverCurrentQuest = null;
+    if (receiverUserData.currentQuest.id) {
+      receiverCurrentQuest = await getQuestByID(
+        receiverUserData.currentQuest.id,
+      );
+    }
+
     const newFriend: Friend = {
       id: receiverID,
       privacySettings: receiverUserData.privacySettings,
@@ -517,7 +533,7 @@ export const acceptFriendRequest: (
       },
       spriteID: receiverUserData.spriteID,
       lastWorkoutDate: receiverLastWorkoutDate,
-      currentQuest: null,
+      currentQuestName: receiverCurrentQuest?.questName || null,
     };
 
     return {
