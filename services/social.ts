@@ -510,30 +510,29 @@ export const acceptFriendRequest: (
 
     console.log('Friend request accepted!');
 
-    const receiverWorkoutHistory = receiverUserData.workoutHistory;
-    let receiverLastWorkoutDate = null;
-    if (receiverWorkoutHistory.length > 0) {
-      receiverLastWorkoutDate =
-        receiverWorkoutHistory[receiverWorkoutHistory.length - 1].startedAt;
+    // Return the sender's data for the receiver client to update their friends list
+    const senderWorkoutHistory = senderUserData.workoutHistory;
+    let senderLastWorkoutDate = null;
+    if (senderWorkoutHistory.length > 0) {
+      senderLastWorkoutDate =
+        senderWorkoutHistory[senderWorkoutHistory.length - 1].startedAt;
     }
 
-    let receiverCurrentQuest = null;
-    if (receiverUserData.currentQuest.id) {
-      receiverCurrentQuest = await getQuestByID(
-        receiverUserData.currentQuest.id,
-      );
+    let senderCurrentQuest = null;
+    if (senderUserData.currentQuest.id) {
+      senderCurrentQuest = await getQuestByID(senderUserData.currentQuest.id);
     }
 
     const newFriend: Friend = {
-      id: receiverID,
-      privacySettings: receiverUserData.privacySettings,
+      id: senderID,
+      privacySettings: senderUserData.privacySettings,
       profileInfo: {
-        username: receiverUserData.profileInfo.username,
-        email: receiverUserData.profileInfo.email,
+        username: senderUserData.profileInfo.username,
+        email: senderUserData.profileInfo.email,
       },
-      spriteID: receiverUserData.spriteID,
-      lastWorkoutDate: receiverLastWorkoutDate,
-      currentQuestName: receiverCurrentQuest?.questName || null,
+      spriteID: senderUserData.spriteID,
+      lastWorkoutDate: senderLastWorkoutDate,
+      currentQuestName: senderCurrentQuest?.questName || null,
     };
 
     return {
