@@ -23,14 +23,13 @@ export const QuestNodeModal = ({
 }: QuestNodeModalProps) => {
   if (!nodeInfo) return null;
 
-  console.log('possible monsters', nodeInfo.possibleMonsters);
-
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
       onRequestClose={onClose}
+      testID="quest-node-modal"
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
