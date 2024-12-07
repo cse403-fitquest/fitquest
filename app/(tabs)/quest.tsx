@@ -15,6 +15,8 @@ import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { useUserStore } from '@/store/user';
 import { updateUserProfile } from '@/services/user';
 import { getAvailableQuests } from '@/services/quest';
+import { QuestNodeModal } from '@/components/QuestNodeModal';
+import { getMonsterById } from '@/services/monster';
 
 interface Quest {
   monsters: AnimatedSpriteID[];
@@ -53,6 +55,16 @@ interface ActiveQuest {
   monsters: string[];
 }
 
+interface QuestNode {
+  milestone: number;
+  isBoss: boolean;
+  possibleMonsters: {
+    monsterId: string;
+    spriteId: AnimatedSpriteID;
+  }[];
+  description: string;
+}
+
 const Quest = () => {
   const [activeQuest, setActiveQuest] = useState<ActiveQuest | null>(null);
   const [, setShowAbandonModal] = useState<boolean>(false);
@@ -62,6 +74,8 @@ const Quest = () => {
   const { user, setUser } = useUserStore();
   const [availableQuests, setAvailableQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<QuestNode | null>(null);
 
   const startQuest = async (
     userID: string,
@@ -87,6 +101,8 @@ const Quest = () => {
         boss: selectedQuest.boss,
         monsters: selectedQuest.monsters,
       };
+
+      console.log('newActiveQuest.monsters', newActiveQuest.monsters);
 
       setActiveQuest(newActiveQuest);
       await updateUserCurrentQuest(questID, existingProgress);
@@ -267,7 +283,7 @@ const Quest = () => {
   const handleAdvance = async () => {
     if (activeQuest && user?.id) {
       // TODO: Change this to 30 minutes
-      if (user.activeWorkoutMinutes < 10) {
+      if (user.activeWorkoutMinutes < 1) {
         Alert.alert(
           'Not Strong Enough...',
           "You'll need to train more before challenging this foe. Return after training!",
@@ -292,15 +308,16 @@ const Quest = () => {
 
         try {
           const result = await updateUserProfile(user.id, {
-            activeWorkoutMinutes: user.activeWorkoutMinutes - 1800,
+            activeWorkoutMinutes: user.activeWorkoutMinutes - 1,
           });
 
           if (result.success) {
             setUser({
               ...user,
-              activeWorkoutMinutes: user.activeWorkoutMinutes - 1800,
+              activeWorkoutMinutes: user.activeWorkoutMinutes - 1,
             });
 
+            console.log('activeQuest.monsters', activeQuest.monsters);
             router.replace({
               pathname: '/fight',
               params: {
@@ -360,9 +377,35 @@ const Quest = () => {
     }
   };
 
-  const calculateQuestPercentage = (quest: ActiveQuest, progress: number) => {
-    const finalMilestone = quest.milestones[quest.milestones.length - 1];
-    return Math.round((progress / finalMilestone) * 100);
+  const getNodeInfo = async (
+    milestone: number | string,
+    quest: ActiveQuest,
+  ): Promise<QuestNode | null> => {
+    const milestoneNum = Number(milestone);
+
+    // Map the monster IDs to their corresponding sprite IDs
+    const monsters = await Promise.all(
+      quest.monsters.map(async (monsterId) => {
+        const monster = await getMonsterById(monsterId);
+        return {
+          monsterId,
+          spriteId: monster?.spriteId as AnimatedSpriteID, // Cast to AnimatedSpriteID
+        };
+      }),
+    );
+
+    return {
+      milestone: milestoneNum,
+      isBoss: milestoneNum === quest.bossThreshold,
+      possibleMonsters:
+        milestoneNum === quest.bossThreshold
+          ? [{ monsterId: quest.boss.spriteId, spriteId: quest.boss.spriteId }]
+          : monsters,
+      description:
+        milestoneNum === quest.bossThreshold
+          ? 'Boss Battle!'
+          : `Quest checkpoint: ${milestoneNum}`,
+    };
   };
 
   const renderMilestoneNodes = (quest: ActiveQuest, progress: number) => {
@@ -376,50 +419,85 @@ const Quest = () => {
     const nextMilestones = getNextMilestones(selectedQuest, progress);
     const visualMilestones = [startingPoint, ...nextMilestones];
 
-    const percentage = calculateQuestPercentage(quest, progress);
+    // const percentage = calculateQuestPercentage(quest, progress);
+
+    const getProgressText = () => {
+      if (!user?.activeWorkoutMinutes) return '0% ready to advance!';
+
+      if (user.activeWorkoutMinutes >= 1) {
+        return 'Ready to advance!';
+      }
+
+      const readyPercentage = Math.round((user.activeWorkoutMinutes / 1) * 100);
+      return `${readyPercentage}% ready to advance!`;
+    };
 
     return (
-      <View className="mt-6 mb-4">
-        <Text className="text-base text-gray-600 mb-3">
-          Progress: {percentage}%
-        </Text>
+      <View className="mt-4 mb-2">
+        <Text className="text-md mb-5 font-bold">{getProgressText()}</Text>
 
         <View
-          className="flex-row justify-between items-center"
-          style={{ height: 60 }}
+          className="flex-row justify-between items-center relative"
+          style={{ height: 50 }}
         >
+          <View
+            className="absolute bg-gray"
+            style={{
+              height: 3,
+              width: '100%',
+              top: '50%',
+              transform: [{ translateY: -1.5 }],
+            }}
+          />
+
           {visualMilestones.map((milestone) => {
             const milestoneValue =
               milestone === 'start' ? 0 : Number(milestone);
             const isBossNode = milestoneValue === Number(quest.bossThreshold);
+            const isCompleted = progress >= milestoneValue;
+            const nodeInfo = getNodeInfo(milestone, quest);
 
             return (
-              <View
+              <TouchableOpacity
                 key={milestone === 'start' ? 'start-node' : milestone}
                 className="items-center"
+                onPress={async () => {
+                  if (nodeInfo && milestoneValue > progress) {
+                    setSelectedNode(await nodeInfo);
+                    setModalVisible(true);
+                  }
+                }}
+                disabled={milestoneValue <= progress}
               >
                 {isBossNode ? (
-                  <View style={{ width: 70, height: 120 }}>
+                  <View
+                    style={{
+                      width: 60,
+                      height: 60,
+                      marginTop: -50,
+                      marginLeft: -20,
+                    }}
+                  >
                     <AnimatedSprite
                       id={activeQuest?.boss.spriteId}
-                      width={85}
-                      height={85}
+                      width={80}
+                      height={80}
                       state={SpriteState.IDLE}
                     />
                   </View>
                 ) : (
                   <View
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      backgroundColor: '#D3D3D3',
+                      width: 20,
+                      height: 20,
+                      borderRadius: 20,
+                      backgroundColor: isCompleted ? '#4CAF50' : '#D3D3D3',
                       borderWidth: 2,
-                      borderColor: '#404040',
+                      borderColor: isCompleted ? '#45a049' : '#c0c0c0',
                     }}
                   />
                 )}
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>
@@ -540,6 +618,21 @@ const Quest = () => {
             )}
           </View>
         }
+      />
+      <QuestNodeModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        nodeInfo={{
+          isBoss: selectedNode?.isBoss || false,
+          milestone: selectedNode?.milestone || 0,
+          possibleMonsters:
+            selectedNode?.possibleMonsters?.map(
+              (monster: { monsterId: string; spriteId: AnimatedSpriteID }) => ({
+                monsterId: monster.monsterId,
+                spriteId: monster.spriteId,
+              }),
+            ) || [],
+        }}
       />
     </SafeAreaView>
   );
