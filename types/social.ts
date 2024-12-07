@@ -43,3 +43,11 @@ export type GetUserByEmailResponse = APIResponse & {
 export type GetUserByUsernameResponse = APIResponse & {
   data: User | null;
 };
+
+export type SendFriendRequestResponse = APIResponse & {
+  data: FriendRequest | null;
+};
+
+export type AcceptFriendRequestResponse = APIResponse & {
+  data: Friend | null;
+};

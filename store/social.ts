@@ -1,4 +1,4 @@
-import { Friend, UserFriend } from '@/types/social';
+import { Friend, FriendRequest, UserFriend } from '@/types/social';
 import { create } from 'zustand';
 
 interface ISocialStore {
@@ -8,9 +8,9 @@ interface ISocialStore {
 
   setFriends: (friends: Friend[]) => void;
 
-  setSentRequests: (sentRequests: string[]) => void;
+  setSentRequests: (sentRequests: FriendRequest[]) => void;
 
-  setPendingRequests: (pendingRequests: Friend[]) => void;
+  setPendingRequests: (pendingRequests: FriendRequest[]) => void;
 
   resetSocialStore: () => void;
 }

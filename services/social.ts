@@ -15,11 +15,13 @@ import {
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
 import {
+  AcceptFriendRequestResponse,
   Friend,
   FriendRequest,
   GetUserByEmailResponse,
   GetUserByUsernameResponse,
   GetUserFriendsResponse,
+  SendFriendRequestResponse,
   UserFriend,
   UserFriendInDB,
 } from '@/types/social';
@@ -97,7 +99,7 @@ export const getUserFriends: (
       throw new Error('User friend data not found.');
     }
 
-    // For each friend and request, get the user data
+    // For each friend and request, get their data
     const userFriendsIDs = userFriendDataInDB.friends;
     const userSentRequestsIDs = userFriendDataInDB.sentRequests;
     const userPendingRequestsIDs = userFriendDataInDB.pendingRequests;
@@ -107,33 +109,38 @@ export const getUserFriends: (
       userConverter,
     );
 
+    console.log('Attempt to get user friends data');
+
     // Get friends data
     const friendsData: (Friend | null)[] = await Promise.all(
-      userFriendsIDs.map(async (friend) => {
-        const friendSnap = await getDoc(doc(userCollection, friend));
+      userFriendsIDs.map(async (friendID) => {
+        const friendSnap = await getDoc(doc(userCollection, friendID));
 
         if (!friendSnap.exists()) {
           return null;
         }
 
-        const workoutHistory = friendSnap.data()?.workoutHistory;
+        console.log('Friend ID: ', friendID);
+        const workoutHistory = friendSnap.data()?.workoutHistory || [];
         let lastWorkoutDate = null;
         if (workoutHistory.length > 0) {
-          lastWorkoutDate = workoutHistory[workoutHistory.length - 1].startedAt;
+          lastWorkoutDate = workoutHistory[0].startedAt;
         }
 
         return {
-          id: friend,
+          id: friendID,
           privacySettings: friendSnap.data()?.privacySettings,
           profileInfo: friendSnap.data()?.profileInfo,
           spriteID: friendSnap.data()?.spriteID,
-          lastWorkoutDate: fromTimestampToDate(
-            lastWorkoutDate as unknown as Timestamp,
-          ),
+          lastWorkoutDate: lastWorkoutDate
+            ? fromTimestampToDate(lastWorkoutDate as unknown as Timestamp)
+            : null,
           currentQuest: null,
         };
       }),
     );
+
+    console.log('Friends data: ', friendsData);
 
     // Get sent requests data
     const sentRequestsData: (FriendRequest | null)[] = await Promise.all(
@@ -376,12 +383,12 @@ export const cancelFriendRequest: (
  * Purchase an item for the user.
  * @param {string} senderID - The user that sent the friend request.
  * @param {string} receiverID - Email address of the receiver.
- * @returns {Promise<APIResponse>} Returns an APIResponse object.
+ * @returns {Promise<AcceptFriendRequestResponse>} Returns an AcceptFriendRequestResponse object.
  */
 export const acceptFriendRequest: (
   senderID: string,
   receiverID: string,
-) => Promise<APIResponse> = async (senderID, receiverID) => {
+) => Promise<AcceptFriendRequestResponse> = async (senderID, receiverID) => {
   try {
     const userFriendCollection = collection(
       FIREBASE_DB,
@@ -460,43 +467,12 @@ export const acceptFriendRequest: (
       };
     }
 
-    const senderWorkoutHistory = senderUserData.workoutHistory;
-    let senderLastWorkoutDate = null;
-    if (senderWorkoutHistory.length > 0) {
-      senderLastWorkoutDate =
-        senderWorkoutHistory[senderWorkoutHistory.length - 1].startedAt;
-    }
-
-    const senderAsFriend: Friend = {
-      id: senderID,
-      privacySettings: senderUserData.privacySettings,
-      profileInfo: {
-        username: senderUserData.profileInfo.username,
-        email: senderUserData.profileInfo.email,
-      },
-      spriteID: senderUserData.spriteID,
-      lastWorkoutDate: senderLastWorkoutDate,
-      currentQuest: null,
-    };
-
     const receiverWorkoutHistory = receiverUserData.workoutHistory;
     let receiverLastWorkoutDate = null;
     if (receiverWorkoutHistory.length > 0) {
       receiverLastWorkoutDate =
         receiverWorkoutHistory[receiverWorkoutHistory.length - 1].startedAt;
     }
-
-    const receiverAsFriend: Friend = {
-      id: receiverID,
-      privacySettings: receiverUserData.privacySettings,
-      profileInfo: {
-        username: receiverUserData.profileInfo.username,
-        email: receiverUserData.profileInfo.email,
-      },
-      spriteID: receiverUserData.spriteID,
-      lastWorkoutDate: receiverLastWorkoutDate,
-      currentQuest: null,
-    };
 
     // Check if the users are already friends
     const senderUserFriendsData = senderUserFriendsSnap.data();
@@ -525,19 +501,31 @@ export const acceptFriendRequest: (
 
     await updateDoc(receiverUserFriendsRef, {
       pendingRequests: receiverNewPendingRequests,
-      friends: arrayUnion(senderAsFriend),
+      friends: arrayUnion(senderUserData.id),
     });
 
     // Remove receiver from sender's sent requests and add to friends
     await updateDoc(senderUserFriendsRef, {
-      sentRequests: arrayRemove(receiverUserData.profileInfo.email),
-      friends: arrayUnion(receiverAsFriend),
+      sentRequests: arrayRemove(receiverUserData.id),
+      friends: arrayUnion(receiverUserData.id),
     });
 
     console.log('Friend request accepted!');
 
+    const newFriend: Friend = {
+      id: receiverID,
+      privacySettings: receiverUserData.privacySettings,
+      profileInfo: {
+        username: receiverUserData.profileInfo.username,
+        email: receiverUserData.profileInfo.email,
+      },
+      spriteID: receiverUserData.spriteID,
+      lastWorkoutDate: receiverLastWorkoutDate,
+      currentQuest: null,
+    };
+
     return {
-      data: null,
+      data: newFriend,
       success: true,
       error: null,
     };
@@ -556,12 +544,15 @@ export const acceptFriendRequest: (
  * Purchase an item for the user.
  * @param {string} senderID - The user that sent the friend request.
  * @param {string} receiverUsername - The user receiving the friend request.
- * @returns {Promise<APIResponse>} Returns an APIResponse object.
+ * @returns {Promise<SendFriendRequestResponse>} Returns an SendFriendRequestResponse object.
  */
 export const sendFriendRequest: (
   senderID: string,
   receiverUsername: string,
-) => Promise<APIResponse> = async (senderID, receiverUsername) => {
+) => Promise<SendFriendRequestResponse> = async (
+  senderID,
+  receiverUsername,
+) => {
   try {
     const userFriendCollection = collection(
       FIREBASE_DB,
@@ -576,18 +567,21 @@ export const sendFriendRequest: (
     const senderUserFriendsRef = doc(userFriendCollection, senderID);
 
     // Get receiver data
-    const getUserByEmailResponse = await getUserByUsername(receiverUsername);
+    const getUserByUsernameResponse = await getUserByUsername(receiverUsername);
 
-    if (!getUserByEmailResponse.success || !getUserByEmailResponse.data) {
+    if (!getUserByUsernameResponse.success || !getUserByUsernameResponse.data) {
       return {
         data: null,
         success: false,
         error: 'User not found.',
       };
     }
-    console.log('User using email found!', getUserByEmailResponse.data.id);
+    console.log(
+      'User using username found!',
+      getUserByUsernameResponse.data.id,
+    );
 
-    const receiverUserData = getUserByEmailResponse.data;
+    const receiverUserData = getUserByUsernameResponse.data;
 
     if (receiverUserData.id === senderID) {
       return {
@@ -596,12 +590,6 @@ export const sendFriendRequest: (
         error: 'You cannot send a friend request to yourself.',
       };
     }
-
-    // Get receiver reference
-    const receiverUserFriendsRef = doc(
-      userFriendCollection,
-      receiverUserData.id,
-    );
 
     // Check if both users exist
     const senderUserFriendsSnap = await getDoc(senderUserFriendsRef);
@@ -613,6 +601,11 @@ export const sendFriendRequest: (
         error: 'Your account is not found. Contact an administrator for help.',
       };
     }
+
+    const receiverUserFriendsRef = doc(
+      userFriendCollection,
+      receiverUserData.id,
+    );
 
     const receiverUserFriendSnap = await getDoc(receiverUserFriendsRef);
 
@@ -692,34 +685,26 @@ export const sendFriendRequest: (
       };
     }
 
-    const senderWorkoutHistory = senderUserData.workoutHistory;
-    let senderLastWorkoutDate = null;
-    if (senderWorkoutHistory.length > 0) {
-      senderLastWorkoutDate =
-        senderWorkoutHistory[senderWorkoutHistory.length - 1].startedAt;
-    }
-
-    const senderAsFriend: Friend = {
-      id: senderUserData.id,
-      privacySettings: senderUserData.privacySettings,
-      profileInfo: {
-        username: senderUserData.profileInfo.username,
-        email: senderUserData.profileInfo.email,
-      },
-      spriteID: senderUserData.spriteID,
-      lastWorkoutDate: senderLastWorkoutDate,
-      currentQuest: null,
-    };
-
-    // Add sender from receiver's pending friend requests
+    // Add sender to receiver's pending friend requests
     await updateDoc(receiverUserFriendsRef, {
-      pendingRequests: arrayUnion(senderAsFriend),
+      pendingRequests: arrayUnion(senderID),
     });
+
+    console.log(
+      receiverUserData.profileInfo.username +
+        "'s ID added to sender's pending requests and" +
+        senderUserData.profileInfo.username +
+        "'s ID added to receiver's pending requests",
+    );
 
     console.log("Current user added to receiver'spending requests");
 
     return {
-      data: null,
+      data: {
+        id: receiverUserData.id,
+        username: receiverUserData.profileInfo.username,
+        email: receiverUserData.profileInfo.email,
+      },
       success: true,
       error: null,
     };
@@ -854,7 +839,7 @@ export const denyFriendRequest: (
 
     // Remove receiver from sender's sent requests
     await updateDoc(senderUserFriendsRef, {
-      sentRequests: arrayRemove(receiverUserData.profileInfo.email),
+      sentRequests: arrayRemove(receiverUserData.id),
     });
 
     console.log('Friend request denied!');

@@ -10,11 +10,10 @@ import {
 } from 'react-native';
 import React, { useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Friend } from '@/types/social';
+import { Friend, FriendRequest } from '@/types/social';
 import { Ionicons } from '@expo/vector-icons';
 import FQModal from '@/components/FQModal';
 import FQTextInput from '@/components/FQTextInput';
-import { isEmailValid } from '@/utils/auth';
 import { useSocialStore } from '@/store/social';
 import {
   acceptFriendRequest,
@@ -35,13 +34,13 @@ const Social = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalDataOption, setModalDataOption] = useState<{
     option: ModalDataOptions;
-    email: string;
-    emailError?: string;
+    username: string;
+    usernameError?: string;
     user: Friend | null;
     friend: Friend | null;
   }>({
     option: ModalDataOptions.ADD_FRIEND,
-    email: '',
+    username: '',
     user: null,
     friend: null,
   });
@@ -84,11 +83,11 @@ const Social = () => {
             <View className="mt-5 w-[240px]">
               <FQTextInput
                 onChangeText={(text) =>
-                  setModalDataOption({ ...modalDataOption, email: text })
+                  setModalDataOption({ ...modalDataOption, username: text })
                 }
                 label="Email"
-                value={modalDataOption.email}
-                error={modalDataOption.emailError}
+                value={modalDataOption.username}
+                error={modalDataOption.usernameError}
               />
             </View>
           ),
@@ -153,7 +152,7 @@ const Social = () => {
     ];
   }, [userFriend]);
 
-  const handleAcceptFriendRequest = async (friend: Friend) => {
+  const handleAcceptFriendRequest = async (friend: FriendRequest) => {
     // Accept request
     // Remove user from pendingRequests and add to friends
 
@@ -165,7 +164,7 @@ const Social = () => {
 
     const oldPendingRequests = sections.find(
       (section) => section.key === 'pendingRequests',
-    )?.data as Friend[];
+    )?.data as FriendRequest[];
 
     const oldFriends = sections.find((section) => section.key === 'friends')
       ?.data as Friend[];
@@ -175,15 +174,15 @@ const Social = () => {
     setPendingRequests(
       (
         sections.find((section) => section.key === 'pendingRequests')
-          ?.data as Friend[]
+          ?.data as FriendRequest[]
       ).filter((user) => user.id !== friend.id),
     );
 
-    setFriends([
-      friend,
-      ...(sections.find((section) => section.key === 'friends')
-        ?.data as Friend[]),
-    ]);
+    // setFriends([
+    //   friend,
+    //   ...(sections.find((section) => section.key === 'friends')
+    //     ?.data as Friend[]),
+    // ]);
 
     const acceptFriendRequestResponse = await acceptFriendRequest(
       friend.id,
@@ -192,7 +191,10 @@ const Social = () => {
 
     setLoading(false);
 
-    if (!acceptFriendRequestResponse.success) {
+    if (
+      !acceptFriendRequestResponse.success ||
+      !acceptFriendRequestResponse.data
+    ) {
       // Handle error
 
       Alert.alert(
@@ -205,9 +207,15 @@ const Social = () => {
       setFriends(oldFriends);
       return;
     }
+
+    setFriends([
+      acceptFriendRequestResponse.data,
+      ...(sections.find((section) => section.key === 'friends')
+        ?.data as Friend[]),
+    ]);
   };
 
-  const handleDenyFriendRequest = async (friend: Friend) => {
+  const handleDenyFriendRequest = async (friend: FriendRequest) => {
     // Deny request
     // Remove user from pendingRequests
     if (!user?.id || loading) {
@@ -218,12 +226,12 @@ const Social = () => {
 
     const oldPendingRequests = sections.find(
       (section) => section.key === 'pendingRequests',
-    )?.data as Friend[];
+    )?.data as FriendRequest[];
 
     setPendingRequests(
       (
         sections.find((section) => section.key === 'pendingRequests')
-          ?.data as Friend[]
+          ?.data as FriendRequest[]
       ).filter((user) => user.id !== friend.id),
     );
 
@@ -248,9 +256,9 @@ const Social = () => {
     }
   };
 
-  const handleCancelFriendRequest = async (email: string) => {
+  const handleCancelFriendRequest = async (sentRequestUserID: string) => {
     // Cancel request
-    // Remove email from sentRequests
+    // Remove user from sentRequests
 
     if (!user?.id || loading) {
       return;
@@ -260,7 +268,7 @@ const Social = () => {
 
     const cancelSentRequestResponse = await cancelFriendRequest(
       user?.id,
-      email,
+      sentRequestUserID,
     );
 
     setLoading(false);
@@ -278,15 +286,15 @@ const Social = () => {
     setSentRequests(
       (
         sections.find((section) => section.key === 'sentRequests')
-          ?.data as string[]
-      ).filter((receiverEmail) => receiverEmail !== email),
+          ?.data as FriendRequest[]
+      ).filter((user) => user.id !== sentRequestUserID),
     );
   };
 
   const renderSection = (item: {
     key: string;
     title: string;
-    data: Friend[] | string[];
+    data: Friend[] | FriendRequest[];
   }) => {
     if (item.key === 'sentRequests') {
       return (
@@ -295,13 +303,13 @@ const Social = () => {
             {item.title}
           </Text>
           <FlatList
-            data={item.data as string[]}
-            keyExtractor={(friend) => friend}
+            data={item.data as FriendRequest[]}
+            keyExtractor={(friend) => friend.id}
             renderItem={({ item }) => (
               <View className="w-full flex-row justify-between items-center">
-                <Text className="text-lg font-medium">{item}</Text>
+                <Text className="text-lg font-medium">{item.username}</Text>
                 <TouchableOpacity
-                  onPress={() => handleCancelFriendRequest(item)}
+                  onPress={() => handleCancelFriendRequest(item.id)}
                 >
                   <Text className="text-sm font-bold text-red-500">CANCEL</Text>
                 </TouchableOpacity>
@@ -321,7 +329,7 @@ const Social = () => {
             {item.title}
           </Text>
           <FlatList
-            data={item.data as Friend[]}
+            data={item.data as FriendRequest[]}
             keyExtractor={(friend) => friend.id}
             renderItem={({ item }) => (
               <IncomingRequestItem
@@ -348,7 +356,7 @@ const Social = () => {
               onPress={() => {
                 setModalDataOption({
                   option: ModalDataOptions.ADD_FRIEND,
-                  email: '',
+                  username: '',
                   user: null,
                   friend: null,
                 });
@@ -369,7 +377,7 @@ const Social = () => {
 
                   setModalDataOption({
                     option: ModalDataOptions.REMOVE_FRIEND,
-                    email: '',
+                    username: '',
                     user: item,
                     friend: item,
                   });
@@ -396,49 +404,31 @@ const Social = () => {
       // Add email to sentRequests
 
       // Handle errors
-      let emailError: string = '';
-      const emailInput = modalDataOption.email.trim();
+      let usernameError: string = '';
+      const usernameInput = modalDataOption.username.trim();
 
-      // Validate email
-      // Email validation
+      // Validate username
       // Check if email input is empty
-      if (!emailInput) {
-        emailError = 'Email is required';
+      if (!usernameInput) {
+        usernameError = 'Username cannot be empty';
       }
 
-      // Check for email regex
-      // If email is not empty, check if it's a valid email
-      if (!emailError) {
-        if (!isEmailValid(emailInput)) {
-          emailError = 'Must be a valid email address';
-        }
-      }
-
-      // Check if email is already in sent requests
-      const sentRequests = sections.find(
-        (section) => section.key === 'sentRequests',
-      )?.data as string[];
-      if (sentRequests.includes(modalDataOption.email)) {
-        emailError = 'Request already sent';
-      }
-
-      if (emailError) {
+      if (usernameError) {
         // Handle email error
         setModalDataOption({
           ...modalDataOption,
-          emailError,
+          usernameError,
         });
         return;
       }
 
-      if (user?.profileInfo.email === emailInput) {
+      if (user?.profileInfo.username === usernameInput) {
         // Handle error
 
         Alert.alert('Error', 'Cannot add yourself as a friend');
         return;
       }
 
-      // TODO: Send friend request
       if (!user?.id) {
         return;
       }
@@ -448,7 +438,7 @@ const Social = () => {
       // first send the request, then update the UI
       const sendFriendRequestResponse = await sendFriendRequest(
         user?.id,
-        emailInput,
+        usernameInput,
       );
 
       setLoading(false);
@@ -464,7 +454,12 @@ const Social = () => {
         return;
       }
 
-      setSentRequests([...sentRequests, modalDataOption.email]);
+      // Add FriendRequest to sent requests
+      setSentRequests([
+        ...(sections.find((section) => section.key === 'sentRequests')
+          ?.data as FriendRequest[]),
+        sendFriendRequestResponse.data as FriendRequest,
+      ]);
       setModalVisible(false);
 
       // Add email to sent requests
@@ -544,13 +539,13 @@ const Social = () => {
 export default Social;
 
 const IncomingRequestItem: React.FC<{
-  user: Friend;
+  user: FriendRequest;
   onAccept: () => void;
   onDeny: () => void;
 }> = ({ user, onAccept, onDeny }) => {
   return (
     <View className="w-full flex-row justify-between items-center">
-      <Text className="text-lg font-medium">{user.profileInfo.username}</Text>
+      <Text className="text-lg font-medium">{user.username}</Text>
       <View className="flex-row justify-center items-center">
         <TouchableOpacity onPress={onAccept}>
           <Text className="text-sm font-bold mr-5 text-blue">ACCEPT</Text>
