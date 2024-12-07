@@ -65,23 +65,14 @@ jest.mock('react-native', () => {
     Value: jest.fn().mockImplementation(() => ({
       setValue: jest.fn(),
     })),
+    timing: jest.fn(() => ({
+      start: jest.fn((callback) => callback && callback()),
+      stopAnimation: jest.fn(),
+    })),
   };
   return RN;
 });
 
-jest.mock('react-native', () => {
-  const ReactNative = jest.requireActual('react-native');
-  return {
-    ...ReactNative,
-    Animated: {
-      ...ReactNative.Animated,
-      timing: jest.fn(() => ({
-        start: jest.fn((callback) => callback && callback()),
-        stopAnimation: jest.fn(),
-      })),
-    },
-  };
-});
 jest.mock('react-native-reanimated', () => ({
   Easing: {
     steps: jest.fn(() => jest.fn()),
@@ -97,8 +88,12 @@ jest.mock(
   '@/assets/sprites/animated/heroes/hero_02.png',
   () => 'mockHeroImage',
 );
+jest.mock(
+  '@/assets/sprites/animated/heroes/hero_20.png',
+  () => 'mockHeroImage',
+);
 // Repeat for all assets used or use a wildcard mock:
-jest.mock('@/assets/sprites/animated/*', () => 'mockSpriteImage');
+// jest.mock('@/assets/sprites/animated/heroes/*', () => 'mockSpriteImage');
 ////////////////////////////////// UTILS mocks  //////////////////////////////////
 
 jest.mock('@/utils/user', () => ({
@@ -115,6 +110,7 @@ jest.mock('@/utils/sprite', () => ({
 jest.mock('@/constants/sprite', () => ({
   AnimatedSpriteID: {
     HERO_01: 'HERO_01',
+    HERO_20: 'HERO_20',
     MONSTER_01: 'MONSTER_01',
     BOSS_01: 'BOSS_01',
   },
@@ -122,6 +118,11 @@ jest.mock('@/constants/sprite', () => ({
     IDLE: 'IDLE',
     MOVE: 'MOVE',
     ATTACK_1: 'ATTACK_1',
+  },
+}));
+jest.mock('@/constants/item', () => ({
+  SpriteID: {
+    T1_DAGGER: 'T1_DAGGER',
   },
 }));
 ////////////////////////////////// SERVICES mocks //////////////////////////////////
@@ -153,15 +154,17 @@ jest.mock('@/services/user', () => {
 ////////////////////////////////// Components mocks //////////////////////////////////
 jest.mock('@/components/FQModal', () => 'FQModal');
 jest.mock('@/components/Sprite', () => 'Sprite');
-jest.mock('@/components/AnimatedSprite', () => 'AnimatedSprite');
+// jest.mock('@/components/AnimatedSprite', () => 'AnimatedSprite');
 jest.mock('@/components/AnimatedSprite', () => {
   const React = require('react');
-  const { View } = require('react-native');
+  const { View, Text } = require('react-native');
 
   return jest.fn((props) => (
     <View testID="mock-animated-sprite">
-      Mock AnimatedSprite - id: {props.id}, state: {props.state}, width:{' '}
-      {props.width}
+      <Text>
+        Mock AnimatedSprite - id: {props.id}, state: {props.state}, width:{' '}
+        {props.width}
+      </Text>
     </View>
   ));
 });
