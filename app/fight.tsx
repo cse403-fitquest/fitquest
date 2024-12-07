@@ -44,8 +44,8 @@ const Combat = () => {
   const initialPlayer = {
     id: user?.id || '',
     name: user?.profileInfo.username || 'Player',
-    health: (user?.attributes.health || 6) * 20,
-    power: (user?.attributes.power || 15) * 2,
+    health: (user?.attributes.health || 6) * 25,
+    power: (user?.attributes.power || 15) * 3,
     speed: user?.attributes.speed || 15,
   };
 
