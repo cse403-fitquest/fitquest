@@ -17,6 +17,7 @@ import {
   updateDoc,
   writeBatch,
 } from 'firebase/firestore';
+import { getUserByUsername } from './user.helper';
 
 export const userConverter = {
   toFirestore: (data: User) => data,
@@ -308,6 +309,22 @@ export const updateUserProfile = async (
   updates: Partial<User>,
 ): Promise<APIResponse> => {
   try {
+    // Check if updates changes the username
+    if (updates.profileInfo?.username) {
+      // Check if the new username is already taken
+      const userByUsernameResponse = await getUserByUsername(
+        updates.profileInfo.username,
+      );
+
+      if (userByUsernameResponse.success) {
+        return {
+          success: false,
+          data: null,
+          error: 'Username is already taken.',
+        };
+      }
+    }
+
     const userRef = doc(FIREBASE_DB, 'users', userId);
     await updateDoc(userRef, updates);
     return {
