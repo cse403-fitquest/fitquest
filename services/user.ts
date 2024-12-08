@@ -4,6 +4,7 @@ import { APIResponse } from '@/types/general';
 import { User } from '@/types/user';
 import { CreateUserResponse, GetUserResponse } from '@/types/user';
 import { Workout } from '@/types/workout';
+import { fromTimestampToDate } from '@/utils/general';
 import { FirebaseError } from 'firebase/app';
 import {
   collection,
@@ -16,10 +17,6 @@ import {
   updateDoc,
   writeBatch,
 } from 'firebase/firestore';
-
-const fromTimestampToDate = (timestamp: Timestamp) => {
-  return new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
-};
 
 export const userConverter = {
   toFirestore: (data: User) => data,
