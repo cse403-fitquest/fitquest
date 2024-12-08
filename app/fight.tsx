@@ -60,6 +60,7 @@ const Combat = () => {
   const [isInitializing, setIsInitializing] = useState(true);
 
   const [monster, setMonster] = useState({
+    id: '',
     name: 'Unknown Monster',
     maxHealth: 100,
     health: 100,
@@ -73,7 +74,7 @@ const Combat = () => {
 
   useEffect(() => {
     const initializeMonster = async () => {
-      if (user) {
+      if (user && monster.id === '') {
         setIsInitializing(true);
         try {
           const playerLevel = calculatePlayerLevel(user.attributes);
@@ -90,6 +91,7 @@ const Combat = () => {
               const bossData = questData.boss;
 
               setMonster({
+                id: questData.id,
                 name: questData.questName.replace(/^hunt\s+/i, ''),
                 maxHealth: Math.floor(
                   bossData.health * 20 * difficultyMultiplier,
@@ -116,6 +118,7 @@ const Combat = () => {
 
               if (selectedMonster) {
                 setMonster({
+                  id: selectedMonster.monsterId,
                   name: selectedMonster.name,
                   maxHealth: Math.floor(
                     selectedMonster.attributes.health *
@@ -152,6 +155,7 @@ const Combat = () => {
 
     const setDefaultMonster = (multiplier = 1) => {
       setMonster({
+        id: '',
         name: 'Unknown Monster',
         maxHealth: Math.floor(100 * multiplier),
         health: Math.floor(100 * multiplier),
@@ -179,7 +183,7 @@ const Combat = () => {
   });
 
   useEffect(() => {
-    if (user) {
+    if (user && player.id === '') {
       const { health, power, speed } = getUserTotalAttributes(user, items);
       setPlayer({
         id: user.id,
@@ -261,7 +265,9 @@ const Combat = () => {
           }
 
           // Prioritize turn change based on charge
-          if (newPlayerCharge >= 100) {
+          if (newPlayerCharge >= 100 && newMonsterCharge >= 100) {
+            setCurrentTurnEntity('player');
+          } else if (newPlayerCharge >= 100) {
             setCurrentTurnEntity('player');
           } else if (newMonsterCharge >= 100) {
             setCurrentTurnEntity('monster');
@@ -413,8 +419,8 @@ const Combat = () => {
     new Promise((resolve) => setTimeout(resolve, ms));
 
   const getRandomDamage = (baseDamage: number) => {
-    const variation = 0.5; // 50% variation
-    const randomFactor = 1 + Math.random() * 2 * variation;
+    const variation = 0.2; // 20% variation
+    const randomFactor = 1 + (Math.random() * 2 - 1) * variation;
     return Math.floor(baseDamage * randomFactor);
   };
 
@@ -426,7 +432,9 @@ const Combat = () => {
   const handleAttack = async (isStrong = false) => {
     if (isAnimating) return;
 
-    const baseDamage = isStrong ? Math.floor(player.power * 1.5) : player.power;
+    const baseDamage = isStrong
+      ? Math.floor(player.power * 1.75)
+      : player.power;
     const damage = getRandomDamage(baseDamage);
 
     if (isStrong && strongAttackCooldown > 0) {
@@ -482,7 +490,7 @@ const Combat = () => {
     const potionId =
       type === 'small' ? 'health_potion_small' : 'health_potion_large';
     const healPercentage = type === 'small' ? 0.2 : 0.5; // 20% for small, 50% for large
-    const maxHealth = (user.attributes.health || 6) * 20; // Calculate max health directly
+    const maxHealth = player.maxHealth;
     const healAmount = Math.floor(maxHealth * healPercentage);
     const newHealth = Math.min(maxHealth, player.health + healAmount);
 
