@@ -4,25 +4,15 @@
 // import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { screen, render, fireEvent } from '@testing-library/react-native';
 import Shop from '@/app/(tabs)/shop'; // Update path if necessary
-import React from 'react';
 import { useUserStore } from '@/store/user';
-// import { useItemStore } from '@/store/item';
-// import { BASE_ITEM } from '@/constants/item';
-import { ItemType } from '@/types/item';
-import { purchaseItem } from '@/services/item';
-// import { purchaseItem } from '@/services/item';
-// import { BASE_USER } from '@/constants/user';
-// Mock stores and services
-// jest.mock('@/store/user', () => ({
-//   useUserStore: jest.fn(),
-// }));
-// jest.mock('@/store/item', () => ({
-//   useItemStore: jest.fn(),
-// }));
-// jest.mock('@/services/item', () => ({
-//   purchaseItem: jest.fn(),
-// }));
 
+import { Item, ItemType } from '@/types/item';
+import { purchaseItem } from '@/services/item';
+import {
+  filterItemsByTypeAndSortByCost,
+  getUserHealthPotionsCountFromItems,
+} from '@/utils/item';
+import { SpriteID } from '@/constants/sprite';
 let mockUser = { id: 'user-1', name: 'Test User', gold: 60 };
 
 const mockSetUser = jest.fn((updatedUser) => {
@@ -72,7 +62,15 @@ jest.mock('@/services/item', () => ({
   purchaseItem: jest.fn(),
 }));
 
-const mockItems = [
+// Mock getUserHealthPotionsCountFromItems
+jest.mock('@/utils/item', () => ({
+  getUserHealthPotionsCountFromItems: jest.fn(),
+  filterItemsByTypeAndSortByCost: jest.fn(),
+  itemTypeToString: jest.fn(),
+  isItemConsumable: jest.fn(),
+}));
+
+const mockItems: Item[] = [
   {
     id: 'item-1',
     name: 'Sword',
@@ -81,8 +79,9 @@ const mockItems = [
     power: 10,
     speed: 5,
     health: 0,
-    spriteID: 'sprite-1',
+    spriteID: SpriteID.T1_SWORD,
     description: 'A sharp sword.',
+    createdAt: new Date(),
   },
   {
     id: 'item-2',
@@ -92,9 +91,9 @@ const mockItems = [
     power: 0,
     speed: -2,
     health: 20,
-    spriteID: 'sprite-2',
+    spriteID: SpriteID.T1_SHIELD,
     description: 'A sturdy shield.',
-    testId: 'Shield',
+    createdAt: new Date(),
   },
   {
     id: 'item-3',
@@ -104,18 +103,30 @@ const mockItems = [
     power: 0,
     speed: 0,
     health: 5,
-    spriteID: 'sprite-3',
+    spriteID: SpriteID.HEALTH_POTION_SMALL,
     description: 'Restores a small amount of health.',
+    createdAt: new Date(),
   },
 ];
 
 describe('Shop Component', () => {
+  const mockGetUserHealthPotionsCountFromItems =
+    getUserHealthPotionsCountFromItems as jest.Mock;
+
+  const mockFilterItemsByTypeAndSortByCost =
+    filterItemsByTypeAndSortByCost as jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockGetUserHealthPotionsCountFromItems.mockReturnValue([0, 0]);
+    mockFilterItemsByTypeAndSortByCost.mockImplementation((items, type) =>
+      items.filter((item: Item) => item.type === type),
+    );
   });
   it('renders the Shop component with items', () => {
     render(<Shop />);
-    expect(true).toBe(true);
+
     // Check for Shop header and user gold
     expect(screen.getByText('Shop')).toBeTruthy();
     expect(screen.getByText(`60 Gold`)).toBeTruthy();
@@ -127,8 +138,11 @@ describe('Shop Component', () => {
     expect(screen.getByText('POTIONS')).toBeTruthy();
   });
 
-  it('opens and displays item details in a modal when an item is selected and goes back when canceled', () => {
+  it('opens and displays item details in a modal when an item is selected and goes back when canceled', async () => {
     render(<Shop />);
+
+    screen.getByText('50 Gold');
+
     fireEvent.press(screen.getByText('50 Gold'));
 
     expect(screen.getByText('Purchase Sword')).toBeTruthy();

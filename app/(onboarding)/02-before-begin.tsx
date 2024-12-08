@@ -2,22 +2,17 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FQButton from '@/components/FQButton';
 import { router } from 'expo-router';
-import { computeFitnessLevel } from '@/utils/onboarding';
 import { useOnboardingStore } from '@/store/onboarding';
 import { ONBOARDING_FITNESS_LEVEL_POINTS } from '@/constants/onboarding';
+import { FitnessLevel } from '@/types/onboarding';
 
 const BeforeBegin = () => {
-  const {
-    frequency,
-    length,
-    intensity,
-    experience,
-    setFitnessLevel,
-    setCurrentPoints,
-  } = useOnboardingStore();
+  const { setFitnessLevel, setCurrentPoints } = useOnboardingStore();
 
+  // Skip the fitness level calculation
   const handleGoToFitnessLevel = () => {
-    const fl = computeFitnessLevel(frequency, length, intensity, experience);
+    // If skipping, set the fitness level to beginner
+    const fl = FitnessLevel.BEGINNER;
     setFitnessLevel(fl);
 
     const pointsToAllocate = ONBOARDING_FITNESS_LEVEL_POINTS[fl];
