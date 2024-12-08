@@ -23,7 +23,7 @@ import {
   UserFriend,
   UserFriendInDB,
 } from '@/types/social';
-import { userConverter } from './user';
+import { userConverter } from './user.helper';
 import { getQuestByID } from './quest';
 import { getUserByUsername } from './user.helper';
 
