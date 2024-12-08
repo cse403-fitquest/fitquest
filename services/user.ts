@@ -322,7 +322,7 @@ export const updateUserProfile = async (
         return {
           success: false,
           data: null,
-          error: 'Username is already taken. Please choose another one.',
+          error: 'Username is already taken.',
         };
       }
     }

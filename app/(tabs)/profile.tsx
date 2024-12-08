@@ -558,11 +558,10 @@ const Profile = () => {
         privacySettings: updates.privacySettings ?? user.privacySettings,
       });
       Alert.alert('Profile updated successfully');
+      setIsSettingsVisible(false);
     } else {
       Alert.alert('Error updating profile', response.error || '');
     }
-
-    setIsSettingsVisible(false);
   };
 
   const closeSettingsModal = () => {

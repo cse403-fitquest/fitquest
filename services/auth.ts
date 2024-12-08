@@ -106,7 +106,7 @@ export const signUp: (
       return {
         data: null,
         success: false,
-        error: 'Username already exists.',
+        error: 'Username already taken.',
       };
     }
 
