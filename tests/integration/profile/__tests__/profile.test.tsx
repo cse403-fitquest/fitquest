@@ -8,6 +8,7 @@ jest.mock('firebase/auth', () => ({
   initializeAuth: jest.fn(),
   getReactNativePersistence: jest.fn(),
   signOut: jest.fn(),
+  currentUser: mockUser,
 }));
 
 ////////////////////////////////// EXPO MOCKS //////////////////////////////////
@@ -41,7 +42,7 @@ jest.mock('@/store/item', () => ({
 jest.mock('@/store/user', () => ({
   useUserStore: jest.fn(() => ({
     user: mockUser,
-    setUser: mockSetUser,
+    setUser: jest.fn(),
   })),
 }));
 
@@ -147,23 +148,16 @@ jest.mock('@/services/user', () => {
   };
 });
 
-////////////////////////////////// Components mocks ////////////////////////////////// '@/components/AnimatedSprite'
+////////////////////////////////// Components mocks //////////////////////////////////
 jest.mock('@/components/FQModal', () => 'FQModal');
 jest.mock('@/components/Sprite', () => 'Sprite');
-// jest.mock('@/components/AnimatedSprite', () => ({
-//   AnimatedSprite: { id: 'HERO_01', state: 'IDLE' },
-// }));
-jest.mock('@/components/AnimatedSprite', () => {
-  const React = require('react');
-  const { View, Text } = require('react-native');
-  return {
-    AnimatedSprite: jest.fn(() => (
-      <View testID="mock-animated-sprite">
-        <Text>Mock AnimatedSprite</Text>
-      </View>
-    )),
-  };
-});
+jest.mock('@/components/AnimatedSprite', () => ({
+  AnimatedSprite: { id: 'HERO_01', state: 'IDLE' },
+}));
+
+jest.mock('@/components/AnimatedSprite', () => ({
+  AnimatedSprite: jest.fn(),
+}));
 
 // Mock UUID with unique IDs
 jest.mock('uuid', () => {
@@ -173,7 +167,7 @@ jest.mock('uuid', () => {
   };
 });
 
-let mockUser = {
+const mockUser = {
   attributes: { power: 5, speed: 5, health: 10 },
   consumables: [],
   equipments: [],
@@ -199,22 +193,25 @@ let mockUser = {
   workoutHistory: [],
 };
 
-const mockSetUser = jest.fn((updatedUser) => {
-  mockUser = updatedUser;
-});
-
 import Profile from '@/app/(tabs)/profile';
 // import { ItemType } from '@/types/item';
-import { screen, render } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 // import { AnimatedSprite } from '@/components/AnimatedSprite.tsx'
 describe('tests for profile screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-  it('text rendering should work for main page', async () => {
-    await (async () => {
+  it('text rendering should work for main page a a', async () => {
+    await waitFor(() => {
       render(<Profile />);
-      expect(screen.getByText('Profile')).toBeTruthy();
+      expect(false).toBe(true);
     });
+    // expect(screen.getByText('Profile')).toBeTruthy();
+    // expect(screen.getByText('ATTRIBUTES')).toBeTruthy();
+    // expect(screen.getByText('ITEMS')).toBeTruthy();
+    // expect(screen.getByText('WORKOUTS PER WEEK')).toBeTruthy();
+    // expect(screen.getByText('Gold:')).toBeTruthy();
+    // expect(screen.getByText('Bomboclaat:')).toBeTruthy();
+    // expect(false).toBe(true);
   });
 });
