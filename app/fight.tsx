@@ -467,6 +467,7 @@ const Combat = () => {
   };
 
   const handlePotion = async (type: 'small' | 'large') => {
+    console.log(user, isAnimating, currentTurnEntity, potions[type]);
     if (
       !user?.id ||
       isAnimating ||
@@ -857,6 +858,7 @@ const Combat = () => {
             className={clsx('w-full p-2 bg-black/50 rounded max-h-[90px]', {
               hidden: combatLog.length === 0,
             })}
+            testID="combat-log"
           >
             {combatLog.slice(-3).map((log, index) => (
               <Text key={index} className="text-sm mb-1 text-white w-full">
@@ -883,6 +885,7 @@ const Combat = () => {
                 className={`bg-white/90 p-3 rounded shadow ${isAnimating || currentTurnEntity !== 'player' ? 'opacity-50' : ''}`}
                 onPress={() => handleAttack(false)}
                 disabled={isAnimating || currentTurnEntity !== 'player'}
+                testID="normal-attack-button"
               >
                 <Text className="text-center">Attack</Text>
               </Pressable>
@@ -900,6 +903,7 @@ const Combat = () => {
                   isAnimating ||
                   currentTurnEntity !== 'player'
                 }
+                testID="strong-attack-button"
               >
                 <Text className="text-center flex-row items-center justify-center">
                   Strong Attack
@@ -934,6 +938,7 @@ const Combat = () => {
                     ? 'opacity-50'
                     : ''
                 }`}
+                testID="small-potion-button"
                 onPress={() => handlePotion('small')}
                 disabled={
                   potions.small <= 0 ||
@@ -954,6 +959,7 @@ const Combat = () => {
                     ? 'opacity-50'
                     : ''
                 }`}
+                testID="large-potion-button"
                 onPress={() => handlePotion('large')}
                 disabled={
                   potions.large <= 0 ||
