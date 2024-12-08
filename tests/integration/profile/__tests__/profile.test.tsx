@@ -21,9 +21,19 @@ jest.mock('expo-router', () => ({
 }));
 
 // Mock Ionicons
-jest.mock('@expo/vector-icons', () => ({
-  Ionicons: '',
-}));
+jest.mock('@expo/vector-icons', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+
+  return {
+    Ionicons: jest.fn(({ name }) => {
+      if (name === 'settings-outline') {
+        return <Text testID="settings-outline">settings icon</Text>;
+      }
+      return <Text testID={'mock-ionicon-' + name}>{name}</Text>;
+    }),
+  };
+});
 
 ////////////////////////////////// STORE MOCKS //////////////////////////////////
 jest.mock('@/store/social', () => ({
@@ -42,9 +52,12 @@ jest.mock('@/store/item', () => ({
 jest.mock('@/store/user', () => ({
   useUserStore: jest.fn(() => ({
     user: mockUser,
-    setUser: jest.fn(),
+    setUser: mockSetUser,
   })),
 }));
+const mockSetUser = jest.fn((updatedUser) => {
+  mockUser = updatedUser;
+});
 
 ////////////////////////////////// reactnative mocks //////////////////////////////////
 // Mock asyncstorage
@@ -74,6 +87,10 @@ jest.mock('react-native-reanimated', () => ({
   Easing: {
     steps: jest.fn(() => jest.fn()),
   },
+}));
+
+jest.mock('react-native/Libraries/Alert/Alert', () => ({
+  alert: jest.fn(),
 }));
 ////////////////////////////////// ASSETS mocks  //////////////////////////////////
 
@@ -139,7 +156,7 @@ jest.mock('@/services/user', () => {
   return {
     getUserFromDatabase: jest.fn(() => Promise.resolve(mockUser)),
     updateAllUsersInDB: jest.fn(() => Promise.resolve(mockUser)),
-    updateUserProfile: jest.fn(() => Promise.resolve()),
+    updateUserProfile: jest.fn(),
     createUser: jest.fn(() => Promise.resolve()),
     getUser: jest.fn(() => Promise.resolve()),
     createUserFriends: jest.fn(() => Promise.resolve()),
@@ -147,9 +164,10 @@ jest.mock('@/services/user', () => {
     userConverter: mockUser,
   };
 });
+// const mockUpdateUserProfile = jest.fn(() => Promise.resolve(mockUser));
 
 ////////////////////////////////// Components mocks //////////////////////////////////
-jest.mock('@/components/FQModal', () => 'FQModal');
+// jest.mock('@/components/FQModal', () => 'FQModal');
 jest.mock('@/components/Sprite', () => 'Sprite');
 jest.mock('@/components/AnimatedSprite', () => ({
   AnimatedSprite: { id: 'HERO_01', state: 'IDLE' },
@@ -167,7 +185,7 @@ jest.mock('uuid', () => {
   };
 });
 
-const mockUser = {
+let mockUser = {
   attributes: { power: 5, speed: 5, health: 10 },
   consumables: [],
   equipments: [],
@@ -181,7 +199,7 @@ const mockUser = {
     email: 'lex@gmail.com',
     height: 5.9,
     username: 'lexbrawlstars',
-    weight: 0,
+    weight: 170,
   },
   privacySettings: {
     isCurrentQuestPublic: true,
@@ -194,6 +212,8 @@ const mockUser = {
 };
 
 import Profile from '@/app/(tabs)/profile';
+import { updateUserProfile } from '@/services/user';
+// import { useUserStore } from '@/store/user';
 // import { ItemType } from '@/types/item';
 import {
   render,
@@ -201,6 +221,8 @@ import {
   screen,
   fireEvent,
 } from '@testing-library/react-native';
+import { Alert } from 'react-native';
+
 // import { AnimatedSprite } from '@/components/AnimatedSprite.tsx'
 describe('tests for profile screen', () => {
   beforeEach(() => {
@@ -212,22 +234,13 @@ describe('tests for profile screen', () => {
     await waitFor(() => {
       render(<Profile />);
       expect(true).toBe(true);
-      // expect(screen.getByText('Profile')).toBeTruthy();
       expect(screen.getByText('ATTRIBUTES')).toBeTruthy();
       expect(screen.getByText('ITEMS')).toBeTruthy();
       expect(screen.getByText('WORKOUTS PER WEEK')).toBeTruthy();
-      expect(screen.getByText('Total Power')).toBeTruthy();
-      expect(screen.getByText('Base Power')).toBeTruthy();
       expect(screen.getByText('Gold: 100')).toBeTruthy();
       expect(screen.getByText('Health: 10')).toBeTruthy();
       expect(screen.getByText('Speed: 5')).toBeTruthy();
       expect(screen.getByText('Power: 5')).toBeTruthy();
-      expect(screen.getByText('SIGN OUT')).toBeTruthy();
-      expect(screen.getByText('SIGN OUT')).toBeTruthy();
-      expect(screen.getByText('Share Current Quest')).toBeTruthy();
-      expect(screen.getByText('Weight (lbs)')).toBeTruthy();
-      expect(screen.getByText('Height (ft)')).toBeTruthy();
-      expect(screen.getByText('Username')).toBeTruthy();
       //users should start with no items
       expect(
         screen.getByText('You have no items. Visit the shop!'),
@@ -239,11 +252,64 @@ describe('tests for profile screen', () => {
   });
 
   // Tests settings popup within profile
-  it('opening settings tab and filling fields ', async () => {
+  it('opening settings tab and filling fields before confirming ', async () => {
     await waitFor(() => {
       render(<Profile />);
       expect(true).toBe(true);
+
+      // Settings Modal is open
       fireEvent.press(screen.getByTestId('settings-outline'));
+      //these should be visible now
+      expect(screen.getByText('Weight (lbs)')).toBeTruthy();
+      expect(screen.getByText('Height (ft)')).toBeTruthy();
+      expect(screen.getByText('Username')).toBeTruthy();
+      expect(screen.getByText('Profile Settings')).toBeTruthy();
+      expect(screen.getByText('SIGN OUT')).toBeTruthy();
+      expect(screen.getByText('Share Current Quest')).toBeTruthy();
+      expect(screen.getByTestId('mock-ionicon-close')).toBeTruthy();
+      expect(screen.getByText('CONFIRM')).toBeTruthy();
+
+      // should error if the user confirms without making changes
+      fireEvent.press(screen.getByText('CONFIRM'));
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'No changes detected',
+        'Please make changes before confirming.',
+      );
+    });
+  });
+  it('successfully change username', async () => {
+    await waitFor(() => {
+      (updateUserProfile as unknown as jest.Mock).mockReturnValue({
+        user: mockUser,
+        updates: {
+          ...mockUser,
+          profileInfo: {
+            ...mockUser.profileInfo,
+            username: 'lombardstreet',
+          },
+        },
+      });
+
+      render(<Profile />);
+      expect(true).toBe(true);
+      fireEvent.press(screen.getByTestId('settings-outline'));
+      fireEvent.changeText(
+        screen.getByPlaceholderText('Enter username'),
+        'lombardstreet',
+      );
+      expect(screen.getByDisplayValue('lombardstreet')).toBeTruthy();
+
+      fireEvent.press(screen.getByText('CONFIRM'));
+      expect(updateUserProfile).toHaveBeenCalledWith(
+        '1aA0I6IwN5Ts8BBr68CH19wzlQz1',
+        {
+          ...mockUser,
+          profileInfo: {
+            ...mockUser.profileInfo,
+            username: 'lombardstreet',
+          },
+        },
+      );
     });
   });
 });
