@@ -26,6 +26,7 @@ import { getMonsterById } from '@/services/monster';
 import clsx from 'clsx';
 import { getUserTotalAttributes } from '@/utils/user';
 import { useItemStore } from '@/store/item';
+import FQButton from '@/components/FQButton';
 
 const calculatePlayerLevel = (attributes: {
   power: number;
@@ -132,7 +133,6 @@ const Combat = () => {
                   speed: Math.floor(selectedMonster.attributes.speed),
                   spriteId: selectedMonster.spriteId as AnimatedSpriteID,
                 });
-                setIsMonsterInitialized(true);
               } else {
                 setDefaultMonster(difficultyMultiplier);
               }
@@ -145,6 +145,7 @@ const Combat = () => {
           setDefaultMonster();
         } finally {
           setIsInitializing(false);
+          setIsMonsterInitialized(true);
         }
       }
     };
@@ -626,8 +627,8 @@ const Combat = () => {
         <View className="h-24 rounded-xl p-4">
           <View className="h-full relative flex-row items-center">
             <View className="absolute left-4 right-4 top-2/3 h-[5px] bg-yellow border border-black">
-              <View className="absolute top-[-3px] left-0 w-[6px] h-[12px] bg-yellow rounded-full" />
-              <View className="absolute top-[-3px] right-0 w-[6px] h-[12px] bg-yellow rounded-full" />
+              <View className="absolute top-[-4px] -left-1 w-[6px] h-[12px] bg-yellow rounded-full border border-black" />
+              <View className="absolute top-[-4px] -right-1 w-[6px] h-[12px] bg-yellow rounded-full border border-black" />
             </View>
 
             <Animated.View
@@ -653,7 +654,8 @@ const Combat = () => {
                 width={48}
                 height={48}
                 state={
-                  currentTurnEntity === 'player'
+                  currentTurnEntity === 'player' ||
+                  currentTurnEntity === 'monster'
                     ? SpriteState.IDLE
                     : SpriteState.MOVE
                 }
@@ -683,7 +685,8 @@ const Combat = () => {
                 width={48}
                 height={48}
                 state={
-                  currentTurnEntity === 'monster'
+                  currentTurnEntity === 'monster' ||
+                  currentTurnEntity === 'player'
                     ? SpriteState.IDLE
                     : SpriteState.MOVE
                 }
@@ -793,7 +796,7 @@ const Combat = () => {
       >
         {renderTurnOrder()}
 
-        <View className="flex-1 justify-center items-center h-full">
+        <View className="flex-1 justify-end items-center h-full">
           <View className="w-full rounded-xl">
             <View className="flex-row justify-between items-start mb-[10px]">
               <View className="w-1/2 pr-4 bg-black/40 p-2 rounded">
@@ -813,14 +816,30 @@ const Combat = () => {
                 </Text>
               </View>
 
-              <View className="w-1/2 items-center">
-                <AnimatedSprite
-                  id={monster.spriteId}
-                  width={spriteSize}
-                  height={spriteSize}
-                  state={monsterSpriteState}
-                  direction="left"
-                />
+              <View
+                className="relative w-1/2 items-center"
+                style={{
+                  height: spriteSize,
+                }}
+              >
+                {isBoss === 'true' ? (
+                  <View className="absolute bottom-0">
+                    <AnimatedSprite
+                      id={monster.spriteId}
+                      width={spriteSize * 2}
+                      height={spriteSize * 2}
+                      state={monsterSpriteState}
+                      direction="left"
+                    />
+                  </View>
+                ) : (
+                  <AnimatedSprite
+                    id={monster.spriteId}
+                    width={spriteSize}
+                    height={spriteSize}
+                    state={monsterSpriteState}
+                  />
+                )}
               </View>
             </View>
 
@@ -1093,14 +1112,11 @@ const Combat = () => {
                 </>
               )}
 
-              <Pressable
-                className="w-full bg-blue py-4 rounded-xl shadow-lg active:bg-blue"
-                onPress={handleContinue}
-              >
+              <FQButton onPress={handleContinue} className="w-full">
                 <Text className="text-white text-xl font-bold tracking-wider text-center">
                   CONTINUE
                 </Text>
-              </Pressable>
+              </FQButton>
             </View>
           </View>
         </Modal>
