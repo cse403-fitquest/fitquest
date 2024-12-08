@@ -23,8 +23,9 @@ import {
   UserFriend,
   UserFriendInDB,
 } from '@/types/social';
-import { getUserByUsername, userConverter } from './user';
+import { userConverter } from './user';
 import { getQuestByID } from './quest';
+import { getUserByUsername } from './user.helper';
 
 export const userFriendConverter = {
   toFirestore: (data: UserFriendInDB) => data,

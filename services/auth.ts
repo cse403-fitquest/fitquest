@@ -11,8 +11,9 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 
-import { createUser, getUserByUsername } from './user';
+import { createUser } from './user';
 import { createUserFriends } from './social';
+import { getUserByUsername } from './user.helper';
 
 export enum FirebaseAuthErrorCodes {
   INVALID_CREDENTIAL = 'auth/invalid-credential',

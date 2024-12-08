@@ -1,7 +1,6 @@
 import { BASE_USER } from '@/constants/user';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
-import { GetUserByUsernameResponse } from '@/types/social';
 import { User } from '@/types/user';
 import { CreateUserResponse, GetUserResponse } from '@/types/user';
 import { Workout } from '@/types/workout';
@@ -12,14 +11,13 @@ import {
   doc,
   getDoc,
   getDocs,
-  query,
   QueryDocumentSnapshot,
   setDoc,
   Timestamp,
   updateDoc,
-  where,
   writeBatch,
 } from 'firebase/firestore';
+import { getUserByUsername } from './user.helper';
 
 export const userConverter = {
   toFirestore: (data: User) => data,
@@ -342,26 +340,4 @@ export const updateUserProfile = async (
       error: 'Failed to update profile. Please try again.',
     };
   }
-};
-
-export const getUserByUsername: (
-  username: string,
-) => Promise<GetUserByUsernameResponse> = async (username) => {
-  const userRef = collection(FIREBASE_DB, 'users').withConverter(userConverter);
-  const q = query(userRef, where('profileInfo.username', '==', username));
-  const querySnapshot = await getDocs(q);
-
-  if (querySnapshot.empty) {
-    return {
-      success: false,
-      error: 'User not found.',
-      data: null,
-    };
-  }
-
-  return {
-    success: true,
-    error: null,
-    data: querySnapshot.docs[0].data(),
-  };
 };
