@@ -419,6 +419,50 @@ This app was built with the following technologies:
 
 </div>
 
+<!-- Profile -->
+
+<div align="center">
+
+  <img src="./readme-images/profile-display.png" width="150"> &nbsp;
+  <img src="./readme-images/profile-allocate-points.png" width="150"> &nbsp;
+  <img src="./readme-images/profile-equip-item.png" width="150"> &nbsp;
+  <img src="./readme-images/profile-items-wpw.png" width="150"> &nbsp;
+
+</div>
+
+<!-- Workout -->
+
+<div align="center">
+
+  <img src="./readme-images/workout-display.png" width="150"> &nbsp;
+  <img src="./readme-images/workout-empty-workout.png" width="150"> &nbsp;
+  <img src="./readme-images/workout-add-exercises.png" width="150"> &nbsp;
+  <img src="./readme-images/workout-filled-workout.png" width="150"> &nbsp;
+  <img src="./readme-images/workout-level-up.png" width="150"> &nbsp;
+
+</div>
+
+<!-- Quest -->
+
+<div align="center">
+
+  <img src="./readme-images/quest-display.png" width="150"> &nbsp;
+  <img src="./readme-images/quest-active-quest.png" width="150"> &nbsp;
+
+</div>
+
+
+<!-- Fight -->
+
+<div align="center">
+
+  <img src="./readme-images/fight-display.png" width="150"> &nbsp;
+  <img src="./readme-images/fight-midfight.png" width="150"> &nbsp;
+  <img src="./readme-images/fight-victory.png" width="150"> &nbsp;
+  <img src="./readme-images/fight-defeated.png" width="150"> &nbsp;
+
+</div>
+
 <!-- Shop -->
 
 <div align="center">
