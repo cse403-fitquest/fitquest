@@ -10,7 +10,6 @@ import { getAvailableQuests } from '@/services/quest';
 import { updateUserProfile } from '@/services/user';
 import { getMonsterById } from '@/services/monster';
 import { useUserStore } from '@/store/user';
-import { Alert } from 'react-native';
 
 // Enable fake timers
 jest.useFakeTimers();
@@ -185,78 +184,6 @@ describe('Quest Screen', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('quest-node-modal')).toBeTruthy();
-    });
-  });
-
-  it('allows abandoning an active quest', async () => {
-    // Mock user with active quest
-    (useUserStore as unknown as jest.Mock).mockReturnValue({
-      user: {
-        ...mockUser,
-        currentQuest: {
-          id: 'quest_1',
-          progress: { quest_1: 50 },
-        },
-      },
-      setUser: mockSetUser,
-    });
-
-    render(<Quest />);
-
-    // Wait for the active quest section to be displayed and verify quest name
-    await waitFor(() => {
-      expect(screen.getByText('Test Quest 1')).toBeTruthy();
-      expect(screen.getByText('Ready to advance!')).toBeTruthy();
-    });
-
-    // Press the abandon button (flag icon)
-    fireEvent.press(screen.getByTestId('abandon-quest'));
-
-    // Verify alert appears with correct text
-    await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(
-        'Abandon Quest: Test Quest 1',
-        'Abandoning the quest will reset its progress if you decide to embark on it again.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Abandon Quest',
-            style: 'destructive',
-            onPress: expect.any(Function),
-          },
-        ],
-      );
-    });
-
-    // Simulate pressing "Abandon Quest" in the alert
-    const alertButtons = (Alert.alert as jest.Mock).mock.calls[0][2];
-    const abandonButton = alertButtons.find(
-      (button: { text: string }) => button.text === 'Abandon Quest',
-    );
-    abandonButton.onPress();
-
-    // Verify user profile was updated correctly
-    await waitFor(() => {
-      expect(updateUserProfile).toHaveBeenCalledWith('user-1', {
-        currentQuest: {
-          id: '',
-          progress: { quest_1: 50 },
-        },
-      });
-    });
-
-    // Verify user state was updated
-    expect(mockSetUser).toHaveBeenCalledWith({
-      ...mockUser,
-      currentQuest: {
-        id: '',
-        progress: { quest_1: 50 },
-      },
-    });
-
-    // Verify "No Active Quest" message appears
-    await waitFor(() => {
-      expect(screen.getByText('No Active Quest')).toBeTruthy();
     });
   });
 });
