@@ -337,15 +337,17 @@ const Combat = () => {
     new Promise((resolve) => setTimeout(resolve, ms));
 
   const getRandomDamage = (baseDamage: number) => {
-    const variation = 0.5; // 50% variation
-    const randomFactor = 1 + Math.random() * 2 * variation;
+    const variation = 0.2; // 20% variation
+    const randomFactor = 1 + (Math.random() * 2 - 1) * variation;
     return Math.floor(baseDamage * randomFactor);
   };
 
   const handleAttack = async (isStrong = false) => {
     if (isAnimating || !turnQueue[currentTurnIndex]?.isPlayer) return;
 
-    const baseDamage = isStrong ? Math.floor(player.power * 1.5) : player.power;
+    const baseDamage = isStrong
+      ? Math.floor(player.power * 1.75)
+      : player.power;
     const damage = getRandomDamage(baseDamage);
 
     if (isStrong && strongAttackCooldown > 0) {
