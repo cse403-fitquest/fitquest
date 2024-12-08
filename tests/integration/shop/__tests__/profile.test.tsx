@@ -1,7 +1,4 @@
 // __tests__/shop.test.ts
-import Profile from '@/app/(tabs)/profile';
-// import { ItemType } from '@/types/item';
-import { screen, render } from '@testing-library/react-native';
 
 ////////////////////////////////// FIREBASE MOCKS //////////////////////////////////
 jest.mock('firebase/firestore');
@@ -11,7 +8,6 @@ jest.mock('firebase/auth', () => ({
   initializeAuth: jest.fn(),
   getReactNativePersistence: jest.fn(),
   signOut: jest.fn(),
-  currentUser: mockUser,
 }));
 
 ////////////////////////////////// EXPO MOCKS //////////////////////////////////
@@ -151,23 +147,24 @@ jest.mock('@/services/user', () => {
   };
 });
 
-////////////////////////////////// Components mocks //////////////////////////////////
+////////////////////////////////// Components mocks ////////////////////////////////// '@/components/AnimatedSprite'
 jest.mock('@/components/FQModal', () => 'FQModal');
 jest.mock('@/components/Sprite', () => 'Sprite');
-// jest.mock('@/components/AnimatedSprite', () => 'AnimatedSprite');
+// jest.mock('@/components/AnimatedSprite', () => ({
+//   AnimatedSprite: { id: 'HERO_01', state: 'IDLE' },
+// }));
 jest.mock('@/components/AnimatedSprite', () => {
   const React = require('react');
   const { View, Text } = require('react-native');
-
-  return jest.fn((props) => (
-    <View testID="mock-animated-sprite">
-      <Text>
-        Mock AnimatedSprite - id: {props.id}, state: {props.state}, width:{' '}
-        {props.width}
-      </Text>
-    </View>
-  ));
+  return {
+    AnimatedSprite: jest.fn(() => (
+      <View testID="mock-animated-sprite">
+        <Text>Mock AnimatedSprite</Text>
+      </View>
+    )),
+  };
 });
+
 // Mock UUID with unique IDs
 jest.mock('uuid', () => {
   let uuidCounter = 0;
@@ -206,13 +203,18 @@ const mockSetUser = jest.fn((updatedUser) => {
   mockUser = updatedUser;
 });
 
+import Profile from '@/app/(tabs)/profile';
+// import { ItemType } from '@/types/item';
+import { screen, render } from '@testing-library/react-native';
+// import { AnimatedSprite } from '@/components/AnimatedSprite.tsx'
 describe('tests for profile screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-  it('text rendering should work for main page', () => {
-    render(<Profile />);
-
-    expect(screen.getByText('Profile')).toBeTruthy();
+  it('text rendering should work for main page', async () => {
+    await (async () => {
+      render(<Profile />);
+      expect(screen.getByText('Profile')).toBeTruthy();
+    });
   });
 });
