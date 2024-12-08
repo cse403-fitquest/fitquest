@@ -1,7 +1,7 @@
 import { doc, getDoc, updateDoc, collection } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
-import { userConverter } from './user';
+import { userConverter } from './user.helper';
 import { addToUserWorkouts, updateUserAfterExpGain } from '@/utils/workout';
 import { ExerciseDisplay, Workout } from '@/types/workout';
 import { User } from '@/types/user';

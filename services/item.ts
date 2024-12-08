@@ -12,7 +12,7 @@ import {
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { Item } from '@/types/item';
 import { APIResponse } from '@/types/general';
-import { userConverter } from './user';
+import { userConverter } from './user.helper';
 import { GetItemsResponse } from '@/types/item';
 
 // Firestore item converter

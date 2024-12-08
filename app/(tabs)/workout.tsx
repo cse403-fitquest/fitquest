@@ -159,6 +159,32 @@ const WorkoutScreen = () => {
     router.push('/workout-template' as Href);
   };
 
+  const onWorkoutHistoryTemplateClick = (workoutTemplate: Workout) => {
+    console.log('Workout history template clicked');
+
+    const workoutExercises: ExerciseDisplay[] = workoutTemplate.exercises.map(
+      (exercise) => ({
+        ...exercise,
+        sets: exercise.sets.map((set) => ({
+          ...set,
+          completed: false,
+        })) as ExerciseSetDisplay[],
+      }),
+    );
+
+    setWorkoutDisplay(() => ({
+      id: workoutTemplate.id,
+      name: workoutTemplate.title,
+      exercises: workoutExercises,
+      startedAt: new Date(),
+    }));
+
+    router.push({
+      pathname: '/workout-template',
+      params: { onlyDisplay: 'true' },
+    });
+  };
+
   const onNewWorkoutClick = () => {
     console.log('New workout clicked');
 
@@ -301,6 +327,30 @@ const WorkoutScreen = () => {
                     <TouchableOpacity
                       onPress={() =>
                         onSuggestedWorkoutTemplateClick(workoutTemplate)
+                      }
+                    >
+                      <Template workoutTemplate={workoutTemplate} />
+                    </TouchableOpacity>
+                  )}
+                  ItemSeparatorComponent={() => <View className="h-5"></View>}
+                  nestedScrollEnabled={true}
+                />
+              </View>
+            </View>
+
+            {/* Workout History Section */}
+            <View className="">
+              <View className="w-full">
+                <Text className="text-xl text-grayDark font-bold mb-4">
+                  WORKOUT HISTORY
+                </Text>
+                <FlatList
+                  data={user.workoutHistory}
+                  keyExtractor={(workout) => workout.id}
+                  renderItem={({ item: workoutTemplate }) => (
+                    <TouchableOpacity
+                      onPress={() =>
+                        onWorkoutHistoryTemplateClick(workoutTemplate)
                       }
                     >
                       <Template workoutTemplate={workoutTemplate} />

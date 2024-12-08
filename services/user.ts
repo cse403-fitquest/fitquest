@@ -3,50 +3,17 @@ import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
 import { User } from '@/types/user';
 import { CreateUserResponse, GetUserResponse } from '@/types/user';
-import { Workout } from '@/types/workout';
-import { fromTimestampToDate } from '@/utils/general';
 import { FirebaseError } from 'firebase/app';
 import {
   collection,
   doc,
   getDoc,
   getDocs,
-  QueryDocumentSnapshot,
   setDoc,
-  Timestamp,
   updateDoc,
   writeBatch,
 } from 'firebase/firestore';
-import { getUserByUsername } from './user.helper';
-
-export const userConverter = {
-  toFirestore: (data: User) => data,
-  fromFirestore: (snap: QueryDocumentSnapshot) => {
-    // Convert workoutHistory startedAt to Date object
-    const data = snap.data() as Omit<User, 'createdAt' | 'workoutHistory'> & {
-      createdAt: Timestamp;
-      workoutHistory: Array<
-        Omit<Workout, 'startedAt'> & {
-          startedAt: Timestamp;
-        }
-      >;
-    };
-
-    const newWorkoutHistory = data.workoutHistory.map((workout) => {
-      return {
-        ...workout,
-        startedAt: fromTimestampToDate(workout.startedAt),
-      };
-    });
-
-    return {
-      ...data,
-      createdAt: fromTimestampToDate(data.createdAt),
-      workoutHistory: newWorkoutHistory,
-    };
-  },
-};
-
+import { getUserByUsername, userConverter } from './user.helper';
 /**
  * Fill missing user fields in Firestore based on changes to the User type
  */
