@@ -1,4 +1,5 @@
 import { Item, ItemType } from '@/types/item';
+import { User } from '@/types/user';
 
 const filterItemsByType: (items: Item[], type: ItemType) => Item[] = (
   items,
@@ -27,11 +28,27 @@ export const isItemConsumable: (item: Item) => boolean = (item) => {
 };
 
 export const getUserHealthPotionsCountFromItems: (
-  items: Item[],
-) => [number, number, number] = (items) => {
-  const smallHealthPotions = filterItemsByType(items, ItemType.POTION_SMALL);
-  const mediumHealthPotions = filterItemsByType(items, ItemType.POTION_MEDIUM);
-  const largeHealthPotions = filterItemsByType(items, ItemType.POTION_LARGE);
+  user: User,
+  allItems: Item[],
+) => [number, number, number] = (user, allItems) => {
+  const userConsumables: (Item | null)[] = user.consumables.map((id) => {
+    const consumable = allItems.find((item) => item.id === id);
+    if (!consumable) {
+      console.error('User consumable not found:', id);
+      return null;
+    }
+    return consumable;
+  });
+
+  const smallHealthPotions = userConsumables.filter(
+    (item) => item?.type === ItemType.POTION_SMALL,
+  );
+  const mediumHealthPotions = userConsumables.filter(
+    (item) => item?.type === ItemType.POTION_MEDIUM,
+  );
+  const largeHealthPotions = userConsumables.filter(
+    (item) => item?.type === ItemType.POTION_LARGE,
+  );
 
   return [
     smallHealthPotions.length,

@@ -38,7 +38,7 @@ const OnboardingFrequency = () => {
             radioButtons={[
               {
                 id: '1',
-                label: 'I am not currently exercising',
+                label: '0-1 times per week',
                 value: '0',
               },
               {
