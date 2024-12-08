@@ -208,7 +208,7 @@ describe('tests for profile screen', () => {
   });
 
   // Tests profile default screen for text content
-  it('text rendering should work for main page a a', async () => {
+  it('text rendering should work for main page', async () => {
     await waitFor(() => {
       render(<Profile />);
       expect(true).toBe(true);
