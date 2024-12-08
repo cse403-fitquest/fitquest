@@ -97,5 +97,5 @@ export enum AnimatedSpriteID {
   // Consumables
   HEALTH_POTION_SMALL = 'health_potion_small',
   HEALTH_POTION_LARGE = 'health_potion_large',
-  HERO = "HERO",
+  HERO = 'HERO',
 }
