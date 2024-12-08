@@ -195,23 +195,55 @@ const mockUser = {
 
 import Profile from '@/app/(tabs)/profile';
 // import { ItemType } from '@/types/item';
-import { render, waitFor } from '@testing-library/react-native';
+import {
+  render,
+  waitFor,
+  screen,
+  fireEvent,
+} from '@testing-library/react-native';
 // import { AnimatedSprite } from '@/components/AnimatedSprite.tsx'
 describe('tests for profile screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+
+  // Tests profile default screen for text content
   it('text rendering should work for main page a a', async () => {
     await waitFor(() => {
       render(<Profile />);
-      expect(false).toBe(true);
+      expect(true).toBe(true);
+      // expect(screen.getByText('Profile')).toBeTruthy();
+      expect(screen.getByText('ATTRIBUTES')).toBeTruthy();
+      expect(screen.getByText('ITEMS')).toBeTruthy();
+      expect(screen.getByText('WORKOUTS PER WEEK')).toBeTruthy();
+      expect(screen.getByText('Total Power')).toBeTruthy();
+      expect(screen.getByText('Base Power')).toBeTruthy();
+      expect(screen.getByText('Gold: 100')).toBeTruthy();
+      expect(screen.getByText('Health: 10')).toBeTruthy();
+      expect(screen.getByText('Speed: 5')).toBeTruthy();
+      expect(screen.getByText('Power: 5')).toBeTruthy();
+      expect(screen.getByText('SIGN OUT')).toBeTruthy();
+      expect(screen.getByText('SIGN OUT')).toBeTruthy();
+      expect(screen.getByText('Share Current Quest')).toBeTruthy();
+      expect(screen.getByText('Weight (lbs)')).toBeTruthy();
+      expect(screen.getByText('Height (ft)')).toBeTruthy();
+      expect(screen.getByText('Username')).toBeTruthy();
+      //users should start with no items
+      expect(
+        screen.getByText('You have no items. Visit the shop!'),
+      ).toBeTruthy();
+      expect(screen.getByText('100 EXP TILL LEVEL UP')).toBeTruthy();
+      expect(screen.getByText('Welcome,')).toBeTruthy();
+      expect(screen.getByText('lexbrawlstars')).toBeTruthy();
     });
-    // expect(screen.getByText('Profile')).toBeTruthy();
-    // expect(screen.getByText('ATTRIBUTES')).toBeTruthy();
-    // expect(screen.getByText('ITEMS')).toBeTruthy();
-    // expect(screen.getByText('WORKOUTS PER WEEK')).toBeTruthy();
-    // expect(screen.getByText('Gold:')).toBeTruthy();
-    // expect(screen.getByText('Bomboclaat:')).toBeTruthy();
-    // expect(false).toBe(true);
+  });
+
+  // Tests settings popup within profile
+  it('opening settings tab and filling fields ', async () => {
+    await waitFor(() => {
+      render(<Profile />);
+      expect(true).toBe(true);
+      fireEvent.press(screen.getByTestId('settings-outline'));
+    });
   });
 });
