@@ -11,7 +11,7 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 
-import { createUser } from './user';
+import { createUser, getUserByUsername } from './user';
 import { createUserFriends } from './social';
 
 export enum FirebaseAuthErrorCodes {
@@ -99,6 +99,17 @@ export const signUp: (
   password: string,
 ) => {
   try {
+    // Check if username is already taken
+    const getUserByUsernameResponse = await getUserByUsername(username);
+
+    if (getUserByUsernameResponse.success) {
+      return {
+        data: null,
+        success: false,
+        error: 'Username already exists.',
+      };
+    }
+
     // Sign up logic
     const userCredential = await createUserWithEmailAndPassword(
       FIREBASE_AUTH,

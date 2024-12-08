@@ -18,13 +18,12 @@ import {
   Friend,
   FriendRequest,
   GetUserByEmailResponse,
-  GetUserByUsernameResponse,
   GetUserFriendsResponse,
   SendFriendRequestResponse,
   UserFriend,
   UserFriendInDB,
 } from '@/types/social';
-import { userConverter } from './user';
+import { getUserByUsername, userConverter } from './user';
 import { getQuestByID } from './quest';
 
 export const userFriendConverter = {
@@ -1003,28 +1002,6 @@ export const getUserByEmail: (
 ) => Promise<GetUserByEmailResponse> = async (email) => {
   const userRef = collection(FIREBASE_DB, 'users').withConverter(userConverter);
   const q = query(userRef, where('profileInfo.email', '==', email));
-  const querySnapshot = await getDocs(q);
-
-  if (querySnapshot.empty) {
-    return {
-      success: false,
-      error: 'User not found.',
-      data: null,
-    };
-  }
-
-  return {
-    success: true,
-    error: null,
-    data: querySnapshot.docs[0].data(),
-  };
-};
-
-export const getUserByUsername: (
-  username: string,
-) => Promise<GetUserByUsernameResponse> = async (username) => {
-  const userRef = collection(FIREBASE_DB, 'users').withConverter(userConverter);
-  const q = query(userRef, where('profileInfo.username', '==', username));
   const querySnapshot = await getDocs(q);
 
   if (querySnapshot.empty) {

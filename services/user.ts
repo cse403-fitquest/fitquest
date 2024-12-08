@@ -1,6 +1,7 @@
 import { BASE_USER } from '@/constants/user';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
+import { GetUserByUsernameResponse } from '@/types/social';
 import { User } from '@/types/user';
 import { CreateUserResponse, GetUserResponse } from '@/types/user';
 import { Workout } from '@/types/workout';
@@ -11,10 +12,12 @@ import {
   doc,
   getDoc,
   getDocs,
+  query,
   QueryDocumentSnapshot,
   setDoc,
   Timestamp,
   updateDoc,
+  where,
   writeBatch,
 } from 'firebase/firestore';
 
@@ -308,6 +311,22 @@ export const updateUserProfile = async (
   updates: Partial<User>,
 ): Promise<APIResponse> => {
   try {
+    // Check if updates changes the username
+    if (updates.profileInfo?.username) {
+      // Check if the new username is already taken
+      const userByUsernameResponse = await getUserByUsername(
+        updates.profileInfo.username,
+      );
+
+      if (userByUsernameResponse.success) {
+        return {
+          success: false,
+          data: null,
+          error: 'Username is already taken. Please choose another one.',
+        };
+      }
+    }
+
     const userRef = doc(FIREBASE_DB, 'users', userId);
     await updateDoc(userRef, updates);
     return {
@@ -323,4 +342,26 @@ export const updateUserProfile = async (
       error: 'Failed to update profile. Please try again.',
     };
   }
+};
+
+export const getUserByUsername: (
+  username: string,
+) => Promise<GetUserByUsernameResponse> = async (username) => {
+  const userRef = collection(FIREBASE_DB, 'users').withConverter(userConverter);
+  const q = query(userRef, where('profileInfo.username', '==', username));
+  const querySnapshot = await getDocs(q);
+
+  if (querySnapshot.empty) {
+    return {
+      success: false,
+      error: 'User not found.',
+      data: null,
+    };
+  }
+
+  return {
+    success: true,
+    error: null,
+    data: querySnapshot.docs[0].data(),
+  };
 };
