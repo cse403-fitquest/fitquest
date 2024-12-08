@@ -51,6 +51,8 @@ const Combat = () => {
   const { isBoss, uniqueKey, questMonsters } = params;
   const { user, setUser } = useUserStore();
 
+  console.log('isBoss', isBoss);
+
   const initialPlayer = {
     id: user?.id || '',
     name: user?.profileInfo.username || 'Player',
@@ -81,7 +83,15 @@ const Combat = () => {
         );
         const difficultyMultiplier = calculateDifficultyMultiplier(playerLevel);
 
-        if (isBoss === 'true') {
+        console.log('bossThreshold', params.bossThreshold);
+        const currentProgress = Number(nextProgress);
+        console.log('currentProgress', currentProgress);
+        const isBossFight =
+          currentProgress > 0 &&
+          currentProgress % Number(params.bossThreshold) === 0;
+
+        console.log('isBossFight', isBossFight);
+        if (isBossFight) {
           const formattedQuestId = `quest_${questId}`;
           const questDocRef = doc(FIREBASE_DB, 'quests', formattedQuestId);
           const questDoc = await getDoc(questDocRef);

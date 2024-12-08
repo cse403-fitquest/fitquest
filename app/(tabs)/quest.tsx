@@ -305,7 +305,8 @@ const Quest = () => {
       );
 
       if (nextMilestone) {
-        const isBoss = newProgress === activeQuest.bossThreshold;
+        const isBoss = newProgress % activeQuest.bossThreshold === 0;
+        console.log('isBoss', isBoss);
         const uniqueKey = Date.now();
 
         try {
@@ -328,6 +329,7 @@ const Quest = () => {
                 uniqueKey,
                 questMonsters: activeQuest.monsters,
                 nextProgress: newProgress.toString(),
+                bossThreshold: activeQuest.bossThreshold,
               },
             });
           }
@@ -384,28 +386,30 @@ const Quest = () => {
   ): Promise<QuestNode | null> => {
     const milestoneNum = Number(milestone);
 
+    // Use the same boss check logic
+    const isBossNode =
+      milestoneNum > 0 && milestoneNum % quest.bossThreshold === 0;
+
     // Map the monster IDs to their corresponding sprite IDs
     const monsters = await Promise.all(
       quest.monsters.map(async (monsterId) => {
         const monster = await getMonsterById(monsterId);
         return {
           monsterId,
-          spriteId: monster?.spriteId as AnimatedSpriteID, // Cast to AnimatedSpriteID
+          spriteId: monster?.spriteId as AnimatedSpriteID,
         };
       }),
     );
 
     return {
       milestone: milestoneNum,
-      isBoss: milestoneNum === quest.bossThreshold,
-      possibleMonsters:
-        milestoneNum === quest.bossThreshold
-          ? [{ monsterId: quest.boss.spriteId, spriteId: quest.boss.spriteId }]
-          : monsters,
-      description:
-        milestoneNum === quest.bossThreshold
-          ? 'Boss Battle!'
-          : `Quest checkpoint: ${milestoneNum}`,
+      isBoss: isBossNode,
+      possibleMonsters: isBossNode
+        ? [{ monsterId: quest.boss.spriteId, spriteId: quest.boss.spriteId }]
+        : monsters,
+      description: isBossNode
+        ? 'Boss Battle!'
+        : `Quest checkpoint: ${milestoneNum}`,
     };
   };
 
@@ -430,8 +434,11 @@ const Quest = () => {
     }
 
     const nextMilestones = getNextMilestones(selectedQuest, progress);
-
     const visualMilestones = [startingPoint, ...nextMilestones];
+
+    // Adjust progress bar width to be slightly shorter
+    const progressBarWidth =
+      visualMilestones.length <= 2 ? '50%' : `${(3 - 2.075) * 100}%`;
 
     const getProgressText = () => {
       if (!user?.activeWorkoutMinutes) return '0% ready to advance!';
@@ -444,19 +451,21 @@ const Quest = () => {
       return `${readyPercentage}% ready to advance!`;
     };
 
+    const isBossNode = (milestoneValue: number) => {
+      return milestoneValue > 0 && milestoneValue % quest.bossThreshold === 0;
+    };
+
     return (
       <View className="mt-4 mb-2">
         <Text className="text-md mb-5 font-bold">{getProgressText()}</Text>
 
-        <View
-          className="flex-row justify-between items-center relative"
-          style={{ height: 50 }}
-        >
+        <View className="flex-row relative" style={{ height: 20 }}>
           <View
             className="absolute bg-gray"
             style={{
               height: 3,
-              width: '100%',
+              width: progressBarWidth,
+              left: 10,
               top: '50%',
               transform: [{ translateY: -1.5 }],
             }}
@@ -465,15 +474,23 @@ const Quest = () => {
           {visualMilestones.map((milestone, index) => {
             const milestoneValue =
               milestone === 'start' ? 0 : Number(milestone);
-            const isBossNode = milestoneValue === Number(quest.bossThreshold);
+            // Update boss node check to use the new function
+            const isBoss = isBossNode(milestoneValue);
             const isCompleted = progress >= milestoneValue;
             const nodeInfo = getNodeInfo(milestone, quest);
+
+            // Adjust position calculation to account for shorter width
+            const position = index * 45;
 
             return (
               <TouchableOpacity
                 testID={`milestone-node-${index}`}
                 key={milestone === 'start' ? 'start-node' : milestone}
-                className="items-center"
+                className="items-center absolute"
+                style={{
+                  left: `${position + 5}%`,
+                  transform: [{ translateX: -10 }],
+                }}
                 onPress={async () => {
                   if (nodeInfo && milestoneValue > progress) {
                     setSelectedNode(await nodeInfo);
@@ -482,13 +499,13 @@ const Quest = () => {
                 }}
                 disabled={milestoneValue <= progress}
               >
-                {isBossNode ? (
+                {isBoss ? (
                   <View
                     style={{
                       width: 60,
                       height: 60,
                       marginTop: -50,
-                      marginLeft: -20,
+                      marginLeft: -25,
                     }}
                   >
                     <AnimatedSprite
