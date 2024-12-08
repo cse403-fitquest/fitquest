@@ -49,7 +49,7 @@ const Combat = () => {
   const { isBoss, uniqueKey, questMonsters } = params;
   const { user, setUser } = useUserStore();
   const { items } = useItemStore();
- 
+
   const [playerCharge, setPlayerCharge] = useState(0);
   const [monsterCharge, setMonsterCharge] = useState(0);
 
@@ -73,7 +73,6 @@ const Combat = () => {
 
   useEffect(() => {
     const initializeMonster = async () => {
-
       if (user) {
         setIsInitializing(true);
         try {
