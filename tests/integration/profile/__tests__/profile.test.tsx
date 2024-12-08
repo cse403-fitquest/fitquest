@@ -24,11 +24,13 @@ jest.mock('expo-router', () => ({
 jest.mock('@expo/vector-icons', () => {
   const React = require('react');
   const { Text } = require('react-native');
-
   return {
     Ionicons: jest.fn(({ name }) => {
       if (name === 'settings-outline') {
         return <Text testID="settings-outline">settings icon</Text>;
+      }
+      if (name === 'checkbox') {
+        return <Text testID="checkbox">checkbox</Text>;
       }
       return <Text testID={'mock-ionicon-' + name}>{name}</Text>;
     }),
@@ -277,6 +279,8 @@ describe('tests for profile screen', () => {
       );
     });
   });
+
+  //test successful username change
   it('successfully change username', async () => {
     await waitFor(() => {
       (updateUserProfile as unknown as jest.Mock).mockReturnValue({
@@ -300,16 +304,239 @@ describe('tests for profile screen', () => {
       expect(screen.getByDisplayValue('lombardstreet')).toBeTruthy();
 
       fireEvent.press(screen.getByText('CONFIRM'));
+      expect(screen.queryByText('Profile Setting')).toBeNull();
       expect(updateUserProfile).toHaveBeenCalledWith(
         '1aA0I6IwN5Ts8BBr68CH19wzlQz1',
         {
-          ...mockUser,
+          privacySettings: {
+            isCurrentQuestPublic: true,
+            isLastWorkoutPublic: true,
+          },
           profileInfo: {
-            ...mockUser.profileInfo,
+            age: 20,
+            email: 'lex@gmail.com',
+            height: 5.9,
             username: 'lombardstreet',
+            weight: 170,
           },
         },
       );
+    });
+  });
+
+  //test successful change of height
+  it('successfully change height', async () => {
+    await waitFor(() => {
+      (updateUserProfile as unknown as jest.Mock).mockReturnValue({
+        user: mockUser,
+        updates: {
+          ...mockUser,
+          profileInfo: {
+            ...mockUser.profileInfo,
+            height: 5.8,
+          },
+        },
+      });
+
+      render(<Profile />);
+      expect(true).toBe(true);
+      fireEvent.press(screen.getByTestId('settings-outline'));
+      fireEvent.changeText(screen.getByPlaceholderText('Enter height'), '5.8');
+      expect(screen.getByDisplayValue('5.8')).toBeTruthy();
+
+      fireEvent.press(screen.getByText('CONFIRM'));
+      expect(updateUserProfile).toHaveBeenCalledWith(
+        '1aA0I6IwN5Ts8BBr68CH19wzlQz1',
+        {
+          privacySettings: {
+            isCurrentQuestPublic: true,
+            isLastWorkoutPublic: true,
+          },
+          profileInfo: {
+            age: 20,
+            email: 'lex@gmail.com',
+            height: 5.8,
+            username: 'lexbrawlstars',
+            weight: 170,
+          },
+        },
+      );
+    });
+  });
+
+  it('successfully change weight', async () => {
+    await waitFor(() => {
+      (updateUserProfile as unknown as jest.Mock).mockReturnValue({
+        user: mockUser,
+        updates: {
+          ...mockUser,
+          profileInfo: {
+            ...mockUser.profileInfo,
+            weight: 180,
+          },
+        },
+      });
+
+      render(<Profile />);
+      expect(true).toBe(true);
+      fireEvent.press(screen.getByTestId('settings-outline'));
+      fireEvent.changeText(screen.getByPlaceholderText('Enter weight'), '180');
+      expect(screen.getByDisplayValue('180')).toBeTruthy();
+
+      fireEvent.press(screen.getByText('CONFIRM'));
+      expect(updateUserProfile).toHaveBeenCalledWith(
+        '1aA0I6IwN5Ts8BBr68CH19wzlQz1',
+        {
+          privacySettings: {
+            isCurrentQuestPublic: true,
+            isLastWorkoutPublic: true,
+          },
+          profileInfo: {
+            age: 20,
+            email: 'lex@gmail.com',
+            height: 5.9,
+            username: 'lexbrawlstars',
+            weight: 180,
+          },
+        },
+      );
+    });
+  });
+
+  // tests non numeric input to weight
+  it('should fail when weight isnt a number', async () => {
+    await waitFor(() => {
+      render(<Profile />);
+      expect(true).toBe(true);
+      fireEvent.press(screen.getByTestId('settings-outline'));
+      fireEvent.changeText(
+        screen.getByPlaceholderText('Enter weight'),
+        'zoinks scoob',
+      );
+      expect(screen.getByDisplayValue('zoinks scoob')).toBeTruthy();
+
+      fireEvent.press(screen.getByText('CONFIRM'));
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Validation Error',
+        'Weight must be a positive number.',
+      );
+    });
+  });
+
+  // tests non numeric input to height
+  it('should fail when height isnt a number', async () => {
+    await waitFor(() => {
+      render(<Profile />);
+      expect(true).toBe(true);
+      fireEvent.press(screen.getByTestId('settings-outline'));
+      fireEvent.changeText(
+        screen.getByPlaceholderText('Enter height'),
+        'zoinks scoob',
+      );
+      expect(screen.getByDisplayValue('zoinks scoob')).toBeTruthy();
+
+      fireEvent.press(screen.getByText('CONFIRM'));
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Validation Error',
+        'Height must be a positive number.',
+      );
+    });
+  });
+
+  it('successfully change current quest public', async () => {
+    await waitFor(() => {
+      (updateUserProfile as unknown as jest.Mock).mockReturnValue({
+        user: mockUser,
+        updates: {
+          ...mockUser,
+          profileInfo: {
+            ...mockUser.profileInfo,
+            weight: 180,
+          },
+        },
+      });
+
+      render(<Profile />);
+      expect(true).toBe(true);
+      fireEvent.press(screen.getByTestId('settings-outline'));
+      fireEvent.press(screen.getAllByTestId('checkbox')[0]);
+
+      fireEvent.press(screen.getByText('CONFIRM'));
+      expect(updateUserProfile).toHaveBeenCalledWith(
+        '1aA0I6IwN5Ts8BBr68CH19wzlQz1',
+        {
+          privacySettings: {
+            isCurrentQuestPublic: false,
+            isLastWorkoutPublic: true,
+          },
+          profileInfo: {
+            age: 20,
+            email: 'lex@gmail.com',
+            height: 5.9,
+            username: 'lexbrawlstars',
+            weight: 170,
+          },
+        },
+      );
+    });
+  });
+  it('successfully change last workout public', async () => {
+    await waitFor(() => {
+      (updateUserProfile as unknown as jest.Mock).mockReturnValue({
+        user: mockUser,
+        updates: {
+          ...mockUser,
+          profileInfo: {
+            ...mockUser.profileInfo,
+            weight: 180,
+          },
+        },
+      });
+
+      render(<Profile />);
+      expect(true).toBe(true);
+      fireEvent.press(screen.getByTestId('settings-outline'));
+      fireEvent.press(screen.getAllByTestId('checkbox')[1]);
+
+      fireEvent.press(screen.getByText('CONFIRM'));
+      expect(updateUserProfile).toHaveBeenCalledWith(
+        '1aA0I6IwN5Ts8BBr68CH19wzlQz1',
+        {
+          privacySettings: {
+            isCurrentQuestPublic: true,
+            isLastWorkoutPublic: false,
+          },
+          profileInfo: {
+            age: 20,
+            email: 'lex@gmail.com',
+            height: 5.9,
+            username: 'lexbrawlstars',
+            weight: 170,
+          },
+        },
+      );
+    });
+  });
+  it('should not change profile if not confirmed', async () => {
+    await waitFor(() => {
+      (updateUserProfile as unknown as jest.Mock).mockReturnValue({
+        user: mockUser,
+        updates: {
+          ...mockUser,
+          profileInfo: {
+            ...mockUser.profileInfo,
+            weight: 180,
+          },
+        },
+      });
+
+      render(<Profile />);
+      expect(true).toBe(true);
+      fireEvent.press(screen.getByTestId('settings-outline'));
+      fireEvent.press(screen.getAllByTestId('checkbox')[0]);
+
+      fireEvent.press(screen.getByTestId('mock-ionicon-close'));
+      expect(updateUserProfile).toHaveBeenCalledTimes(0);
     });
   });
 });
