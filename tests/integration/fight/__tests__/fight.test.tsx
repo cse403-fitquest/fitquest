@@ -3,12 +3,14 @@ import {
   render,
   fireEvent,
   waitFor,
+  act,
 } from '@testing-library/react-native';
 import Combat from '@/app/fight';
 import React from 'react';
 import { getMonsterById } from '@/services/monster';
 import { updateUserProfile } from '@/services/user';
 import { AnimatedSpriteID } from '@/constants/sprite';
+// import { log } from 'console';
 
 // Mock UUID with unique IDs
 jest.mock('uuid', () => {
@@ -103,6 +105,21 @@ const mockMonster = {
   spriteId: AnimatedSpriteID.SLIME_GREEN,
 };
 
+// Mocking useUserStore
+jest.mock('@/store/user', () => ({
+  useUserStore: () => ({
+    user: mockUser,
+    setUser: jest.fn(),
+  }),
+}));
+
+// Mocking useItemStore
+jest.mock('@/store/item', () => ({
+  useItemStore: () => ({
+    items: [],
+  }),
+}));
+
 const mockSetUser = jest.fn();
 
 // Mock external dependencies
@@ -121,16 +138,22 @@ jest.mock('@/services/user', () => ({
   updateUserProfile: jest.fn(),
 }));
 
-// Add this mock before the tests
+// Mock StatusBar
 jest.mock('expo-status-bar', () => ({
   StatusBar: () => null,
 }));
+
+// Mock timers
+jest.useFakeTimers();
 
 describe('Combat Screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (getMonsterById as jest.Mock).mockResolvedValue(mockMonster);
     (updateUserProfile as jest.Mock).mockResolvedValue({ success: true });
+
+    // Reset timers
+    jest.clearAllTimers();
   });
 
   it('handles normal attack correctly', async () => {
@@ -138,11 +161,26 @@ describe('Combat Screen', () => {
 
     // Wait for loading to complete
     await waitFor(() => {
-      expect(screen.getByText('Attack')).toBeTruthy();
+      expect(screen.getByTestId('normal-attack-button')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('Attack'));
-    expect(await screen.findByText(/You dealt \d+ damage!/)).toBeTruthy();
+    act(() => {
+      jest.advanceTimersByTime(2000); // Advance 2 seconds (4 intervals)
+    });
+
+    // Press 'Attack' button
+    act(() => {
+      fireEvent.press(screen.getByTestId('normal-attack-button'));
+    });
+
+    // Advance timers to process attack delays (e.g., 500ms)
+    act(() => {
+      jest.advanceTimersByTime(1000); // Adjust based on actual delays
+    });
+
+    await waitFor(() => {
+      expect(screen.findByText(/You dealt \d+ damage!/)).toBeTruthy();
+    });
   });
 
   it('handles strong attack and cooldown', async () => {
@@ -150,13 +188,26 @@ describe('Combat Screen', () => {
 
     // Wait for loading to complete
     await waitFor(() => {
-      expect(screen.getByText('Strong Attack')).toBeTruthy();
+      expect(screen.getByTestId('strong-attack-button')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('Strong Attack'));
+    act(() => {
+      jest.advanceTimersByTime(2000); // Advance 2 seconds (4 intervals)
+    });
 
-    expect(await screen.findByText(/You dealt \d+ damage!/)).toBeTruthy();
-    expect(screen.getByText(/\[CD: 2\]/)).toBeTruthy();
+    act(() => {
+      fireEvent.press(screen.getByTestId('strong-attack-button'));
+    });
+
+    // Advance timers to process attack delays (e.g., 1000ms)
+    act(() => {
+      jest.advanceTimersByTime(1000); // Adjust based on actual delays
+    });
+
+    await waitFor(() => {
+      expect(screen.findByText(/You dealt \d+ damage!/)).toBeTruthy();
+      expect(screen.getByText(/\[CD: 2\]/)).toBeTruthy();
+    });
   });
 
   it('handles potion usage correctly', async () => {
@@ -164,10 +215,16 @@ describe('Combat Screen', () => {
 
     // Wait for loading to complete
     await waitFor(() => {
-      expect(screen.getByText('Small Potion (1)')).toBeTruthy();
+      expect(screen.getByTestId('small-potion-button')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('Small Potion (1)'));
+    act(() => {
+      jest.advanceTimersByTime(2000); // Advance 2 seconds (4 intervals)
+    });
+
+    act(() => {
+      fireEvent.press(screen.getByTestId('small-potion-button'));
+    });
 
     expect(updateUserProfile).toHaveBeenCalledWith(
       mockUser.id,
