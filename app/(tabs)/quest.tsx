@@ -156,16 +156,20 @@ const Quest = () => {
 
   const getNextMilestones = (quest: Quest, currentProgress: number) => {
     const allMilestones = quest.milestones;
-    const remainingMilestones = allMilestones.filter(
+
+    // Find the current milestone index
+    const currentIndex = allMilestones.findIndex(
       (milestone) => milestone > currentProgress,
     );
-    if (remainingMilestones.length < 5) {
-      const completedMilestones = allMilestones
-        .filter((milestone) => milestone <= currentProgress)
-        .slice(-4 + remainingMilestones.length);
-      return [...completedMilestones, ...remainingMilestones];
+
+    if (currentIndex === -1) {
+      // If we're at the end, show the last 4 milestones
+      return allMilestones.slice(-4);
     }
-    return remainingMilestones.slice(0, 4);
+
+    // Show current position +3 more milestones ahead
+    const startIndex = Math.max(0, currentIndex - 1);
+    return allMilestones.slice(startIndex + 1, startIndex + 4);
   };
 
   const handleAbandon = async () => {
@@ -280,7 +284,6 @@ const Quest = () => {
 
   const handleAdvance = async () => {
     if (activeQuest && user?.id) {
-      // TODO: Change this to 30 minutes
       if (user.activeWorkoutMinutes < 1) {
         Alert.alert(
           'Not Strong Enough...',
@@ -291,6 +294,7 @@ const Quest = () => {
               onPress: () => router.push('/(tabs)/workout'),
             },
           ],
+          { cancelable: false },
         );
         return;
       }
@@ -413,7 +417,83 @@ const Quest = () => {
 
     if (!selectedQuest) return null;
 
+    // Check if quest is completed
+    const isQuestCompleted = progress >= Math.max(...quest.milestones);
+    if (isQuestCompleted) {
+      return (
+        <View className="mt-4 mb-2">
+          <Text className="text-md mb-5 font-bold text-green-600">
+            Quest Completed!
+          </Text>
+        </View>
+      );
+    }
+
     const nextMilestones = getNextMilestones(selectedQuest, progress);
+
+    // If there are no more milestones ahead, show the final stretch
+    if (nextMilestones.length === 0 || nextMilestones.length === 1) {
+      return (
+        <View className="mt-4 mb-2">
+          <Text className="text-md mb-5 font-bold">Quest Completed!</Text>
+          <View
+            className="flex-row items-center relative"
+            style={{ height: 50 }}
+          >
+            {/* Background line */}
+            <View
+              className="absolute bg-gray"
+              style={{
+                height: 3,
+                width: '100%',
+                top: '50%',
+                transform: [{ translateY: -1.5 }],
+              }}
+            />
+
+            {/* Container for nodes with fixed width */}
+            <View
+              className="flex-row items-center"
+              style={{
+                width: '50%', // Reduce total width to make it more compact
+                marginHorizontal: 'auto', // Center the nodes container
+              }}
+            >
+              {/* Start node */}
+              <View
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 20,
+                  backgroundColor: '#4CAF50',
+                  borderWidth: 2,
+                  borderColor: '#45a049',
+                }}
+              />
+
+              {/* Boss node */}
+              <View
+                style={{
+                  position: 'absolute',
+                  right: -30, // Adjust to align with the line end
+                  width: 60,
+                  height: 60,
+                  marginTop: -50,
+                }}
+              >
+                <AnimatedSprite
+                  id={activeQuest?.boss.spriteId}
+                  width={80}
+                  height={80}
+                  state={SpriteState.IDLE}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      );
+    }
+
     const visualMilestones = [startingPoint, ...nextMilestones];
 
     // const percentage = calculateQuestPercentage(quest, progress);
@@ -447,7 +527,7 @@ const Quest = () => {
             }}
           />
 
-          {visualMilestones.map((milestone) => {
+          {visualMilestones.map((milestone, index) => {
             const milestoneValue =
               milestone === 'start' ? 0 : Number(milestone);
             const isBossNode = milestoneValue === Number(quest.bossThreshold);
@@ -456,6 +536,7 @@ const Quest = () => {
 
             return (
               <TouchableOpacity
+                testID={`milestone-node-${index}`}
                 key={milestone === 'start' ? 'start-node' : milestone}
                 className="items-center"
                 onPress={async () => {
@@ -505,6 +586,7 @@ const Quest = () => {
   const renderItem = ({ item, index }: { item: Quest; index: number }) => {
     return (
       <TouchableOpacity
+        testID={`quest-item-${index}`}
         key={index}
         className={`bg-white p-4 px-5 mb-4 rounded text-xl shadow-sm shadow-black border border-gray h-[100px] justify-center items-between ${
           activeQuest?.questID === item.questId ? 'opacity-50' : ''
@@ -570,6 +652,7 @@ const Quest = () => {
                     <View className="flex-row justify-center items-center">
                       {/* Start Button */}
                       <TouchableOpacity
+                        testID="advance-quest"
                         className="mr-4"
                         onPress={handleAdvance}
                       >
@@ -577,7 +660,11 @@ const Quest = () => {
                       </TouchableOpacity>
 
                       {/* Abandon Button */}
-                      <TouchableOpacity className="" onPress={handleAbandon}>
+                      <TouchableOpacity
+                        testID="abandon-quest"
+                        className=""
+                        onPress={handleAbandon}
+                      >
                         <Ionicons name="flag-outline" size={24} color="red" />
                       </TouchableOpacity>
                     </View>
