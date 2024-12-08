@@ -653,7 +653,7 @@ const Combat = () => {
                 height={48}
                 state={
                   currentTurnEntity === 'player'
-                    ? SpriteState.ATTACK_2
+                    ? SpriteState.IDLE
                     : SpriteState.MOVE
                 }
               />
@@ -683,7 +683,7 @@ const Combat = () => {
                 height={48}
                 state={
                   currentTurnEntity === 'monster'
-                    ? SpriteState.ATTACK_1
+                    ? SpriteState.IDLE
                     : SpriteState.MOVE
                 }
               />
@@ -981,8 +981,7 @@ const Combat = () => {
               {modalType === 'victory' ? (
                 <>
                   <Text className="text-2xl font-bold mb-4">
-                    You have defeated {isBossFight ? 'the Boss' : 'the monster'}
-                    !
+                    You have defeated {monster.name}!
                   </Text>
 
                   <View className="w-full relative items-center justify-center h-[160px] overflow-hidden mb-10">
