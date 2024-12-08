@@ -178,7 +178,7 @@ const Quest = () => {
     if (activeQuest) {
       Alert.alert(
         `Abandon Quest: ${activeQuest.questName}`,
-        'Abandoning the quest will reset its progress if you decide to embark on it again.',
+        'Are you sure you wish to abandon the quest? Progress is saved.',
         [
           { text: 'Cancel', style: 'cancel' },
           {
