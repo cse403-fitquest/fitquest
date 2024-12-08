@@ -51,7 +51,7 @@
 
 Before you start, you will need to have the following tools installed on your PC/Laptop:
 [Git](https://git-scm.com), [Node.js](https://nodejs.org/en/) (20.x LTS).
-In addition, it is good to have an editor to work with the code such as [VSCode](https://code.visualstudio.com/).
+In addition, it is good to have an editor to work with the code such as [VSCode](https://code.visualstudio.com/). Moreover, ensure you have an Expo user account. You can make one at this [page](https://expo.dev/signup). You will need an account to run the app and will be prompted after trying to connect the app to the emulator or device. This will ease development as running the app in online mode (default) lets us automatically install the development environment (Expo Go) automatically in our android emulator (in the following steps).
 
 ### Project installation
 
@@ -68,6 +68,13 @@ In addition, it is good to have an editor to work with the code such as [VSCode]
    npm install
    ```
 
+3. Install eas-cli
+
+
+   ```bash
+   npm install -g eas-cli
+   ```
+
 3. Run the app
 
    ```bash
@@ -82,11 +89,15 @@ In addition, it is good to have an editor to work with the code such as [VSCode]
 
 4. Setup device for development. Run on physical Android device using expo QR code or run on Android Emulator:
 
-   With an android device, the fastest way to use the app is to use your physical device through expo. Download and install Expo Go SDK 51 (https://expo.dev/go?sdkVersion=51&platform=android&device=true). When the app is running after completing step 3, scan the QR code given in the terminal in the Expo Go application.
+   With an android device, the fastest way to use the app is to use your physical device through expo. Download and install Expo Go SDK 51 (https://expo.dev/go?sdkVersion=51&platform=android&device=true). When the app is running after completing step 3, scan the QR code given in the terminal in the Expo Go application. If it takes too long to load (over several minutes), you may need to reload the app by pressing "r" in the terminal as shown in the screenshot above. For more troubleshooting guide, refer to the Troubleshoot section below.
 
    Our app currently does not support iPhones, so using Expo Go with your iPhone will likely result in a crash or unintended bug(s).
 
    With other devices such as a laptop, you will need to work with an android emulator to run the app. Following the instructions from the link will take around 15 minutes to setup depending on whether you have installed android studio: https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=expo-go. Be sure to select "Android Emulator" for the first option and "Expo Go" for the second option.
+
+5. Login with your Expo account. After connecting with either the emulator or your android device, you will be prompted to login with your Expo user account. Simply follow the steps given and you will be succesfully logged in and the app should be initialized. If it is taking too long, try closing the server and start again from step 3.
+
+   ![Setup Expo Login](./readme-images/setup-expo-login.png)
 
 ### Firebase Setup (OPTIONAL)
 
@@ -310,6 +321,40 @@ Skip this setup if you want to use data provided by us. You only need to do this
 4. Write tests in accordance to the existing testing convention. Look into sibling files or tests within the same file module you are testing to see how you should be writing your tests.
 
 
+### Troubleshooting
+
+If you encounter any issues while using the app, follow these step to troubleshoot:
+
+1. **Hot Reload:**
+   - While the server is running after running `npm start`, click on the terminal and click "R" to do a hot realod. This usually solves issues related to rendering and is a good first step to try to fix any issue related to the UI.
+
+2. **Check the Console for Errors:**
+   - Open the developer console in your browser or the terminal where you ran the app.
+   - Look for any error messages and try to understand what might be causing the issue.
+
+3. **Verify Dependencies:**
+   - Ensure all dependencies are installed correctly by running:
+     ```bash
+     npm install
+     ```
+   - Check for any peer dependency warnings and resolve them.
+
+4. **Clear Cache:**
+   - Sometimes, cached data can cause issues. Run the app after clearing the cache by running:
+     ```bash
+     npx expo start -c
+     ```
+
+5. **Run Tests:**
+   - Run the test suite to ensure all tests pass:
+     ```bash
+     npm run test
+     ```
+
+6. **Create a New Issue:**
+   - If you cannot resolve the issue, create a new issue on the project's [GitHub Issues Page](https://github.com/cse403-fitquest/fitquest/issues) with detailed information about the problem.
+
+
 ## 🚀 Technologies
 
 This app was built with the following technologies:
@@ -329,15 +374,15 @@ This app was built with the following technologies:
    - [x] Survey
    - [x] Fitness level calculation
    - [x] Allocate attribute points
-- [ ] Implement Profile
+- [x] Implement Profile
    - [x] Avatar
    - [x] Attributes & inventory
-   - [ ] Workouts per week graph
-- [ ] Implement Workout
+   - [x] Workouts per week graph
+- [x] Implement Workout
    - [x] Active workout session
    - [x] Workout templates
    - [x] Calculate exp gain from workout
-   - [ ] Workout history
+   - [x] Workout history
 - [x] Implement Quest
    - [x] Active quest
    - [x] Available quests this week
@@ -354,12 +399,16 @@ This app was built with the following technologies:
 
 ## 🖼️ Images
 
+<!-- Auth -->
+
 <div align="center">
 
   <img src="./readme-images/auth-sign-in.png" width="150"> &nbsp;
   <img src="./readme-images/auth-sign-up.png" width="150"> &nbsp;
 
 </div>
+
+<!-- Onboarding -->
 
 <div align="center">
 
@@ -370,12 +419,16 @@ This app was built with the following technologies:
 
 </div>
 
+<!-- Shop -->
+
 <div align="center">
 
   <img src="./readme-images/shop-display.png" width="150"> &nbsp;
   <img src="./readme-images/shop-modal.png" width="150"> &nbsp;
 
 </div>
+
+<!-- Social -->
 
 <div align="center">
 
