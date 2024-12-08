@@ -42,6 +42,7 @@ jest.mock('@/store/social', () => ({
   useSocialStore: jest.fn(() => ({
     friends: [],
     addFriend: jest.fn(),
+    resetSocialStore: jest.fn(),
   })),
 }));
 jest.mock('@/store/item', () => ({
@@ -148,7 +149,13 @@ jest.mock('@/services/auth', () => ({
   createUserWithEmailAndPassword: jest.fn(),
   initializeAuth: jest.fn(),
   getReactNativePersistence: jest.fn(),
-  signOut: jest.fn(),
+  signOut: jest.fn(
+    (): SignOutResponse => ({
+      success: true,
+      data: null,
+      error: null,
+    }),
+  ),
   signUp: jest.fn(),
   isLoggedIn: jest.fn(),
   deleteAccount: jest.fn(),
@@ -215,6 +222,7 @@ let mockUser = {
 
 import Profile from '@/app/(tabs)/profile';
 import { updateUserProfile } from '@/services/user';
+import { SignOutResponse } from '@/types/auth';
 // import { useUserStore } from '@/store/user';
 // import { ItemType } from '@/types/item';
 import {
@@ -538,5 +546,29 @@ describe('tests for profile screen', () => {
       fireEvent.press(screen.getByTestId('mock-ionicon-close'));
       expect(updateUserProfile).toHaveBeenCalledTimes(0);
     });
+  });
+
+  it('test signout', async () => {
+    (updateUserProfile as unknown as jest.Mock).mockReturnValue({
+      user: mockUser,
+      updates: {
+        ...mockUser,
+        profileInfo: {
+          ...mockUser.profileInfo,
+          weight: 180,
+        },
+      },
+    });
+
+    render(<Profile />);
+    expect(true).toBe(true);
+    fireEvent.press(screen.getByTestId('settings-outline'));
+    fireEvent.changeText(screen.getByPlaceholderText('Enter weight'), '180');
+    expect(screen.getByDisplayValue('180')).toBeTruthy();
+    await waitFor(() => {
+      fireEvent.press(screen.getByText('SIGN OUT'));
+    });
+    //should not change users data
+    expect(updateUserProfile).toHaveBeenCalledTimes(0);
   });
 });
