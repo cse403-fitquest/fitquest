@@ -11,6 +11,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Easing,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
@@ -23,6 +24,8 @@ import { FIREBASE_DB } from '@/firebaseConfig';
 import { updateUserProfile } from '@/services/user';
 import { getMonsterById } from '@/services/monster';
 import clsx from 'clsx';
+import { getUserTotalAttributes } from '@/utils/user';
+import { useItemStore } from '@/store/item';
 
 type TurnInfo = {
   id: string;
@@ -51,14 +54,14 @@ const Combat = () => {
 
   const { isBoss, uniqueKey, questMonsters } = params;
   const { user, setUser } = useUserStore();
+  const { items } = useItemStore();
 
-  const initialPlayer = {
-    id: user?.id || '',
-    name: user?.profileInfo.username || 'Player',
-    health: (user?.attributes.health || 6) * 20,
-    power: (user?.attributes.power || 15) * 2,
-    speed: user?.attributes.speed || 15,
-  };
+  const [playerCharge, setPlayerCharge] = useState(0);
+  const [monsterCharge, setMonsterCharge] = useState(0);
+
+  const [currentTurnEntity, setCurrentTurnEntity] = useState<
+    'player' | 'monster' | null
+  >(null);
 
   const [isInitializing, setIsInitializing] = useState(true);
 
@@ -71,79 +74,85 @@ const Combat = () => {
     spriteId: AnimatedSpriteID.SLIME_GREEN,
   });
 
+  const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
   const [isMonsterInitialized, setIsMonsterInitialized] = useState(false);
 
   useEffect(() => {
     const initializeMonster = async () => {
-      setIsInitializing(true);
-      try {
-        const playerLevel = calculatePlayerLevel(
-          user?.attributes || { power: 15, speed: 15, health: 6 },
-        );
-        const difficultyMultiplier = calculateDifficultyMultiplier(playerLevel);
+      if (user) {
+        setIsInitializing(true);
+        try {
+          const playerLevel = calculatePlayerLevel(user.attributes);
+          const difficultyMultiplier =
+            calculateDifficultyMultiplier(playerLevel);
 
-        if (isBoss === 'true') {
-          const formattedQuestId = `quest_${questId}`;
-          const questDocRef = doc(FIREBASE_DB, 'quests', formattedQuestId);
-          const questDoc = await getDoc(questDocRef);
+          if (isBoss === 'true') {
+            const formattedQuestId = `quest_${questId}`;
+            const questDocRef = doc(FIREBASE_DB, 'quests', formattedQuestId);
+            const questDoc = await getDoc(questDocRef);
 
-          if (questDoc.exists()) {
-            const questData = questDoc.data();
-            const bossData = questData.boss;
+            if (questDoc.exists()) {
+              const questData = questDoc.data();
+              const bossData = questData.boss;
 
-            setMonster({
-              name: questData.questName.replace(/^hunt\s+/i, ''),
-              maxHealth: Math.floor(
-                bossData.health * 20 * difficultyMultiplier,
-              ),
-              health: Math.floor(bossData.health * 20 * difficultyMultiplier),
-              power: Math.floor(bossData.power * difficultyMultiplier),
-              speed: Math.floor(bossData.speed),
-              spriteId: bossData.spriteId,
-            });
-          } else {
-            setDefaultMonster(difficultyMultiplier);
-          }
-        } else {
-          const monsterIds =
-            typeof questMonsters === 'string'
-              ? questMonsters.split(',').filter((id) => id.trim() !== '')
-              : [];
-
-          if (monsterIds.length > 0) {
-            const randomIndex = Math.floor(Math.random() * monsterIds.length);
-            const selectedMonsterId = monsterIds[randomIndex];
-
-            const selectedMonster = await getMonsterById(selectedMonsterId);
-
-            if (selectedMonster) {
               setMonster({
-                name: selectedMonster.name,
+                name: questData.questName.replace(/^hunt\s+/i, ''),
                 maxHealth: Math.floor(
-                  selectedMonster.attributes.health * 20 * difficultyMultiplier,
+                  bossData.health * 20 * difficultyMultiplier,
                 ),
-                health: Math.floor(
-                  selectedMonster.attributes.health * 20 * difficultyMultiplier,
-                ),
-                power: Math.floor(
-                  selectedMonster.attributes.power * difficultyMultiplier,
-                ),
-                speed: Math.floor(selectedMonster.attributes.speed),
-                spriteId: selectedMonster.spriteId as AnimatedSpriteID,
+                health: Math.floor(bossData.health * 20 * difficultyMultiplier),
+                power: Math.floor(bossData.power * difficultyMultiplier),
+                speed: Math.floor(bossData.speed),
+                spriteId: bossData.spriteId,
               });
-              setIsMonsterInitialized(true);
             } else {
               setDefaultMonster(difficultyMultiplier);
             }
           } else {
-            setDefaultMonster(difficultyMultiplier);
+            const monsterIds =
+              typeof questMonsters === 'string'
+                ? questMonsters.split(',').filter((id) => id.trim() !== '')
+                : [];
+
+            if (monsterIds.length > 0) {
+              const randomIndex = Math.floor(Math.random() * monsterIds.length);
+              const selectedMonsterId = monsterIds[randomIndex];
+
+              const selectedMonster = await getMonsterById(selectedMonsterId);
+
+              if (selectedMonster) {
+                setMonster({
+                  name: selectedMonster.name,
+                  maxHealth: Math.floor(
+                    selectedMonster.attributes.health *
+                      20 *
+                      difficultyMultiplier,
+                  ),
+                  health: Math.floor(
+                    selectedMonster.attributes.health *
+                      20 *
+                      difficultyMultiplier,
+                  ),
+                  power: Math.floor(
+                    selectedMonster.attributes.power * difficultyMultiplier,
+                  ),
+                  speed: Math.floor(selectedMonster.attributes.speed),
+                  spriteId: selectedMonster.spriteId as AnimatedSpriteID,
+                });
+                setIsMonsterInitialized(true);
+              } else {
+                setDefaultMonster(difficultyMultiplier);
+              }
+            } else {
+              setDefaultMonster(difficultyMultiplier);
+            }
           }
+        } catch (error) {
+          console.error('Error initializing monster:', error);
+          setDefaultMonster();
+        } finally {
+          setIsInitializing(false);
         }
-      } catch (error) {
-        console.error('Error initializing monster:', error);
-        setDefaultMonster();
-      } finally {
-        setIsInitializing(false);
       }
     };
 
@@ -166,7 +175,30 @@ const Combat = () => {
     }
   }, [questId, isBoss, questMonsters, user?.attributes]);
 
-  const [player, setPlayer] = useState(initialPlayer);
+  const [player, setPlayer] = useState({
+    id: '',
+    name: '',
+    health: 0,
+    maxHealth: 0,
+    power: 0,
+    speed: 0,
+  });
+
+  useEffect(() => {
+    if (user) {
+      const { health, power, speed } = getUserTotalAttributes(user, items);
+      setPlayer({
+        id: user.id,
+        name: user.profileInfo.username,
+        health: health * 20,
+        maxHealth: health * 20,
+        power: power * 2,
+        speed: speed || 15,
+      });
+
+      setIsPlayerInitialized(true);
+    }
+  }, [user]);
 
   const [combatLog, setCombatLog] = useState<string[]>([]);
 
@@ -194,6 +226,100 @@ const Combat = () => {
 
   const [turnQueue, setTurnQueue] = useState<TurnInfo[]>([]);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
+
+  useEffect(() => {
+    if (
+      isMonsterInitialized &&
+      isPlayerInitialized &&
+      player &&
+      monster &&
+      !isInitializing
+    ) {
+      const maxSpeed = Math.max(player.speed, monster.speed);
+      const incrementValue = 25;
+      console.log(
+        'player speed:',
+        player.speed,
+        'monster speed:',
+        monster.speed,
+      );
+
+      const speedBarInterval = setInterval(() => {
+        if (currentTurnEntity === null) {
+          let newPlayerCharge =
+            playerCharge + (player.speed / maxSpeed) * incrementValue;
+          let newMonsterCharge =
+            monsterCharge + (monster.speed / maxSpeed) * incrementValue;
+
+          // Reduce charge overflow for both entities if applicable
+          let overchargeAmount = 0;
+
+          // If both entities are overcharged, reduce both by the same amount
+          if (newPlayerCharge >= 100 && newMonsterCharge >= 100) {
+            overchargeAmount = newPlayerCharge - 100;
+            newPlayerCharge -= overchargeAmount;
+            newMonsterCharge -= overchargeAmount;
+          } else if (newPlayerCharge >= 100) {
+            overchargeAmount = newPlayerCharge - 100;
+            newPlayerCharge -= overchargeAmount;
+          } else if (newMonsterCharge >= 100) {
+            overchargeAmount = newMonsterCharge - 100;
+            newMonsterCharge -= overchargeAmount;
+          } else {
+            overchargeAmount = 0;
+          }
+
+          // Prioritize turn change based on charge
+          if (newPlayerCharge >= 100) {
+            setCurrentTurnEntity('player');
+          } else if (newMonsterCharge >= 100) {
+            setCurrentTurnEntity('monster');
+          }
+
+          setPlayerCharge((prev) => {
+            // Normalize gain rate based on max speed
+            const newCharge = prev + (player.speed / maxSpeed) * incrementValue;
+            return newCharge >= 100 ? 100 : newCharge;
+          });
+
+          setMonsterCharge((prev) => {
+            const newCharge =
+              prev + (monster.speed / maxSpeed) * incrementValue;
+            return newCharge >= 100 ? 100 : newCharge;
+          });
+        }
+      }, 500);
+
+      return () => {
+        console.log('Clearing intervals');
+        clearInterval(speedBarInterval);
+      };
+    }
+  }, [
+    player.speed,
+    monster.speed,
+    isMonsterInitialized,
+    isInitializing,
+    currentTurnEntity,
+  ]);
+
+  useEffect(() => {
+    console.log(
+      'Player charge:',
+      playerCharge,
+      'Monster charge:',
+      monsterCharge,
+    );
+    if (playerCharge >= 100) {
+      // Player turn
+      setCurrentTurnEntity('player');
+    }
+
+    if (monsterCharge >= 100) {
+      setCurrentTurnEntity('monster');
+      // setMonsterCharge(0);
+    }
+  }, [playerCharge, monsterCharge]);
 
   // const gcd = (a: number, b: number): number => {
   //   return b === 0 ? a : gcd(b, a % b);
@@ -240,16 +366,16 @@ const Combat = () => {
     }));
   };
 
-  const generateMoreTurns = () => {
-    const newTurns = calculateTurnOrder(player.speed, monster.speed);
-    setTurnQueue((prev) => [...prev, ...newTurns]);
-  };
+  // const generateMoreTurns = () => {
+  //   const newTurns = calculateTurnOrder(player.speed, monster.speed);
+  //   setTurnQueue((prev) => [...prev, ...newTurns]);
+  // };
 
-  useEffect(() => {
-    if (turnQueue.length - currentTurnIndex < 10) {
-      generateMoreTurns();
-    }
-  }, [currentTurnIndex]);
+  // useEffect(() => {
+  //   if (turnQueue.length - currentTurnIndex < 10) {
+  //     generateMoreTurns();
+  //   }
+  // }, [currentTurnIndex]);
 
   const resetCombatState = () => {
     setStrongAttackCooldown(0);
@@ -312,7 +438,26 @@ const Combat = () => {
 
   useEffect(() => {
     const resetCombat = () => {
-      setPlayer({ ...initialPlayer });
+      if (user) {
+        const { health, power, speed } = getUserTotalAttributes(user, items);
+        setPlayer({
+          id: user.id,
+          name: user.profileInfo.username,
+          health: health * 20,
+          maxHealth: health * 20,
+          power: power * 2,
+          speed: speed || 15,
+        });
+      } else {
+        setPlayer({
+          id: '',
+          name: '',
+          health: 0,
+          maxHealth: 0,
+          power: 0,
+          speed: 0,
+        });
+      }
       setCombatLog([]);
     };
 
@@ -334,7 +479,7 @@ const Combat = () => {
   };
 
   const handleAttack = async (isStrong = false) => {
-    if (isAnimating || !turnQueue[currentTurnIndex]?.isPlayer) return;
+    if (isAnimating) return;
 
     const baseDamage = isStrong ? Math.floor(player.power * 1.5) : player.power;
     const damage = getRandomDamage(baseDamage);
@@ -372,6 +517,8 @@ const Combat = () => {
     if (strongAttackCooldown > 0) {
       setStrongAttackCooldown((prev) => prev - 1);
     }
+
+    setPlayerCharge(0);
   };
 
   const handlePotion = async (type: 'small' | 'large') => {
@@ -486,59 +633,47 @@ const Combat = () => {
     setShowVictoryModal(true);
   };
 
-  useEffect(() => {
-    if (user) {
-      setPlayer((prev) => ({
-        ...prev,
-        power: (user.attributes.power || 15) * 2,
-        speed: user.attributes.speed || 15,
-      }));
-    }
-  }, [user]);
-
-  const getChargePercentage = (entityId: string) => {
-    if (turnQueue[currentTurnIndex]?.id === entityId) {
-      return 100;
-    }
-
-    if (
-      currentTurnIndex > 0 &&
-      turnQueue[currentTurnIndex - 1]?.id === entityId
-    ) {
-      return 0;
-    }
-
-    const nextTurnIndex = turnQueue.findIndex(
-      (turn, index) => index > currentTurnIndex && turn.id === entityId,
-    );
-
-    if (nextTurnIndex === -1) return 0;
-
-    const turnsUntilNext = nextTurnIndex - currentTurnIndex;
-    return Math.max(0, ((5 - turnsUntilNext) / 5) * 100);
-  };
-
   const playerPosition = useRef(new Animated.Value(0)).current;
   const monsterPosition = useRef(new Animated.Value(0)).current;
 
-  const animateSpriteToPosition = (
+  // const animateSpriteToPosition = (
+  //   animatedValue: Animated.Value,
+  //   toValue: number,
+  // ) => {
+  //   Animated.timing(animatedValue, {
+  //     toValue,
+  //     duration: 500,
+  //     useNativeDriver: false,
+  //   }).start();
+  // };
+
+  const animateSpriteToPosition: (
     animatedValue: Animated.Value,
     toValue: number,
-  ) => {
+  ) => void = (animatedValue, toValue) => {
+    const duration = 300;
     Animated.timing(animatedValue, {
       toValue,
-      duration: 500,
+      duration,
+      easing: Easing.linear,
       useNativeDriver: false,
     }).start();
   };
 
   useEffect(() => {
-    const playerCharge = getChargePercentage(player.id);
     animateSpriteToPosition(playerPosition, playerCharge);
-
-    const monsterCharge = getChargePercentage('monster');
     animateSpriteToPosition(monsterPosition, monsterCharge);
-  }, [currentTurnIndex, turnQueue]);
+  }, [playerCharge, monsterCharge]);
+
+  // useEffect(() => {
+  //   const playerCharge = getChargePercentage(player.id);
+  //   console.log(playerCharge);
+  //   animateSpriteToPosition(playerPosition, playerCharge);
+
+  //   const monsterCharge = getChargePercentage('monster');
+  //   console.log(monsterCharge);
+  //   animateSpriteToPosition(monsterPosition, monsterCharge);
+  // }, [currentTurnIndex, turnQueue]);
 
   const renderTurnOrder = () => {
     return (
@@ -575,7 +710,7 @@ const Combat = () => {
                 height={48}
                 state={
                   turnQueue[currentTurnIndex]?.id === player.id
-                    ? SpriteState.ATTACK_2
+                    ? SpriteState.MOVE
                     : SpriteState.IDLE
                 }
               />
@@ -664,19 +799,20 @@ const Combat = () => {
     }
 
     await delay(500);
-    setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
+    // setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
+    setMonsterCharge(0);
     setIsAnimating(false);
   };
 
-  useEffect(() => {
-    if (turnQueue.length && !isAnimating) {
-      if (turnQueue[currentTurnIndex]?.isPlayer) {
-        // Player turn
-      } else {
-        handleMonsterTurn();
-      }
-    }
-  }, [currentTurnIndex, turnQueue, isAnimating]);
+  // useEffect(() => {
+  //   if (turnQueue.length && !isAnimating) {
+  //     if (turnQueue[currentTurnIndex]?.isPlayer) {
+  //       // Player turn
+  //     } else {
+  //       handleMonsterTurn();
+  //     }
+  //   }
+  // }, [currentTurnIndex, turnQueue, isAnimating]);
 
   const spriteSize = useMemo(() => {
     const { width } = Dimensions.get('window');
@@ -695,7 +831,7 @@ const Combat = () => {
       battleBackgrounds[Math.floor(Math.random() * battleBackgrounds.length)],
   );
 
-  if (isInitializing) {
+  if (!isMonsterInitialized || !isPlayerInitialized || isInitializing) {
     return (
       <SafeAreaView className="flex-1">
         <ImageBackground
@@ -770,12 +906,12 @@ const Combat = () => {
                   <View
                     className="h-full bg-green"
                     style={{
-                      width: `${(player.health / initialPlayer.health) * 100}%`,
+                      width: `${(player.health / player.maxHealth) * 100}%`,
                     }}
                   />
                 </View>
                 <Text className="text-sm mt-1 text-white">
-                  HP: {player.health}/{initialPlayer.health}
+                  HP: {player.health}/{player.maxHealth}
                 </Text>
               </View>
             </View>
