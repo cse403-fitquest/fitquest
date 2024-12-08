@@ -431,72 +431,7 @@ const Quest = () => {
 
     const nextMilestones = getNextMilestones(selectedQuest, progress);
 
-    // If there are no more milestones ahead, show the final stretch
-    if (nextMilestones.length === 0 || nextMilestones.length === 1) {
-      return (
-        <View className="mt-4 mb-2">
-          <Text className="text-md mb-5 font-bold">Quest Completed!</Text>
-          <View
-            className="flex-row items-center relative"
-            style={{ height: 50 }}
-          >
-            {/* Background line */}
-            <View
-              className="absolute bg-gray"
-              style={{
-                height: 3,
-                width: '100%',
-                top: '50%',
-                transform: [{ translateY: -1.5 }],
-              }}
-            />
-
-            {/* Container for nodes with fixed width */}
-            <View
-              className="flex-row items-center"
-              style={{
-                width: '50%', // Reduce total width to make it more compact
-                marginHorizontal: 'auto', // Center the nodes container
-              }}
-            >
-              {/* Start node */}
-              <View
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 20,
-                  backgroundColor: '#4CAF50',
-                  borderWidth: 2,
-                  borderColor: '#45a049',
-                }}
-              />
-
-              {/* Boss node */}
-              <View
-                style={{
-                  position: 'absolute',
-                  right: -30, // Adjust to align with the line end
-                  width: 60,
-                  height: 60,
-                  marginTop: -50,
-                }}
-              >
-                <AnimatedSprite
-                  id={activeQuest?.boss.spriteId}
-                  width={80}
-                  height={80}
-                  state={SpriteState.IDLE}
-                />
-              </View>
-            </View>
-          </View>
-        </View>
-      );
-    }
-
     const visualMilestones = [startingPoint, ...nextMilestones];
-
-    // const percentage = calculateQuestPercentage(quest, progress);
 
     const getProgressText = () => {
       if (!user?.activeWorkoutMinutes) return '0% ready to advance!';
