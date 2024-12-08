@@ -567,8 +567,8 @@ describe('tests for profile screen', () => {
     expect(screen.getByDisplayValue('180')).toBeTruthy();
     await waitFor(() => {
       fireEvent.press(screen.getByText('SIGN OUT'));
+      //should not change users data
+      expect(updateUserProfile).toHaveBeenCalledTimes(0);
     });
-    //should not change users data
-    expect(updateUserProfile).toHaveBeenCalledTimes(0);
   });
 });
