@@ -27,13 +27,6 @@ import clsx from 'clsx';
 import { getUserTotalAttributes } from '@/utils/user';
 import { useItemStore } from '@/store/item';
 
-type TurnInfo = {
-  id: string;
-  name: string;
-  speed: number;
-  isPlayer: boolean;
-};
-
 const calculatePlayerLevel = (attributes: {
   power: number;
   speed: number;
@@ -224,9 +217,6 @@ const Combat = () => {
     return isBoss === 'true';
   });
 
-  const [turnQueue, setTurnQueue] = useState<TurnInfo[]>([]);
-  const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
-
   useEffect(() => {
     if (
       isMonsterInitialized &&
@@ -304,6 +294,12 @@ const Combat = () => {
   ]);
 
   useEffect(() => {
+    if (currentTurnEntity === 'monster') {
+      handleMonsterTurn();
+    }
+  }, [currentTurnEntity]);
+
+  useEffect(() => {
     console.log(
       'Player charge:',
       playerCharge,
@@ -317,65 +313,8 @@ const Combat = () => {
 
     if (monsterCharge >= 100) {
       setCurrentTurnEntity('monster');
-      // setMonsterCharge(0);
     }
   }, [playerCharge, monsterCharge]);
-
-  // const gcd = (a: number, b: number): number => {
-  //   return b === 0 ? a : gcd(b, a % b);
-  // };
-
-  const calculateTurnOrder = (playerSpeed: number, monsterSpeed: number) => {
-    const turns: TurnInfo[] = [];
-    let playerNextTurn = 0;
-    let monsterNextTurn = 0;
-
-    const totalTurnsToCalculate = 20;
-
-    if (playerSpeed >= monsterSpeed) {
-      playerNextTurn = 0;
-      monsterNextTurn = 1 / monsterSpeed;
-    } else {
-      playerNextTurn = 1 / playerSpeed;
-      monsterNextTurn = 0;
-    }
-
-    for (let i = 0; i < totalTurnsToCalculate; i++) {
-      if (playerNextTurn <= monsterNextTurn) {
-        turns.push({
-          id: player.id,
-          name: player.name,
-          speed: playerSpeed,
-          isPlayer: true,
-        });
-        playerNextTurn += 1 / playerSpeed;
-      } else {
-        turns.push({
-          id: 'monster',
-          name: monster.name,
-          speed: monsterSpeed,
-          isPlayer: false,
-        });
-        monsterNextTurn += 1 / monsterSpeed;
-      }
-    }
-
-    return turns.map((turn) => ({
-      ...turn,
-      name: turn.isPlayer ? player.name : monster.name,
-    }));
-  };
-
-  // const generateMoreTurns = () => {
-  //   const newTurns = calculateTurnOrder(player.speed, monster.speed);
-  //   setTurnQueue((prev) => [...prev, ...newTurns]);
-  // };
-
-  // useEffect(() => {
-  //   if (turnQueue.length - currentTurnIndex < 10) {
-  //     generateMoreTurns();
-  //   }
-  // }, [currentTurnIndex]);
 
   const resetCombatState = () => {
     setStrongAttackCooldown(0);
@@ -478,6 +417,11 @@ const Combat = () => {
     return Math.floor(baseDamage * randomFactor);
   };
 
+  const endPlayerTurn = () => {
+    setPlayerCharge(0);
+    setCurrentTurnEntity(null);
+  };
+
   const handleAttack = async (isStrong = false) => {
     if (isAnimating) return;
 
@@ -493,6 +437,7 @@ const Combat = () => {
     setPlayerSpriteState(
       isStrong ? SpriteState.ATTACK_1 : SpriteState.ATTACK_2,
     );
+    setMonsterSpriteState(SpriteState.DAMAGED);
 
     const newMonsterHealth = Math.max(0, monster.health - damage);
     setMonster((prev) => ({ ...prev, health: newMonsterHealth }));
@@ -510,22 +455,22 @@ const Combat = () => {
 
     await delay(500);
 
-    setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
     setIsAnimating(false);
     setPlayerSpriteState(SpriteState.IDLE);
+    setMonsterSpriteState(SpriteState.IDLE);
 
     if (strongAttackCooldown > 0) {
       setStrongAttackCooldown((prev) => prev - 1);
     }
 
-    setPlayerCharge(0);
+    endPlayerTurn();
   };
 
   const handlePotion = async (type: 'small' | 'large') => {
     if (
       !user?.id ||
       isAnimating ||
-      !turnQueue[currentTurnIndex]?.isPlayer ||
+      currentTurnEntity !== 'player' ||
       potions[type] <= 0
     )
       return;
@@ -561,8 +506,6 @@ const Combat = () => {
         setPotions((prev) => ({ ...prev, [type]: prev[type] - 1 }));
         setCombatLog((prev) => [...prev, `You healed for ${healAmount} HP!`]);
 
-        setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
-
         if (strongAttackCooldown > 0) {
           setStrongAttackCooldown((prev) => prev - 1);
         }
@@ -572,6 +515,7 @@ const Combat = () => {
       Alert.alert('Error', 'Failed to use potion. Please try again.');
     } finally {
       setIsAnimating(false);
+      endPlayerTurn();
     }
   };
 
@@ -697,11 +641,10 @@ const Combat = () => {
                   { translateY: -24 },
                   { translateX: 0 },
                   {
-                    scale:
-                      turnQueue[currentTurnIndex]?.id === player.id ? 1.25 : 1,
+                    scale: currentTurnEntity === 'player' ? 1.25 : 1,
                   },
                 ],
-                zIndex: turnQueue[currentTurnIndex]?.id === player.id ? 2 : 1,
+                zIndex: currentTurnEntity === 'player' ? 2 : 1,
               }}
             >
               <AnimatedSprite
@@ -709,9 +652,9 @@ const Combat = () => {
                 width={48}
                 height={48}
                 state={
-                  turnQueue[currentTurnIndex]?.id === player.id
-                    ? SpriteState.MOVE
-                    : SpriteState.IDLE
+                  currentTurnEntity === 'player'
+                    ? SpriteState.ATTACK_2
+                    : SpriteState.MOVE
                 }
               />
             </Animated.View>
@@ -728,11 +671,10 @@ const Combat = () => {
                   { translateY: -24 },
                   { translateX: 0 },
                   {
-                    scale:
-                      turnQueue[currentTurnIndex]?.id === 'monster' ? 1.25 : 1,
+                    scale: currentTurnEntity === 'monster' ? 1.25 : 1,
                   },
                 ],
-                zIndex: turnQueue[currentTurnIndex]?.id === 'monster' ? 2 : 1,
+                zIndex: currentTurnEntity === 'monster' ? 2 : 1,
               }}
             >
               <AnimatedSprite
@@ -740,9 +682,9 @@ const Combat = () => {
                 width={48}
                 height={48}
                 state={
-                  turnQueue[currentTurnIndex]?.id === 'monster'
-                    ? SpriteState.ATTACK_2
-                    : SpriteState.IDLE
+                  currentTurnEntity === 'monster'
+                    ? SpriteState.ATTACK_1
+                    : SpriteState.MOVE
                 }
               />
             </Animated.View>
@@ -752,20 +694,10 @@ const Combat = () => {
     );
   };
 
-  useEffect(() => {
-    if (isMonsterInitialized && player && monster) {
-      const initialTurns = calculateTurnOrder(player.speed, monster.speed);
-      setTurnQueue(initialTurns);
-    } else if (isBossFight && player && monster) {
-      const initialTurns = calculateTurnOrder(player.speed, monster.speed);
-      setTurnQueue(initialTurns);
-    }
-  }, [isMonsterInitialized, player, monster, isBossFight]);
-
   const handleMonsterTurn = async () => {
     if (
       isAnimating ||
-      turnQueue[currentTurnIndex]?.isPlayer ||
+      currentTurnEntity !== 'monster' ||
       (!isMonsterInitialized && !isBossFight)
     )
       return;
@@ -777,6 +709,7 @@ const Combat = () => {
     await delay(1000);
 
     setMonsterSpriteState(SpriteState.ATTACK_1);
+    setPlayerSpriteState(SpriteState.DAMAGED);
     await delay(500);
 
     setPlayer((prev) => ({
@@ -791,6 +724,7 @@ const Combat = () => {
 
     await delay(500);
     setMonsterSpriteState(SpriteState.IDLE);
+    setPlayerSpriteState(SpriteState.IDLE);
 
     if (player.health - monsterDamage <= 0) {
       setIsAnimating(false);
@@ -801,6 +735,7 @@ const Combat = () => {
     await delay(500);
     // setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
     setMonsterCharge(0);
+    setCurrentTurnEntity(null);
     setIsAnimating(false);
   };
 
@@ -945,18 +880,26 @@ const Combat = () => {
             </Text>
             <View className="space-y-2">
               <Pressable
-                className={`bg-white/90 p-3 rounded shadow ${isAnimating ? 'opacity-50' : ''}`}
+                className={`bg-white/90 p-3 rounded shadow ${isAnimating || currentTurnEntity !== 'player' ? 'opacity-50' : ''}`}
                 onPress={() => handleAttack(false)}
-                disabled={isAnimating}
+                disabled={isAnimating || currentTurnEntity !== 'player'}
               >
                 <Text className="text-center">Attack</Text>
               </Pressable>
               <Pressable
                 className={`bg-white/90 py-3 rounded shadow ${
-                  strongAttackCooldown > 0 || isAnimating ? 'opacity-50' : ''
+                  strongAttackCooldown > 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                    ? 'opacity-50'
+                    : ''
                 }`}
                 onPress={() => handleAttack(true)}
-                disabled={strongAttackCooldown > 0 || isAnimating}
+                disabled={
+                  strongAttackCooldown > 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                }
               >
                 <Text className="text-center flex-row items-center justify-center">
                   Strong Attack
@@ -985,10 +928,18 @@ const Combat = () => {
             <View className="space-y-2">
               <Pressable
                 className={`bg-white/90 p-3 rounded shadow ${
-                  potions.small <= 0 || isAnimating ? 'opacity-50' : ''
+                  potions.small <= 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                    ? 'opacity-50'
+                    : ''
                 }`}
                 onPress={() => handlePotion('small')}
-                disabled={potions.small <= 0 || isAnimating}
+                disabled={
+                  potions.small <= 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                }
               >
                 <Text className="text-center">
                   Small Potion
@@ -997,10 +948,18 @@ const Combat = () => {
               </Pressable>
               <Pressable
                 className={`bg-white/90 p-3 rounded shadow ${
-                  potions.large <= 0 || isAnimating ? 'opacity-50' : ''
+                  potions.large <= 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                    ? 'opacity-50'
+                    : ''
                 }`}
                 onPress={() => handlePotion('large')}
-                disabled={potions.large <= 0 || isAnimating}
+                disabled={
+                  potions.large <= 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                }
               >
                 <Text className="text-center">
                   Large Potion
