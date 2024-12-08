@@ -22,6 +22,7 @@ import { getDoc, doc } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { updateUserProfile } from '@/services/user';
 import { getMonsterById } from '@/services/monster';
+import clsx from 'clsx';
 
 type TurnInfo = {
   id: string;
@@ -541,10 +542,10 @@ const Combat = () => {
 
   const renderTurnOrder = () => {
     return (
-      <View className="mb-4">
+      <View className="my-4">
         <View className="h-24 rounded-xl p-4">
           <View className="h-full relative flex-row items-center">
-            <View className="absolute left-4 right-4 top-2/3 h-[5px] bg-yellow">
+            <View className="absolute left-4 right-4 top-2/3 h-[5px] bg-yellow border border-black">
               <View className="absolute top-[-3px] left-0 w-[6px] h-[12px] bg-yellow rounded-full" />
               <View className="absolute top-[-3px] right-0 w-[6px] h-[12px] bg-yellow rounded-full" />
             </View>
@@ -684,7 +685,8 @@ const Combat = () => {
   }, []);
 
   const battleBackgrounds = [
-    require('@/assets/backgrounds/battle_background_1.png'),
+    require('@/assets/backgrounds/bg_fight_screen_1.png'),
+    require('@/assets/backgrounds/bg_fight_screen_2.png'),
     // Add more backgrounds as needed
   ];
 
@@ -695,33 +697,35 @@ const Combat = () => {
 
   if (isInitializing) {
     return (
-      <ImageBackground source={battleBackground} className="flex-1">
-        <SafeAreaView className="flex-1 items-center justify-center">
+      <SafeAreaView className="flex-1">
+        <ImageBackground
+          source={battleBackground}
+          className="flex-1 items-center justify-center"
+        >
           <View className="bg-black/50 p-6 rounded-xl items-center">
             <ActivityIndicator size="large" color="#ffffff" />
             <Text className="text-xl text-white mt-4">
               Preparing for battle...
             </Text>
           </View>
-        </SafeAreaView>
-      </ImageBackground>
+        </ImageBackground>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ImageBackground source={battleBackground} className="flex-1">
-      <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
-        <View className="h-2 bg-gray-200/50 rounded-full mb-12">
-          <View className="h-full bg-blue-500/70 rounded-full w-1/2" />
-        </View>
-
+    <SafeAreaView className="flex-1">
+      <ImageBackground
+        source={battleBackground}
+        className="flex-1 px-6 flex-col justify-between bg-yellow h-full mt-5"
+      >
         {renderTurnOrder()}
 
-        <View className="flex-1 px-6 justify-center items-center h-full">
-          <View className="h-[300px] w-full mb-40 rounded-xl p-4">
+        <View className="flex-1 justify-center items-center h-full">
+          <View className="w-full rounded-xl">
             <View className="flex-row justify-between items-start mb-[10px]">
-              <View className="w-1/2 pr-4 bg-black/30 p-2 rounded">
-                <Text className="text-lg font-bold mb-1 text-white">
+              <View className="w-1/2 pr-4 bg-black/40 p-2 rounded">
+                <Text className="text-md font-bold mb-1 text-white">
                   {monster.name}
                 </Text>
                 <View className="w-full h-4 bg-gray/80 rounded-full overflow-hidden border border-black border-2">
@@ -737,7 +741,7 @@ const Combat = () => {
                 </Text>
               </View>
 
-              <View className="w-1/2 items-end left-5">
+              <View className="w-1/2 items-center">
                 <AnimatedSprite
                   id={monster.spriteId}
                   width={spriteSize}
@@ -749,7 +753,7 @@ const Combat = () => {
             </View>
 
             <View className="flex-row justify-between items-center">
-              <View className="w-1/2 items-start right-5">
+              <View className="w-1/2 items-center right-5">
                 <AnimatedSprite
                   id={user?.spriteID}
                   width={spriteSize}
@@ -758,8 +762,8 @@ const Combat = () => {
                 />
               </View>
 
-              <View className="w-1/2 pl-4 bg-black/30 p-2 rounded">
-                <Text className="text-lg font-bold mb-1 text-white">
+              <View className="w-1/2 pl-4 bg-black/40 p-2 rounded">
+                <Text className="text-md font-bold mb-1 text-white">
                   {player.name}
                 </Text>
                 <View className="w-full h-4 bg-gray/80 rounded-full overflow-hidden border border-black border-2">
@@ -777,18 +781,30 @@ const Combat = () => {
             </View>
           </View>
         </View>
-
-        <View className="absolute left-6 w-full bottom-[170px] mb-4 p-2 bg-black/50 rounded">
-          {combatLog.slice(-3).map((log, index) => (
-            <Text key={index} className="text-sm mb-1 text-white">
-              {log}
-            </Text>
-          ))}
+        <View className="h-[90px] mb-4 justify-end">
+          <View
+            className={clsx('w-full p-2 bg-black/50 rounded max-h-[90px]', {
+              hidden: combatLog.length === 0,
+            })}
+          >
+            {combatLog.slice(-3).map((log, index) => (
+              <Text key={index} className="text-sm mb-1 text-white w-full">
+                {log}
+              </Text>
+            ))}
+          </View>
         </View>
 
-        <View className="absolute left-6 bottom-0 pb-8 flex-row w-full h-[160px]">
+        <View className="flex-row w-full mb-8">
           <View className="flex-1 mr-2">
-            <Text className="text-lg font-bold mb-2 text-white drop-shadow">
+            <Text
+              className="text-lg font-bold mb-2 text-white"
+              style={{
+                textShadowColor: '#000',
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 15,
+              }}
+            >
               MOVES
             </Text>
             <View className="space-y-2">
@@ -800,7 +816,7 @@ const Combat = () => {
                 <Text className="text-center">Attack</Text>
               </Pressable>
               <Pressable
-                className={`bg-white/90 p-3 rounded shadow ${
+                className={`bg-white/90 py-3 rounded shadow ${
                   strongAttackCooldown > 0 || isAnimating ? 'opacity-50' : ''
                 }`}
                 onPress={() => handleAttack(true)}
@@ -820,7 +836,14 @@ const Combat = () => {
           </View>
 
           <View className="flex-1 ml-2">
-            <Text className="text-lg font-bold mb-2 text-white drop-shadow">
+            <Text
+              className="text-lg font-bold mb-2 text-white drop-shadow"
+              style={{
+                textShadowColor: '#000',
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 15,
+              }}
+            >
               POTIONS
             </Text>
             <View className="space-y-2">
@@ -983,8 +1006,8 @@ const Combat = () => {
         </Modal>
 
         <StatusBar backgroundColor="#161622" style="light" />
-      </SafeAreaView>
-    </ImageBackground>
+      </ImageBackground>
+    </SafeAreaView>
   );
 };
 
