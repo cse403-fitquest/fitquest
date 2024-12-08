@@ -42,6 +42,12 @@ export const Sprite: FC<ISprite> = ({ id, width, height }) => {
     case SpriteID.T2_HEAVY_ARMOR:
       spriteSource = require('@/assets/sprites/t2_heavy_armor.png');
       break;
+    case SpriteID.T2_HELM:
+      spriteSource = require('@/assets/sprites/t2_helm.png');
+      break;
+    case SpriteID.T2_SHIELD:
+      spriteSource = require('@/assets/sprites/t2_shield.png');
+      break;
 
     // Tier 3 equipment
     case SpriteID.T3_DAGGER:
