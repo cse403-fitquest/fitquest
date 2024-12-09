@@ -448,11 +448,13 @@ const Quest = () => {
     const getProgressText = () => {
       if (!user?.activeWorkoutMinutes) return '0% ready to advance!';
 
-      if (user.activeWorkoutMinutes >= 1) {
+      if (user.activeWorkoutMinutes >= 30) {
         return 'Ready to advance!';
       }
 
-      const readyPercentage = Math.round((user.activeWorkoutMinutes / 1) * 100);
+      const readyPercentage = Math.round(
+        (user.activeWorkoutMinutes / 30) * 100,
+      );
       return `${readyPercentage}% ready to advance!`;
     };
 
