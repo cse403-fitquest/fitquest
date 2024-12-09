@@ -733,4 +733,26 @@ describe('tests for attributes screen', () => {
     // should not update profile in cancel
     expect(updateUserProfile).toHaveBeenCalledTimes(0);
   });
+
+  it('test back', async () => {
+    mockUser = {
+      ...mockUser,
+      attributePoints: 20,
+    };
+    render(<AllocatePoints />);
+
+    await waitFor(() => {
+      expect(screen.getByText('You have')).toBeTruthy();
+      expect(screen.getByText('20 points')).toBeTruthy();
+      expect(screen.getByText('to allocate')).toBeTruthy();
+    });
+    // adding
+    fireEvent.press(screen.getAllByTestId('mock-ionicon-add-outline')[0]);
+    fireEvent.press(screen.getAllByTestId('mock-ionicon-add-outline')[1]);
+    fireEvent.press(screen.getAllByTestId('mock-ionicon-add-outline')[2]);
+    fireEvent.press(screen.getByText('BACK'));
+    // should not update profile in back, and should go back to profile
+    expect(router.back).toHaveBeenCalledTimes(1);
+    expect(updateUserProfile).toHaveBeenCalledTimes(0);
+  });
 });
