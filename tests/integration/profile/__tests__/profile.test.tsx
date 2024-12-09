@@ -294,7 +294,7 @@ describe('tests for profile screen', () => {
       //these should be visible now
       expect(screen.getByText('Weight (lbs)')).toBeTruthy();
       expect(screen.getByText('Height (ft)')).toBeTruthy();
-      expect(screen.getByText('Username')).toBeTruthy();
+      // expect(screen.getByText('Username')).toBeTruthy();
       expect(screen.getByText('Profile Settings')).toBeTruthy();
       expect(screen.getByText('SIGN OUT')).toBeTruthy();
       expect(screen.getByText('Share Current Quest')).toBeTruthy();
@@ -311,48 +311,48 @@ describe('tests for profile screen', () => {
   });
 
   //test successful username change
-  it('successfully change username', async () => {
-    await waitFor(() => {
-      (updateUserProfile as unknown as jest.Mock).mockReturnValue({
-        user: mockUser,
-        updates: {
-          ...mockUser,
-          profileInfo: {
-            ...mockUser.profileInfo,
-            username: 'lombardstreet',
-          },
-        },
-      });
+  // it('successfully change username', async () => {
+  //   await waitFor(() => {
+  //     (updateUserProfile as unknown as jest.Mock).mockReturnValue({
+  //       user: mockUser,
+  //       updates: {
+  //         ...mockUser,
+  //         profileInfo: {
+  //           ...mockUser.profileInfo,
+  //           username: 'lombardstreet',
+  //         },
+  //       },
+  //     });
 
-      render(<Profile />);
-      expect(true).toBe(true);
-      fireEvent.press(screen.getByTestId('settings-outline'));
-      fireEvent.changeText(
-        screen.getByPlaceholderText('Enter username'),
-        'lombardstreet',
-      );
-      expect(screen.getByDisplayValue('lombardstreet')).toBeTruthy();
+  //     render(<Profile />);
+  //     expect(true).toBe(true);
+  //     fireEvent.press(screen.getByTestId('settings-outline'));
+  //     fireEvent.changeText(
+  //       screen.getByPlaceholderText('Enter username'),
+  //       'lombardstreet',
+  //     );
+  //     expect(screen.getByDisplayValue('lombardstreet')).toBeTruthy();
 
-      fireEvent.press(screen.getByText('CONFIRM'));
-      expect(screen.queryByText('Profile Setting')).toBeNull();
-      expect(updateUserProfile).toHaveBeenCalledWith(
-        '1aA0I6IwN5Ts8BBr68CH19wzlQz1',
-        {
-          privacySettings: {
-            isCurrentQuestPublic: true,
-            isLastWorkoutPublic: true,
-          },
-          profileInfo: {
-            age: 20,
-            email: 'lex@gmail.com',
-            height: 5.9,
-            username: 'lombardstreet',
-            weight: 170,
-          },
-        },
-      );
-    });
-  });
+  //     fireEvent.press(screen.getByText('CONFIRM'));
+  //     expect(screen.queryByText('Profile Setting')).toBeNull();
+  //     expect(updateUserProfile).toHaveBeenCalledWith(
+  //       '1aA0I6IwN5Ts8BBr68CH19wzlQz1',
+  //       {
+  //         privacySettings: {
+  //           isCurrentQuestPublic: true,
+  //           isLastWorkoutPublic: true,
+  //         },
+  //         profileInfo: {
+  //           age: 20,
+  //           email: 'lex@gmail.com',
+  //           height: 5.9,
+  //           username: 'lombardstreet',
+  //           weight: 170,
+  //         },
+  //       },
+  //     );
+  //   });
+  // });
 
   //test successful change of height
   it('successfully change height', async () => {

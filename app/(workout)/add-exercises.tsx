@@ -24,7 +24,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { v4 as uuidv4 } from 'uuid';
+import uuid from 'react-native-uuid';
 
 const AddExercises = () => {
   const { isActiveWorkout } = useLocalSearchParams<{
@@ -42,7 +42,7 @@ const AddExercises = () => {
     setExercises(
       ALL_EXERCISES_STUB.map((exercise) => ({
         ...exercise,
-        id: uuidv4(),
+        id: uuid.v4(),
         selected: false,
       })),
     );
@@ -202,7 +202,7 @@ const AddExercises = () => {
       .filter((exercise) => selectedExerciseIds.includes(exercise.id))
       .map((exercise) => {
         const firstSet: ExerciseSetDisplay = {
-          id: uuidv4(),
+          id: uuid.v4(),
           weight: 0,
           reps: 0,
           distance: 0,
@@ -212,7 +212,7 @@ const AddExercises = () => {
 
         const exerciseObject: ExerciseDisplay = {
           ...BASE_EXERCISE_DISPLAY,
-          id: uuidv4(),
+          id: uuid.v4(),
           tags: exercise.tags,
           name: exercise.name,
           muscleGroup: exercise.muscleGroup,

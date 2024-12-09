@@ -114,7 +114,7 @@ const Profile = () => {
     user?.privacySettings.isLastWorkoutPublic,
   );
 
-  const [username, setUsername] = useState(user?.profileInfo.username || '');
+  // const [username, setUsername] = useState(user?.profileInfo.username || '');
 
   const [height, setHeight] = useState(
     user?.profileInfo.height?.toString() || '',
@@ -547,7 +547,7 @@ const Profile = () => {
 
     // Check if there are actual changes
     const hasChanges =
-      username.trim() !== user.profileInfo.username ||
+      // username.trim() !== user.profileInfo.username ||
       parseFloat(height) !== user.profileInfo.height ||
       parseFloat(weight) !== user.profileInfo.weight ||
       isCurrentQuestPublic !== user.privacySettings.isCurrentQuestPublic ||
@@ -561,13 +561,13 @@ const Profile = () => {
       return; // Exit if no changes
     }
 
-    if (!username.trim() || username.trim().length < 4) {
-      Alert.alert(
-        'Validation Error',
-        'Username must be at least 4 characters long.',
-      );
-      return;
-    }
+    // if (!username.trim() || username.trim().length < 4) {
+    //   Alert.alert(
+    //     'Validation Error',
+    //     'Username must be at least 4 characters long.',
+    //   );
+    //   return;
+    // }
 
     const parsedHeight = parseFloat(height);
     const parsedWeight = parseFloat(weight);
@@ -585,7 +585,7 @@ const Profile = () => {
     const updates: Partial<User> = {
       profileInfo: {
         ...user.profileInfo,
-        username: username.trim(),
+        // username: username.trim(),
         height: parseFloat(height),
         weight: parseFloat(weight),
       },
@@ -613,7 +613,7 @@ const Profile = () => {
 
   const closeSettingsModal = () => {
     // Reset the state to the user's actual profile info
-    setUsername(user?.profileInfo.username || '');
+    // setUsername(user?.profileInfo.username || '');
     setHeight(user?.profileInfo.height?.toString() || '');
     setWeight(user?.profileInfo.weight?.toString() || '');
     setIsCurrentQuestPublic(
@@ -958,7 +958,7 @@ const Profile = () => {
       >
         <View className="py-4 w-[220px] relative">
           <View className="space-y-4 mt-4">
-            <View>
+            {/* <View>
               <Text className="text-gray-500 mb-1">Username</Text>
               <TextInput
                 className="p-2 border border-gray-300 rounded"
@@ -966,7 +966,7 @@ const Profile = () => {
                 onChangeText={setUsername}
                 placeholder="Enter username"
               />
-            </View>
+            </View> */}
 
             <View>
               <Text className="text-gray-500 mb-1">Height (ft)</Text>

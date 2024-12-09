@@ -33,6 +33,7 @@ export type User = {
   savedWorkouts: WorkoutTemplate[]; // Array of all users' workout templates
   savedWorkoutTemplates: Workout[];
   activeWorkoutMinutes: number;
+  activeWorkout: Workout | null;
   workoutHistory: Workout[];
   privacySettings: {
     isLastWorkoutPublic: boolean;
