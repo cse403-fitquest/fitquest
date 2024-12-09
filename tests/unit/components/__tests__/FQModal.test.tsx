@@ -28,8 +28,8 @@ describe('FQModal', () => {
 
   it('renders title and subtitle correctly', () => {
     const { getByTestId } = render(<FQModal {...defaultProps} />);
-    expect(getByTestId('FQButton-title').props.children).toBe('Test Title');
-    expect(getByTestId('FQButton-subtitle').props.children).toBe(
+    expect(getByTestId('FQModal-title').props.children).toBe('Test Title');
+    expect(getByTestId('FQModal-subtitle').props.children).toBe(
       'Test Subtitle',
     );
   });
@@ -41,13 +41,13 @@ describe('FQModal', () => {
 
   it('calls setVisible(false) when cancel button is pressed', () => {
     const { getByTestId } = render(<FQModal {...defaultProps} />);
-    fireEvent.press(getByTestId('FQButton-cancel'));
+    fireEvent.press(getByTestId('FQModal-cancel-button'));
     expect(mockSetVisible).toHaveBeenCalledWith(false);
   });
 
   it('calls onConfirm when confirm button is pressed', () => {
     const { getByTestId } = render(<FQModal {...defaultProps} />);
-    fireEvent.press(getByTestId('FQButton-confirm'));
+    fireEvent.press(getByTestId('FQModal-confirm-button'));
     expect(mockOnConfirm).toHaveBeenCalled();
   });
 
@@ -55,6 +55,6 @@ describe('FQModal', () => {
     const { queryByTestId } = render(
       <FQModal {...defaultProps} visible={false} />,
     );
-    expect(queryByTestId('FQButton-title')).toBeNull();
+    expect(queryByTestId('FQModal-title')).toBeNull();
   });
 });

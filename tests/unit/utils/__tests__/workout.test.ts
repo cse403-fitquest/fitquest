@@ -23,7 +23,7 @@ describe('Workout Utility Functions', () => {
 
       const updatedUser1 = updateUserAfterExpGain(user1, 1000);
 
-      expect(updatedUser1.exp).toBe(2000);
+      expect(updatedUser1.exp).toBe(500);
     });
 
     it('should update user exp #3', () => {
@@ -34,7 +34,7 @@ describe('Workout Utility Functions', () => {
 
       const updatedUser1 = updateUserAfterExpGain(user1, 1000);
 
-      expect(updatedUser1.exp).toBe(3000);
+      expect(updatedUser1.exp).toBe(1500);
     });
 
     it('should level up a user and give them attribute points #1', () => {
@@ -45,20 +45,8 @@ describe('Workout Utility Functions', () => {
 
       const updatedUser1 = updateUserAfterExpGain(user1, 1000);
 
-      expect(updatedUser1.exp).toBe(0);
-      expect(updatedUser1.attributePoints).toBe(1);
-    });
-
-    it('should level up a user and give them attribute points #1', () => {
-      const user1: User = {
-        ...BASE_USER,
-        exp: 3000,
-      };
-
-      const updatedUser1 = updateUserAfterExpGain(user1, 2000);
-
-      expect(updatedUser1.exp).toBe(1000);
-      expect(updatedUser1.attributePoints).toBe(1);
+      expect(updatedUser1.exp).toBe(900);
+      expect(updatedUser1.attributePoints).toBe(2);
     });
 
     it('should level up a user and give them attribute points #2', () => {
@@ -67,10 +55,22 @@ describe('Workout Utility Functions', () => {
         exp: 3000,
       };
 
+      const updatedUser1 = updateUserAfterExpGain(user1, 2000);
+
+      expect(updatedUser1.exp).toBe(200);
+      expect(updatedUser1.attributePoints).toBe(3);
+    });
+
+    it('should level up a user and give them attribute points #3', () => {
+      const user1: User = {
+        ...BASE_USER,
+        exp: 3000,
+      };
+
       const updatedUser1 = updateUserAfterExpGain(user1, 3000);
 
-      expect(updatedUser1.exp).toBe(2000);
-      expect(updatedUser1.attributePoints).toBe(1);
+      expect(updatedUser1.exp).toBe(1200);
+      expect(updatedUser1.attributePoints).toBe(3);
     });
 
     it('should level up a user and give them attribute points multiple times #1', () => {
@@ -81,7 +81,7 @@ describe('Workout Utility Functions', () => {
 
       const updatedUser1 = updateUserAfterExpGain(user1, 9000);
 
-      expect(updatedUser1.attributePoints).toBe(2);
+      expect(updatedUser1.attributePoints).toBe(5);
     });
 
     it('should level up a user and give them attribute points multiple times #2', () => {
@@ -92,7 +92,7 @@ describe('Workout Utility Functions', () => {
 
       const updatedUser1 = updateUserAfterExpGain(user1, 15000);
 
-      expect(updatedUser1.attributePoints).toBe(3);
+      expect(updatedUser1.attributePoints).toBe(8);
     });
   });
 });

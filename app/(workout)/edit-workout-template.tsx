@@ -12,6 +12,7 @@ import {
   Dimensions,
   LayoutAnimation,
   ScrollView,
+  Alert,
 } from 'react-native';
 import 'react-native-get-random-values';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,7 +26,7 @@ import {
   ExerciseTag,
   Workout,
 } from '@/types/workout';
-import { Href, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
 import {
   convertSecondsToMMSS,
@@ -41,7 +42,7 @@ const SET_COLUMN_WIDTH = 40;
 // const PREVIOUS_COLUMN_WIDTH = 68;
 
 const NewWorkout = () => {
-  const { workout, setWorkout } = useWorkoutStore();
+  const { workoutDisplay, setWorkoutDisplay } = useWorkoutStore();
 
   const { user, setUser } = useUserStore();
 
@@ -68,7 +69,7 @@ const NewWorkout = () => {
 
   const handleAddSet: (exerciseID: string) => void = (exerciseID) => {
     console.log('start adding set', exerciseID);
-    const updatedExercises = workout.exercises.map((exercise) => {
+    const updatedExercises = workoutDisplay.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
           ...exercise,
@@ -90,9 +91,9 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkout(() => {
+    setWorkoutDisplay(() => {
       return {
-        ...workout,
+        ...workoutDisplay,
         exercises: updatedExercises,
       };
     });
@@ -142,7 +143,7 @@ const NewWorkout = () => {
       value = 0;
     }
 
-    const updatedExercises = workout.exercises.map((exercise) => {
+    const updatedExercises = workoutDisplay.exercises.map((exercise) => {
       if (exercise.id === exerciseID) {
         return {
           ...exercise,
@@ -178,8 +179,8 @@ const NewWorkout = () => {
     });
 
     printExerciseDisplays(updatedExercises);
-    setWorkout(() => ({
-      ...workout,
+    setWorkoutDisplay(() => ({
+      ...workoutDisplay,
       exercises: updatedExercises,
     }));
     console.log('end updating set');
@@ -197,7 +198,7 @@ const NewWorkout = () => {
   const handleDeleteSet = useCallback((exerciseID: string, setID: string) => {
     console.log('start deleting set', exerciseID, setID);
 
-    setWorkout((prevWorkout) => {
+    setWorkoutDisplay((prevWorkout) => {
       const updatedExercisesWithDeletedSet = prevWorkout.exercises.map(
         (exercise) => {
           if (exercise.id === exerciseID) {
@@ -237,12 +238,12 @@ const NewWorkout = () => {
   }, []);
 
   const moveExercise = (fromIndex: number, toIndex: number) => {
-    const updatedExercises = [...workout.exercises];
+    const updatedExercises = [...workoutDisplay.exercises];
     const [removed] = updatedExercises.splice(fromIndex, 1);
     updatedExercises.splice(toIndex, 0, removed);
 
-    setWorkout(() => ({
-      ...workout,
+    setWorkoutDisplay(() => ({
+      ...workoutDisplay,
       exercises: updatedExercises,
     }));
   };
@@ -272,7 +273,7 @@ const NewWorkout = () => {
     setLoading(true);
 
     // Turn Execises with SetDisplay into Exercises with Set (no completed field)
-    const exercises: Exercise[] = workout.exercises.map((exercise) => {
+    const exercises: Exercise[] = workoutDisplay.exercises.map((exercise) => {
       return {
         ...exercise,
         sets: exercise.sets.map((set) => {
@@ -289,8 +290,8 @@ const NewWorkout = () => {
 
     // Create workout object
     const workoutTemplate: Workout = {
-      id: workout.id,
-      title: workout.name,
+      id: workoutDisplay.id,
+      title: workoutDisplay.name,
       startedAt: workoutStartDate,
       duration: 0,
       exercises: exercises,
@@ -335,6 +336,11 @@ const NewWorkout = () => {
       console.log('Successfully saved workout template');
     } else {
       console.error('Failed to save workout template');
+      Alert.alert(
+        'Error saving workout template',
+        saveWorkoutTemplateResponse.error ||
+          'An error occurred while saving the workout template.',
+      );
 
       // Revert user store
       setUser(oldUser);
@@ -373,16 +379,19 @@ const NewWorkout = () => {
           <TextInput
             className="w-full text-lg font-semibold mb-8"
             onChangeText={(text) =>
-              setWorkout((prevWorkout) => ({ ...prevWorkout, name: text }))
+              setWorkoutDisplay((prevWorkout) => ({
+                ...prevWorkout,
+                name: text,
+              }))
             } // Update workout name
-            value={workout.name}
+            value={workoutDisplay.name}
             defaultValue={''}
           />
           {/* Exercises here */}
         </View>
         <View className="relative w-full justify-start items-start">
           <FlatList
-            data={workout.exercises}
+            data={workoutDisplay.exercises}
             scrollEnabled={false}
             style={{ width: '100%' }}
             keyExtractor={(exercise) => exercise.id}
@@ -410,7 +419,7 @@ const NewWorkout = () => {
                           />
                         </TouchableOpacity>
                       ) : null}
-                      {exerciseIndex !== workout.exercises.length - 1 ? (
+                      {exerciseIndex !== workoutDisplay.exercises.length - 1 ? (
                         <TouchableOpacity
                           className="p-1"
                           onPress={() =>
@@ -498,7 +507,14 @@ const NewWorkout = () => {
         <View className="w-full justify-center items-center mt-5 pb-8">
           <TouchableOpacity
             className="mb-4"
-            onPress={() => router.push('add-exercises' as Href)}
+            onPress={() =>
+              router.push({
+                pathname: '/add-exercises',
+                params: {
+                  isActiveWorkout: 'false',
+                },
+              })
+            }
           >
             <Text className="text-blue text-lg font-semibold ">
               ADD EXERCISE

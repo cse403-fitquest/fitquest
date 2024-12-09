@@ -9,17 +9,11 @@ import {
   doc,
   getDoc,
   getDocs,
-  QueryDocumentSnapshot,
   setDoc,
   updateDoc,
   writeBatch,
 } from 'firebase/firestore';
-
-export const userConverter = {
-  toFirestore: (data: User) => data,
-  fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as User,
-};
-
+import { getUserByUsername, userConverter } from './user.helper';
 /**
  * Fill missing user fields in Firestore based on changes to the User type
  */
@@ -282,6 +276,22 @@ export const updateUserProfile = async (
   updates: Partial<User>,
 ): Promise<APIResponse> => {
   try {
+    // Check if updates changes the username
+    if (updates.profileInfo?.username) {
+      // Check if the new username is already taken
+      const userByUsernameResponse = await getUserByUsername(
+        updates.profileInfo.username,
+      );
+
+      if (userByUsernameResponse.success) {
+        return {
+          success: false,
+          data: null,
+          error: 'Username is already taken.',
+        };
+      }
+    }
+
     const userRef = doc(FIREBASE_DB, 'users', userId);
     await updateDoc(userRef, updates);
     return {

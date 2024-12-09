@@ -10,24 +10,31 @@ import FQButton from '@/components/FQButton';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/colors';
 import { SUGGESTED_TEMPLATES } from '@/constants/workout';
-import { Href, router } from 'expo-router';
+import { Href, router, useLocalSearchParams } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
 import { v4 as uuidv4 } from 'uuid';
 
 const WorkoutScreen = () => {
+  const { didUserLevelUp } = useLocalSearchParams<{ didUserLevelUp: string }>();
+
   const { user } = useUserStore();
-  const [expGainModalVisible, setExpGainModalVisible] = useState(false);
-  const [expGainModalData] = useState<{
-    type: 'levelUp' | 'expGain';
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalContent, setModalContent] = useState<{
     title: string;
-    expGain: number;
-    description: string;
-  }>({
-    type: 'expGain',
-    title: 'You gained EXP!',
-    expGain: 0,
-    description: 'You have gained experience points!',
-  });
+    content: React.ReactNode;
+    onConfirm: () => void;
+    confirmText?: string;
+    onCancel?: () => void;
+    cancelText?: string;
+  }>(
+    // Default modal content
+    {
+      title: '',
+      content: <></>,
+      onConfirm: () => {},
+    },
+  );
 
   if (!user) {
     throw new Error('User data not found.');
@@ -35,7 +42,7 @@ const WorkoutScreen = () => {
 
   const [timer] = useState<ReturnType<typeof setInterval> | null>(null);
 
-  const { workout, setWorkout } = useWorkoutStore();
+  const { workout, setWorkout, setWorkoutDisplay } = useWorkoutStore();
 
   useEffect(() => {
     return () => {
@@ -46,78 +53,14 @@ const WorkoutScreen = () => {
     };
   }, [timer]);
 
-  const onAddWorkoutTemplateClick = () => {
-    console.log('Add workout template clicked');
-
-    setWorkout(() => ({
-      id: uuidv4(),
-      name: 'New Workout Template',
-      exercises: [],
-      startedAt: new Date(),
-    }));
-
-    router.push('/edit-workout-template' as Href);
-  };
-
-  const onWorkoutTemplateClick = (workoutTemplate: Workout) => {
-    console.log('Workout template clicked');
-
-    const workoutExercises: ExerciseDisplay[] = workoutTemplate.exercises.map(
-      (exercise) => ({
-        ...exercise,
-        sets: exercise.sets.map((set) => ({
-          ...set,
-          completed: false,
-        })) as ExerciseSetDisplay[],
-      }),
-    );
-
-    setWorkout(() => ({
-      id: workoutTemplate.id,
-      name: workoutTemplate.title,
-      exercises: workoutExercises,
-      startedAt: new Date(),
-    }));
-
-    router.push('/workout-template' as Href);
-  };
-
-  const onSuggestedWorkoutTemplateClick = (workoutTemplate: Workout) => {
-    console.log('Suggested workout template clicked');
-
-    const workoutExercises: ExerciseDisplay[] = workoutTemplate.exercises.map(
-      (exercise) => ({
-        ...exercise,
-        sets: exercise.sets.map((set) => ({
-          ...set,
-          completed: false,
-        })) as ExerciseSetDisplay[],
-      }),
-    );
-
-    setWorkout(() => ({
-      id: uuidv4(), // Generate a new ID for the workout if it's a suggested template
-      name: workoutTemplate.title,
-      exercises: workoutExercises,
-      startedAt: new Date(),
-      isSuggested: true,
-    }));
-
-    router.push('/workout-template' as Href);
-  };
-
-  return (
-    <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
-      <FQModal
-        visible={expGainModalVisible}
-        setVisible={setExpGainModalVisible}
-        onConfirm={() => setExpGainModalVisible(false)}
-        title={expGainModalData.title}
-        confirmText="CLOSE"
-        width={300}
-      >
-        <View>
-          {expGainModalData.type === 'levelUp' ? (
+  useEffect(() => {
+    console.log('Workout: Did user level up:', didUserLevelUp);
+    if (didUserLevelUp === 'true') {
+      setModalVisible(true);
+      setModalContent({
+        title: 'You Leveled Up!',
+        content: (
+          <View>
             <View className="w-full relative items-center justify-center h-[140px] overflow-hidden">
               <View className="absolute bottom-0 flex-row justify-center items-end">
                 <View className="relative">
@@ -142,18 +85,162 @@ const WorkoutScreen = () => {
                 </View>
               </View>
             </View>
-          ) : null}
-          <View className="mt-8 mb-8">
-            <Text className="text-lg text-center font-bold">
-              EXP GAIN:{' '}
-              <Text className="text-yellow font-bold">
-                {expGainModalData.expGain} XP
-              </Text>
+            <Text className="mt-8">
+              You have leveled up! Continue to the profile screen to allocate
+              your new attribute point to get even stronger!
             </Text>
           </View>
+        ),
+        onConfirm: () => {
+          setModalVisible(false);
+        },
+        confirmText: 'CONTINUE',
+      });
+    }
+  }, [didUserLevelUp]);
 
-          <Text>{expGainModalData.description} </Text>
-        </View>
+  const onAddWorkoutTemplateClick = () => {
+    console.log('Add workout template clicked');
+
+    setWorkoutDisplay(() => ({
+      id: uuidv4(),
+      name: 'New Workout Template',
+      exercises: [],
+      startedAt: new Date(),
+    }));
+
+    router.push('/edit-workout-template' as Href);
+  };
+
+  const onWorkoutTemplateClick = (workoutTemplate: Workout) => {
+    console.log('Workout template clicked');
+
+    const workoutExercises: ExerciseDisplay[] = workoutTemplate.exercises.map(
+      (exercise) => ({
+        ...exercise,
+        sets: exercise.sets.map((set) => ({
+          ...set,
+          completed: false,
+        })) as ExerciseSetDisplay[],
+      }),
+    );
+
+    setWorkoutDisplay(() => ({
+      id: workoutTemplate.id,
+      name: workoutTemplate.title,
+      exercises: workoutExercises,
+      startedAt: new Date(),
+    }));
+
+    router.push('/workout-template' as Href);
+  };
+
+  const onSuggestedWorkoutTemplateClick = (workoutTemplate: Workout) => {
+    console.log('Suggested workout template clicked');
+
+    const workoutExercises: ExerciseDisplay[] = workoutTemplate.exercises.map(
+      (exercise) => ({
+        ...exercise,
+        sets: exercise.sets.map((set) => ({
+          ...set,
+          completed: false,
+        })) as ExerciseSetDisplay[],
+      }),
+    );
+
+    setWorkoutDisplay(() => ({
+      id: uuidv4(), // Generate a new ID for the workout if it's a suggested template
+      name: workoutTemplate.title,
+      exercises: workoutExercises,
+      startedAt: new Date(),
+      isSuggested: true,
+    }));
+
+    router.push('/workout-template' as Href);
+  };
+
+  const onWorkoutHistoryTemplateClick = (workoutTemplate: Workout) => {
+    console.log('Workout history template clicked');
+
+    const workoutExercises: ExerciseDisplay[] = workoutTemplate.exercises.map(
+      (exercise) => ({
+        ...exercise,
+        sets: exercise.sets.map((set) => ({
+          ...set,
+          completed: false,
+        })) as ExerciseSetDisplay[],
+      }),
+    );
+
+    setWorkoutDisplay(() => ({
+      id: workoutTemplate.id,
+      name: workoutTemplate.title,
+      exercises: workoutExercises,
+      startedAt: new Date(),
+    }));
+
+    router.push({
+      pathname: '/workout-template',
+      params: { onlyDisplay: 'true' },
+    });
+  };
+
+  const onNewWorkoutClick = () => {
+    console.log('New workout clicked');
+
+    // Check if there is an active workout
+    // If there is, show a modal to confirm if the user wants to start a new workout
+    if (workout.id) {
+      setModalVisible(true);
+      setModalContent({
+        title: 'Start New Workout',
+        content: (
+          <Text>
+            Are you sure you want to start a new workout? Your current workout
+            will be lost.
+          </Text>
+        ),
+        onConfirm: () => {
+          setModalVisible(false);
+
+          setWorkout(() => ({
+            id: uuidv4(),
+            name: 'Empty Workout',
+            exercises: [],
+            startedAt: new Date(),
+          }));
+
+          router.push('/new-workout' as Href);
+        },
+        confirmText: 'START NEW WORKOUT',
+        onCancel: () => setModalVisible(false),
+        cancelText: 'Cancel',
+      });
+    } else {
+      setWorkout(() => ({
+        id: uuidv4(),
+        name: 'Empty Workout',
+        exercises: [],
+        startedAt: new Date(),
+      }));
+
+      router.push('/new-workout' as Href);
+    }
+  };
+
+  return (
+    <SafeAreaView className="flex-1 items-left justify-left h-full bg-offWhite ">
+      <FQModal
+        title={modalContent.title}
+        visible={modalVisible}
+        setVisible={setModalVisible}
+        onCancel={modalContent.onCancel}
+        onConfirm={modalContent.onConfirm}
+        confirmText={modalContent.confirmText}
+        cancelText={modalContent.cancelText}
+        width={300}
+      >
+        {modalContent.content}
       </FQModal>
       <FlatList
         data={[]}
@@ -189,20 +276,7 @@ const WorkoutScreen = () => {
                 QUICK START
               </Text>
               <View>
-                <FQButton
-                  onPress={() => {
-                    console.log('Start an empty workout');
-
-                    setWorkout(() => ({
-                      id: uuidv4(),
-                      name: 'Empty Workout',
-                      startedAt: new Date(),
-                      exercises: [],
-                    }));
-
-                    router.push('/new-workout' as Href);
-                  }}
-                >
+                <FQButton onPress={onNewWorkoutClick}>
                   START AN EMPTY WORKOUT
                 </FQButton>
               </View>
@@ -253,6 +327,30 @@ const WorkoutScreen = () => {
                     <TouchableOpacity
                       onPress={() =>
                         onSuggestedWorkoutTemplateClick(workoutTemplate)
+                      }
+                    >
+                      <Template workoutTemplate={workoutTemplate} />
+                    </TouchableOpacity>
+                  )}
+                  ItemSeparatorComponent={() => <View className="h-5"></View>}
+                  nestedScrollEnabled={true}
+                />
+              </View>
+            </View>
+
+            {/* Workout History Section */}
+            <View className="">
+              <View className="w-full">
+                <Text className="text-xl text-grayDark font-bold mb-4">
+                  WORKOUT HISTORY
+                </Text>
+                <FlatList
+                  data={user.workoutHistory}
+                  keyExtractor={(workout) => workout.id}
+                  renderItem={({ item: workoutTemplate }) => (
+                    <TouchableOpacity
+                      onPress={() =>
+                        onWorkoutHistoryTemplateClick(workoutTemplate)
                       }
                     >
                       <Template workoutTemplate={workoutTemplate} />

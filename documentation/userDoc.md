@@ -17,39 +17,15 @@ Prerequisites:
 
 **Mobile Device:** Android (version 8.0 or later).
 
-or
-
-**Android Emulator:** Installed here https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=expo-go. Ensure that Android Simulator and Expo Go is selected for the first two options
-
 **Internet Connection:** Required for syncing data.
 
 Installation Steps:
 
-Before you start, you will need to have the following tools installed on your PC/Laptop:
-[Git](https://git-scm.com), [Node.js](https://nodejs.org/en/) (LTS).
-In addition, it is good to have an editor to work with the code such as [VSCode](https://code.visualstudio.com/).
+1. Click this [link](https://expo.dev/accounts/afuza/projects/fitquest/builds/5982ddb7-22ea-466b-ad09-0b80a1eca553) which takes you to the page where you can install the APK file to run the app.
 
+2. Once the page is loaded, simply click on the install button as shown in the screenshot below to download the apk file
 
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/cse403-fitquest/fitquest
-   cd fitquest
-   ```
-
-2. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-3. Run the app
-
-   ```bash
-   npm start
-   ```
-
-The terminal should now display a barcode that you can scan in the next step.
+    <img src="./image.png" alt="Install page" width="300px" />
 
 > **Note:** Ensure your device meets the minimum OS requirements and has sufficient storage space for installation.
 
@@ -57,23 +33,22 @@ The terminal should now display a barcode that you can scan in the next step.
 
 **3. How to Run the Software**
 
-1. Download Expo Go SDK 51:
+1. Once downloaded, simply click on the executable to install the app to your device.
 
-    - Download Expo Go SDK 51 here https://expo.dev/go?sdkVersion=51&platform=android&device=true
+    <!-- ![Install app on device](image-1.png) -->
+    <img src="./image-1.png" alt="Install app on device" width="300px" />
 
-2. Launch FitQuest:
+    - If its your first time downloading, you may get the following prompt by Google Play Protect to scan the app. If you do, simply allow it to scan the app and proceed with the installation. After scanning is finished, it will prompt you to install the app again.
 
-    - Go into Expo Go application, select "Scan QR Code", and scan the barcode displayed in the terminal from the installation step.
+        <img src="./image-2.png" alt="Google Play Protect scan app" width="250px" />
 
-3. Sign In or Register:
+        <img src="./image-3.png" alt="Google Play Protect scan successful" width="250px" />
 
-    - If you have an existing account, enter your credentials to sign in.
+2. Once installation is successful, the app should be installed in your device called FitQuest. Either navigate to the icon or search it in your search bar and launch the app. Or open it directly straight after installation.
 
-    - New users can register using their email address through the Sign Up screen.
+    <img src="./image-4.png" alt="Installation successful" width="300px" />
 
-4. Complete Onboarding:
-
-    - Upon first launch, you'll be guided through an onboarding process to set up your fitness level and customize your avatar attributes.
+3. Congratulations! You can now level up your health!
 
 #
 
@@ -113,9 +88,7 @@ Using FitQuest:
 
 **Work in Progress:**
 
-- More Combat Options: Currently, the only combat options include a single attack and health potions. We want combat to be more engaging and personalized by giving users more options for attacks and consumables.
-
-- Better System For Workout XP Gain: Currently, XP gained from workouts are determined based on the length of the workout. In the future, XP gained will be determined based on the workload of exercises performed during the workout. Thus making it such that doing relatively more weights/repitions/sets/etc will yield more XP.
+- We currently do not have any features pending to implement anytime soon. Any suggestions can be made to our [Github Issues Page](https://github.com/cse403-fitquest/fitquest/issues).
 
 #
 
@@ -155,6 +128,4 @@ To help us improve FitQuest, please report any bugs you encounter using our [Git
 
 **6. Known Bugs**
 
-- Error Handling Failed Requests: Since FitQuest requires an internet connection to synchronize data. There are cases where the stops working or crashes if the user does not have an internet connection while using the app.
-
-- Future Fixes: The above issues are documented and tracked in our GitHub Issues Tracker. We are actively working on resolving them in upcoming updates.
+- We currently do not have any bugs as part of our testing. However, that does not mean our app is 100% bug free. If you notice any bugs, please support us by making it known by creating an issue to our [Github Issues Page](https://github.com/cse403-fitquest/fitquest/issues) so we can take a look at it. Thank you for using our app!

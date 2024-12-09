@@ -10,6 +10,8 @@ export enum SpriteID {
   T2_DAGGER = 't2_dagger',
   T2_SWORD = 't2_sword',
   T2_HEAVY_ARMOR = 't2_heavy_armor',
+  T2_HELM = 't2_helm',
+  T2_SHIELD = 't2_shield',
 
   T3_DAGGER = 't3_dagger',
   T3_SWORD = 't3_sword',
@@ -93,4 +95,9 @@ export enum AnimatedSpriteID {
   WEREWOLF_BROWN = 'werewolf_brown',
   BEAR_BROWN = 'bear_brown',
   BEAR_BLUE = 'bear_blue',
+
+  // Consumables
+  HEALTH_POTION_SMALL = 'health_potion_small',
+  HEALTH_POTION_LARGE = 'health_potion_large',
+  HERO = 'HERO',
 }

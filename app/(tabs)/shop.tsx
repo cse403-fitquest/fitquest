@@ -47,25 +47,15 @@ const Shop = () => {
     });
   }, [user, items]);
 
-  // Turn user consumables ids into actual items
-  const userConsumables = useMemo(() => {
-    return userConsumablesIDs.map((id) => {
-      const consumable = items.find((item) => item.id === id);
-      if (!consumable) {
-        console.error('User consumable not found:', id);
-        return { ...BASE_ITEM, id: id, name: 'Unknown Consumable' };
-      }
-      return consumable;
-    });
-  }, [user, items]);
+  const [userSmallHealthPotCount, userLargeHealthPotCount] = useMemo(() => {
+    if (!user || !items) return [0, 0];
 
-  const [
-    userSmallHealthPotCount,
-    userMediumHealthPotCount,
-    userLargeHealthPotCount,
-  ] = useMemo(() => {
-    return getUserHealthPotionsCountFromItems(userConsumables);
-  }, [user, userConsumables]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [smallHealthPotionsCount, _, largeHealthPotionsCount] =
+      getUserHealthPotionsCountFromItems(user, items);
+
+    return [smallHealthPotionsCount, largeHealthPotionsCount];
+  }, [user]);
 
   const handlePurchaseItem = async () => {
     if (!user || !selectedItem) return;
@@ -80,7 +70,7 @@ const Shop = () => {
     if (user.gold < selectedItem.cost) {
       Alert.alert(
         'Not enough gold',
-        `You need ${selectedItem.cost - user.gold} more gold to buy this.`,
+        `You need ${selectedItem.cost - user.gold} more gold to purchase this.`,
       );
       return;
     }
@@ -114,7 +104,7 @@ const Shop = () => {
         return;
       }
     } else {
-      // Buy and equip item
+      // Purchase and equip item
       console.log('Equipment:', selectedItem);
 
       // Update user data
@@ -288,8 +278,6 @@ const Shop = () => {
 
     if (selectedItem.type === ItemType.POTION_SMALL) {
       healthPotionsCount = userSmallHealthPotCount;
-    } else if (selectedItem.type === ItemType.POTION_MEDIUM) {
-      healthPotionsCount = userMediumHealthPotCount;
     } else if (selectedItem.type === ItemType.POTION_LARGE) {
       healthPotionsCount = userLargeHealthPotCount;
     }
@@ -321,7 +309,7 @@ const Shop = () => {
       <FQModal
         visible={modalVisible}
         setVisible={setModalVisible}
-        title={selectedItem ? 'Equip ' + selectedItem.name : ''}
+        title={selectedItem ? 'Purchase ' + selectedItem.name : ''}
         subtitle={selectedItem ? itemTypeToString(selectedItem.type) : ''}
         onConfirm={handlePurchaseItem}
         cancelText={
@@ -332,7 +320,7 @@ const Shop = () => {
         confirmText={
           selectedItem && userEquipments.some((i) => i.id === selectedItem.id)
             ? 'BACK'
-            : 'BUY ITEM'
+            : 'PURCHASE ITEM'
         }
       >
         {modalChildren}
@@ -416,24 +404,6 @@ const Shop = () => {
               data={filterItemsByTypeAndSortByCost(
                 items,
                 ItemType.POTION_SMALL,
-              )}
-              renderItem={({ item }) => (
-                <ItemCard
-                  item={item}
-                  onPress={() => {
-                    setSelectedItem(item);
-                    setModalVisible(true);
-                  }}
-                />
-              )}
-              ItemSeparatorComponent={() => <View className="w-3" />}
-              className="grow-0 m-0"
-              horizontal
-            />
-            <FlatList
-              data={filterItemsByTypeAndSortByCost(
-                items,
-                ItemType.POTION_MEDIUM,
               )}
               renderItem={({ item }) => (
                 <ItemCard

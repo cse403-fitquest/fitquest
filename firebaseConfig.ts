@@ -3,7 +3,7 @@ import { initializeApp } from 'firebase/app';
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -28,23 +28,3 @@ export const FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
 
 // Get a reference to the database service
 export const FIREBASE_DB = getFirestore(FIREBASE_APP);
-
-export interface Quest {
-  id: string;
-  name: string;
-}
-
-// Get a list of quests from your database
-export const getQuests = async () => {
-  try {
-    const questsCol = collection(FIREBASE_DB, 'quests');
-    const questSnapshot = await getDocs(questsCol);
-    const questList = questSnapshot.docs.map((doc) => {
-      console.log(doc.id, '=>', doc.data());
-      return doc.data();
-    });
-    return questList;
-  } catch (error) {
-    console.error('Error getting documents: ', error);
-  }
-};

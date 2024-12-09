@@ -5,11 +5,15 @@ import {
 } from '@/constants/workout';
 import { useUserStore } from '@/store/user';
 import { useWorkoutStore } from '@/store/workout';
-import { Exercise, ExerciseDisplay, ExerciseSetDisplay } from '@/types/workout';
+import {
+  AddExerciseDisplay,
+  ExerciseDisplay,
+  ExerciseSetDisplay,
+} from '@/types/workout';
 import { printExerciseDisplays } from '@/utils/workout';
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   View,
@@ -22,16 +26,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
 
-type AddExerciseDisplay = Exercise & {
-  selected: boolean;
-};
-
 const AddExercises = () => {
+  const { isActiveWorkout } = useLocalSearchParams<{
+    isActiveWorkout: string;
+  }>();
+
   const [exercises, setExercises] = useState<AddExerciseDisplay[]>([]);
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
   const [search, setSearch] = useState('');
 
-  const { setWorkout } = useWorkoutStore();
+  const { setWorkout, setWorkoutDisplay } = useWorkoutStore();
   const { user } = useUserStore();
 
   useEffect(() => {
@@ -220,17 +224,31 @@ const AddExercises = () => {
 
     printExerciseDisplays(selectedExercises);
 
-    setWorkout((prevWorkout) => {
-      const newExercises = [
-        ...prevWorkout.exercises,
-        ...selectedExercises,
-      ] as ExerciseDisplay[];
+    if (isActiveWorkout === 'true') {
+      setWorkout((prevWorkout) => {
+        const newExercises = [
+          ...prevWorkout.exercises,
+          ...selectedExercises,
+        ] as ExerciseDisplay[];
 
-      return {
-        ...prevWorkout,
-        exercises: newExercises,
-      };
-    });
+        return {
+          ...prevWorkout,
+          exercises: newExercises,
+        };
+      });
+    } else {
+      setWorkoutDisplay((prevWorkout) => {
+        const newExercises = [
+          ...prevWorkout.exercises,
+          ...selectedExercises,
+        ] as ExerciseDisplay[];
+
+        return {
+          ...prevWorkout,
+          exercises: newExercises,
+        };
+      });
+    }
 
     router.back();
   };
@@ -241,6 +259,7 @@ const AddExercises = () => {
         <TouchableOpacity
           className="absolute bottom-10 right-10 z-50"
           onPress={onCheckmarkPress}
+          testID="checkmark-button"
         >
           <View className="flex-row justify-center items-center bg-blue w-16 h-16 rounded-full shadow shadow-black">
             <Ionicons name="checkmark" size={30} color="white" />
@@ -269,21 +288,25 @@ const AddExercises = () => {
             />
           </View>
         }
-        renderItem={({ item: exercise }) => (
+        renderItem={({ item: section }) => (
           <View>
             <Text className="text-lg font-medium mb-2 px-6">
-              {exercise.title}
+              {section.title}
             </Text>
 
             <FlatList
-              data={exercise.data}
+              data={section.data}
               keyExtractor={(item) => item.id}
               renderItem={({ item: exercise }) => (
-                <TouchableOpacity onPress={() => onExercisePress(exercise.id)}>
+                <TouchableOpacity
+                  onPress={() => onExercisePress(exercise.id)}
+                  testID={`exercise-${exercise.name}`}
+                >
                   <View
                     className={clsx('justify-center items-start py-2', {
                       'bg-blue': exercise.selected,
                     })}
+                    data-selected={exercise.selected}
                   >
                     <View className="px-10">
                       <Text

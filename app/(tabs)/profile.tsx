@@ -16,7 +16,6 @@ import { updateUserProfile } from '@/services/user';
 import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useItemStore } from '@/store/item';
-import { useSocialStore } from '@/store/social';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
@@ -26,6 +25,11 @@ import { router } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { BASE_ITEM } from '@/constants/item';
 import { User } from '@/types/user';
+import {
+  getUserHealthPotionsCountFromItems,
+  itemTypeToString,
+} from '@/utils/item';
+// import { useSocialStore } from '@/store/social';
 
 interface ItemCardProps {
   item: Item;
@@ -80,22 +84,28 @@ const Profile = () => {
   const [selectedStatForBreakdown, setSelectedStatForBreakdown] = useState<
     'power' | 'health' | 'speed'
   >('power');
-  const [statContributions, setStatContributions] = useState<
-    StatContributions[]
-  >([]);
-  const [totalStats, setTotalStats] = useState<{
-    power: number;
-    health: number;
-    speed: number;
-  }>({
-    power: 0,
-    health: 0,
-    speed: 0,
-  });
+  // const [statContributions, setStatContributions] = useState<
+  //   StatContributions[]
+  // >([]);
+  // // const statContributions: StatContributions[] = [];
+  // const [totalStats, setTotalStats] = useState<{
+  //   power: number;
+  //   health: number;
+  //   speed: number;
+  // }>({
+  //   power: 0,
+  //   health: 0,
+  //   speed: 0,
+  // });
+  // const totalStats = {
+  //   power: 0,
+  //   health: 0,
+  //   speed: 0,
+  // };
 
   const { user, setUser } = useUserStore();
   const { items } = useItemStore();
-  const { resetSocialStore } = useSocialStore();
+  // const { userFriend, setUserFriend, resetSocialStore } = useSocialStore();
 
   const [isCurrentQuestPublic, setIsCurrentQuestPublic] = useState(
     user?.privacySettings.isCurrentQuestPublic,
@@ -113,6 +123,19 @@ const Profile = () => {
     user?.profileInfo.weight?.toString() || '',
   );
 
+  const [workoutData, setWorkoutData] = useState<{
+    weeks: string[];
+    counts: number[];
+    rawCounts: number[];
+  }>({ weeks: [], counts: [], rawCounts: [] });
+
+  useEffect(() => {
+    if (user?.workoutHistory) {
+      const data = getWeeklyWorkoutData(user);
+      setWorkoutData(data);
+    }
+  }, [user?.workoutHistory]);
+
   const isItemEquipped = selectedItem
     ? user?.equippedItems.includes(selectedItem.id)
     : false;
@@ -122,6 +145,43 @@ const Profile = () => {
 
     return getUserExpThreshold(user) - user.exp;
   }, [user]);
+
+  if (!user) {
+    return <Text>Loading...</Text>;
+  }
+  // Memoized calculations for stats and contributions
+  const { totalStats, contributions } = useMemo(() => {
+    let computedPower = user.attributes.power;
+    let computedHealth = user.attributes.health;
+    let computedSpeed = user.attributes.speed;
+    const contributionsArray: StatContributions[] = [];
+
+    const equipped = items.filter((item) =>
+      user.equippedItems.includes(item.id),
+    );
+
+    equipped.forEach((item) => {
+      computedPower += item.power;
+      computedHealth += item.health;
+      computedSpeed += item.speed;
+
+      contributionsArray.push({
+        name: item.name,
+        power: item.power,
+        health: item.health,
+        speed: item.speed,
+      });
+    });
+
+    return {
+      totalStats: {
+        power: computedPower,
+        health: computedHealth,
+        speed: computedSpeed,
+      },
+      contributions: contributionsArray,
+    };
+  }, [user, items]);
 
   const userExpBarWidth: DimensionValue = useMemo(() => {
     if (!user) return `0%`;
@@ -156,9 +216,25 @@ const Profile = () => {
         health: 0,
       };
 
-      const powerDiff = selectedItem.power - userEquippedItem.power;
-      const speedDiff = selectedItem.speed - userEquippedItem.speed;
-      const healthDiff = selectedItem.health - userEquippedItem.health;
+      let powerDiff = selectedItem.power - userEquippedItem.power;
+      let speedDiff = selectedItem.speed - userEquippedItem.speed;
+      let healthDiff = selectedItem.health - userEquippedItem.health;
+
+      let selectedItemPower = selectedItem.power;
+      let selectedItemSpeed = selectedItem.speed;
+      let selectedItemHealth = selectedItem.health;
+
+      // Check if the selected item is already equipped
+      // In which case, display the stats as if the item is unequipped
+      if (isItemEquipped) {
+        powerDiff = -userEquippedItem.power;
+        speedDiff = -userEquippedItem.speed;
+        healthDiff = -userEquippedItem.health;
+
+        selectedItemPower = 0;
+        selectedItemSpeed = 0;
+        selectedItemHealth = 0;
+      }
 
       return (
         <View>
@@ -197,34 +273,34 @@ const Profile = () => {
             <View className="justify-center items-center">
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.power > userEquippedItem.power,
-                  'text-red-500': selectedItem.power < userEquippedItem.power,
+                  'text-green': selectedItemPower > userEquippedItem.power,
+                  'text-red-500': selectedItemPower < userEquippedItem.power,
                 })}
               >
-                {selectedItem.power}
+                {selectedItemPower}
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.speed > userEquippedItem.speed,
-                  'text-red-500': selectedItem.speed < userEquippedItem.speed,
+                  'text-green': selectedItemSpeed > userEquippedItem.speed,
+                  'text-red-500': selectedItemSpeed < userEquippedItem.speed,
                 })}
               >
-                {selectedItem.speed}
+                {selectedItemSpeed}
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.health > userEquippedItem.health,
-                  'text-red-500': selectedItem.health < userEquippedItem.health,
+                  'text-green': selectedItemHealth > userEquippedItem.health,
+                  'text-red-500': selectedItemHealth < userEquippedItem.health,
                 })}
               >
-                {selectedItem.health}
+                {selectedItemHealth}
               </Text>
             </View>
             <View className="justify-center items-start">
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.power > userEquippedItem.power,
-                  'text-red-500': selectedItem.power < userEquippedItem.power,
+                  'text-green': selectedItemPower > userEquippedItem.power,
+                  'text-red-500': selectedItemPower < userEquippedItem.power,
                 })}
               >
                 {powerDiff == 0
@@ -235,8 +311,8 @@ const Profile = () => {
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.speed > userEquippedItem.speed,
-                  'text-red-500': selectedItem.speed < userEquippedItem.speed,
+                  'text-green': selectedItemSpeed > userEquippedItem.speed,
+                  'text-red-500': selectedItemSpeed < userEquippedItem.speed,
                 })}
               >
                 {speedDiff == 0
@@ -247,8 +323,8 @@ const Profile = () => {
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.health > userEquippedItem.health,
-                  'text-red-500': selectedItem.health < userEquippedItem.health,
+                  'text-green': selectedItemHealth > userEquippedItem.health,
+                  'text-red-500': selectedItemHealth < userEquippedItem.health,
                 })}
               >
                 {healthDiff == 0
@@ -264,27 +340,13 @@ const Profile = () => {
     }
 
     // Only non-equipment items left are consumables
-
     let healthPotionsCount = 0;
 
-    const userConsumables = user.consumables.map((id) => {
-      const consumable = items.find((item) => item.id === id);
-      if (!consumable) {
-        console.error('User consumable not found:', id);
-        return { ...BASE_ITEM, id: id, name: 'Unknown Consumable' };
-      }
-      return consumable;
-    });
-
-    const userSmallHealthPotCount = userConsumables.filter(
-      (i) => i.type === ItemType.POTION_SMALL,
-    ).length;
-    const userMediumHealthPotCount = userConsumables.filter(
-      (i) => i.type === ItemType.POTION_MEDIUM,
-    ).length;
-    const userLargeHealthPotCount = userConsumables.filter(
-      (i) => i.type === ItemType.POTION_LARGE,
-    ).length;
+    const [
+      userSmallHealthPotCount,
+      userMediumHealthPotCount,
+      userLargeHealthPotCount,
+    ] = getUserHealthPotionsCountFromItems(user, items);
 
     if (selectedItem.type === ItemType.POTION_SMALL) {
       healthPotionsCount = userSmallHealthPotCount;
@@ -312,13 +374,13 @@ const Profile = () => {
   }, [selectedItem, user]);
 
   // Calculate total stats based on user profile and equipped items
-  useEffect(() => {
+  /*useEffect(() => {
     if (!user) return;
 
     // Base stats from user profile
-    let computedPower = user.attributes.power;
-    let computedHealth = user.attributes.health;
-    let computedSpeed = user.attributes.speed;
+    // let computedPower = user.attributes.power;
+    // let computedHealth = user.attributes.health;
+    // let computedSpeed = user.attributes.speed;
 
     const contributions: StatContributions[] = [];
 
@@ -328,9 +390,9 @@ const Profile = () => {
     );
 
     equipped.forEach((item) => {
-      computedPower += item.power;
-      computedHealth += item.health;
-      computedSpeed += item.speed;
+      // computedPower += item.power;
+      // computedHealth += item.health;
+      // computedSpeed += item.speed;
 
       contributions.push({
         name: item.name,
@@ -340,14 +402,14 @@ const Profile = () => {
       });
     });
 
-    setTotalStats({
-      power: computedPower,
-      health: computedHealth,
-      speed: computedSpeed,
-    });
+    // setTotalStats({
+    //   power: computedPower,
+    //   health: computedHealth,
+    //   speed: computedSpeed,
+    // });
 
-    setStatContributions(contributions);
-  }, [user, items]);
+    // setStatContributions(contributions);
+  }, [user, items]);*/
 
   // Function to handle equipping an item
   const handleEquipItem = async (item: Item) => {
@@ -471,19 +533,33 @@ const Profile = () => {
 
   const handleSignOut = async () => {
     console.log('Signing out...');
+
     const signOutResponse = await signOut();
 
     console.log('Sign out response:', signOutResponse);
     if (signOutResponse.error) {
       Alert.alert('Error signing out', signOutResponse.error);
     }
-
-    setUser(null);
-    resetSocialStore();
   };
 
   const handleUpdateProfile = async () => {
     if (!user) return;
+
+    // Check if there are actual changes
+    const hasChanges =
+      username.trim() !== user.profileInfo.username ||
+      parseFloat(height) !== user.profileInfo.height ||
+      parseFloat(weight) !== user.profileInfo.weight ||
+      isCurrentQuestPublic !== user.privacySettings.isCurrentQuestPublic ||
+      isLastWorkoutPublic !== user.privacySettings.isLastWorkoutPublic;
+
+    if (!hasChanges) {
+      Alert.alert(
+        'No changes detected',
+        'Please make changes before confirming.',
+      );
+      return; // Exit if no changes
+    }
 
     if (!username.trim() || username.trim().length < 4) {
       Alert.alert(
@@ -529,11 +605,10 @@ const Profile = () => {
         privacySettings: updates.privacySettings ?? user.privacySettings,
       });
       Alert.alert('Profile updated successfully');
+      setIsSettingsVisible(false);
     } else {
       Alert.alert('Error updating profile', response.error || '');
     }
-
-    setIsSettingsVisible(false);
   };
 
   const closeSettingsModal = () => {
@@ -555,7 +630,7 @@ const Profile = () => {
 
   const getStatBreakdown = (stat: 'power' | 'health' | 'speed') => {
     const baseStat = user?.attributes[stat] ?? 0;
-    const totalContribution = statContributions.reduce(
+    const totalContribution = contributions.reduce(
       (total, contribution) => total + contribution[stat],
       0,
     );
@@ -572,7 +647,7 @@ const Profile = () => {
         </View>
 
         {/* Contributions */}
-        {statContributions
+        {contributions
           .filter((contribution) => contribution[stat] !== 0)
           .map((contribution, index) => (
             <View key={index} className="flex-row justify-between mb-3">
@@ -653,6 +728,52 @@ const Profile = () => {
       selectedStatForBreakdown.slice(1)
     );
   }
+
+  const getWeeklyWorkoutData = (user: User) => {
+    const weeks = [];
+    const counts = [];
+    const rawCounts = [];
+    const MAX_SEGMENTS = 6;
+
+    // Get this week's Monday
+    const today = new Date();
+    const currentWeekMonday = new Date(today);
+    const diff = currentWeekMonday.getDate() - currentWeekMonday.getDay() + 1;
+    currentWeekMonday.setDate(diff);
+    currentWeekMonday.setHours(0, 0, 0, 0);
+
+    // Go back 4 weeks from this Monday
+    const startDate = new Date(currentWeekMonday);
+    startDate.setDate(startDate.getDate() - 4 * 7);
+
+    // Move forward 5 weeks, starting from each Monday
+    for (let i = 0; i < 5; i++) {
+      const weekStart = new Date(startDate);
+      weekStart.setDate(startDate.getDate() + i * 7);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      const weekSunday = new Date(weekEnd);
+      const weekLabel = `${weekSunday.getMonth() + 1}/${weekSunday.getDate()}`;
+      weeks.push(weekLabel);
+
+      const workoutCount =
+        user?.workoutHistory?.filter((workout) => {
+          // For some reason, the date is stored as an object with seconds and nanoseconds
+          const workoutDate = workout.startedAt;
+          return (
+            workoutDate.getTime() >= weekStart.getTime() &&
+            workoutDate.getTime() <= weekEnd.getTime()
+          );
+        }).length || 0;
+
+      rawCounts.push(workoutCount);
+      counts.push(Math.min(workoutCount, MAX_SEGMENTS));
+    }
+
+    return { weeks, counts, rawCounts };
+  };
 
   return (
     <SafeAreaView className=" bg-offWhite">
@@ -773,31 +894,49 @@ const Profile = () => {
           )}
         </View>
 
-        {/* Workouts per Week */}
         <View className="mt-8">
           <Text className="font-bold mb-8 text-xl text-grayDark">
             WORKOUTS PER WEEK
           </Text>
 
           <View className="mt-4">
-            <View className="h-[250px] flex-row items-end justify-between mb-2">
-              {[5, 2, 3, 1, 4].map((value) => (
-                <View key={value} className="w-16">
-                  {[...Array(value)].map((_, blockIndex) => (
-                    <View
-                      key={blockIndex}
-                      className="h-12 w-full bg-green border-t border-green-600"
-                      style={{
-                        backgroundColor: '#22C55E',
-                      }}
-                    />
-                  ))}
+            <View className="h-[200px] flex-row items-end justify-between mb-2">
+              {workoutData.counts.map((count, index) => (
+                <View key={index} className="w-16 items-center">
+                  {/* Overflow count */}
+                  {workoutData.rawCounts[index] > 6 && (
+                    <Text className="text-xs text-gray-500 mb-1">
+                      +{workoutData.rawCounts[index] - 6}
+                    </Text>
+                  )}
+                  {/* Bar */}
+                  <View
+                    className="w-full border-t border-green-600"
+                    style={{
+                      height: Math.min(count, 6) * 30,
+                      backgroundColor: '#22C55E',
+                      position: 'relative',
+                    }}
+                  >
+                    {/* Segment lines */}
+                    {Array.from({ length: Math.min(count, 6) - 1 }).map(
+                      (_, i) => (
+                        <View
+                          key={i}
+                          className="absolute w-full border-b border-white"
+                          style={{
+                            top: (i + 1) * 30,
+                          }}
+                        />
+                      ),
+                    )}
+                  </View>
                 </View>
               ))}
             </View>
 
             <View className="flex-row justify-between h-[50px]">
-              {['9/16', '9/23', '9/30', '10/7', '10/14'].map((date) => (
+              {workoutData.weeks.map((date) => (
                 <Text key={date} className="text-gray-500 text-sm">
                   {date}
                 </Text>
@@ -929,7 +1068,7 @@ const Profile = () => {
             ? undefined
             : () => setSelectedItem(null)
         }
-        subtitle={selectedItem?.type}
+        subtitle={selectedItem ? itemTypeToString(selectedItem.type) : ''}
       >
         {equippedItemModalChildren}
       </FQModal>
