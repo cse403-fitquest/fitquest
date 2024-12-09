@@ -232,56 +232,19 @@ const Combat = () => {
     ) {
       const maxSpeed = Math.max(player.speed, monster.speed);
       const incrementValue = 25;
-      console.log(
-        'player speed:',
-        player.speed,
-        'monster speed:',
-        monster.speed,
-      );
-
       const speedBarInterval = setInterval(() => {
         if (currentTurnEntity === null) {
-          let newPlayerCharge =
-            playerCharge + (player.speed / maxSpeed) * incrementValue;
-          let newMonsterCharge =
-            monsterCharge + (monster.speed / maxSpeed) * incrementValue;
-
-          // Reduce charge overflow for both entities if applicable
-          let overchargeAmount = 0;
-
-          // If both entities are overcharged, reduce both by the same amount
-          if (newPlayerCharge >= 100 && newMonsterCharge >= 100) {
-            overchargeAmount = newPlayerCharge - 100;
-            newPlayerCharge -= overchargeAmount;
-            newMonsterCharge -= overchargeAmount;
-          } else if (newPlayerCharge >= 100) {
-            overchargeAmount = newPlayerCharge - 100;
-            newPlayerCharge -= overchargeAmount;
-          } else if (newMonsterCharge >= 100) {
-            overchargeAmount = newMonsterCharge - 100;
-            newMonsterCharge -= overchargeAmount;
-          } else {
-            overchargeAmount = 0;
-          }
-
-          // Prioritize turn change based on charge
-          if (newPlayerCharge >= 100 && newMonsterCharge >= 100) {
-            setCurrentTurnEntity('player');
-          } else if (newPlayerCharge >= 100) {
-            setCurrentTurnEntity('player');
-          } else if (newMonsterCharge >= 100) {
-            setCurrentTurnEntity('monster');
-          }
-
           setPlayerCharge((prev) => {
             // Normalize gain rate based on max speed
             const newCharge = prev + (player.speed / maxSpeed) * incrementValue;
+            console.log('Player charge:', newCharge);
             return newCharge >= 100 ? 100 : newCharge;
           });
 
           setMonsterCharge((prev) => {
             const newCharge =
               prev + (monster.speed / maxSpeed) * incrementValue;
+            console.log('Monster charge:', newCharge);
             return newCharge >= 100 ? 100 : newCharge;
           });
         }
@@ -313,15 +276,52 @@ const Combat = () => {
       'Monster charge:',
       monsterCharge,
     );
-    if (playerCharge >= 100) {
-      // Player turn
-      setCurrentTurnEntity('player');
-    }
+    if (
+      isMonsterInitialized &&
+      isPlayerInitialized &&
+      (playerCharge >= 100 || monsterCharge >= 100)
+    ) {
+      // Reduce charge overflow for both entities if applicable
+      let overchargeAmount = 0;
 
-    if (monsterCharge >= 100) {
-      setCurrentTurnEntity('monster');
+      let newPlayerCharge = playerCharge;
+      let newMonsterCharge = monsterCharge;
+
+      // If both entities are overcharged, reduce both by the same amount
+      if (newPlayerCharge >= 100 && newMonsterCharge >= 100) {
+        overchargeAmount = Math.max(newPlayerCharge, newMonsterCharge) - 100;
+        newPlayerCharge -= overchargeAmount;
+        newMonsterCharge -= overchargeAmount;
+      } else if (newPlayerCharge >= 100) {
+        overchargeAmount = newPlayerCharge - 100;
+        newPlayerCharge -= overchargeAmount;
+      } else if (newMonsterCharge >= 100) {
+        overchargeAmount = newMonsterCharge - 100;
+        newMonsterCharge -= overchargeAmount;
+      } else {
+        overchargeAmount = 0;
+      }
+
+      // Prioritize turn change based on charge
+      if (newPlayerCharge >= 100 && newMonsterCharge >= 100) {
+        console.log('Both entities are charged');
+        setCurrentTurnEntity('player');
+      } else if (newPlayerCharge >= 100) {
+        setCurrentTurnEntity('player');
+      } else if (newMonsterCharge >= 100) {
+        setCurrentTurnEntity('monster');
+      }
+
+      // if (playerCharge >= 100) {
+      //   // Player turn
+      //   setCurrentTurnEntity('player');
+      // }
+
+      // if (monsterCharge >= 100) {
+      //   setCurrentTurnEntity('monster');
+      // }
     }
-  }, [playerCharge, monsterCharge]);
+  }, [playerCharge, monsterCharge, isMonsterInitialized, isPlayerInitialized]);
 
   const resetCombatState = () => {
     setStrongAttackCooldown(0);
@@ -880,7 +880,7 @@ const Combat = () => {
             </View>
           </View>
         </View>
-        <View className="h-[90px] mb-4 justify-end">
+        <View className="h-[90px] mt-8 mb-1 justify-end">
           <View
             className={clsx('w-full p-2 bg-black/50 rounded max-h-[90px]', {
               hidden: combatLog.length === 0,

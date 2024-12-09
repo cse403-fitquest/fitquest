@@ -14,6 +14,7 @@ Brief description of your changes
 - [ ] Profile
 - [ ] Workout
 - [ ] Quest
+- [ ] Fight
 - [ ] Shop
 - [ ] Social
 - [ ] Assets
