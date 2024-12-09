@@ -1,5 +1,5 @@
 // __tests__/shop.test.ts
-
+//
 ////////////////////////////////// FIREBASE MOCKS //////////////////////////////////
 jest.mock('firebase/firestore');
 jest.mock('firebase/auth', () => ({
@@ -65,9 +65,10 @@ jest.mock('@/store/user', () => ({
     setUser: mockSetUser,
   })),
 }));
-const mockSetUser = jest.fn((updatedUser) => {
-  mockUser = updatedUser;
-});
+// const mockSetUser = jest.fn((updatedUser) => {
+//   mockUser = updatedUser;
+// });
+const mockSetUser = jest.fn();
 
 ////////////////////////////////// reactnative mocks //////////////////////////////////
 // Mock asyncstorage
@@ -233,7 +234,7 @@ import Profile from '@/app/(tabs)/profile';
 import AllocatePoints from '@/app/allocate-points';
 
 import { updateUserProfile } from '@/services/user';
-import { SignOutResponse } from '@/types/auth';
+// import { SignOutResponse } from '@/types/auth';
 // import { useUserStore } from '@/store/user';
 // import { ItemType } from '@/types/item';
 import {
@@ -245,6 +246,9 @@ import {
 } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
+import { signOut } from '@/services/auth';
+import { SignOutResponse } from '@/types/auth';
+import React from 'react';
 
 // import { AnimatedSprite } from '@/components/AnimatedSprite.tsx'
 describe('tests for profile screen', () => {
@@ -253,6 +257,7 @@ describe('tests for profile screen', () => {
   });
   afterEach(() => {
     jest.clearAllMocks(); // Clear mock usage and state
+    jest.restoreAllMocks();
     cleanup();
   });
 
@@ -566,31 +571,26 @@ describe('tests for profile screen', () => {
   });
 
   // fix this garbo later
-  // it('test signout', async () => {
-  //   (updateUserProfile as unknown as jest.Mock).mockReturnValue({
-  //     user: mockUser,
-  //     updates: {
-  //       ...mockUser,
-  //       profileInfo: {
-  //         ...mockUser.profileInfo,
-  //         weight: 180,
-  //       },
-  //     },
-  //   });
+  it('test signout', async () => {
+    (signOut as unknown as jest.Mock).mockResolvedValueOnce({
+      error: null,
+      success: true,
+      data: null,
+    });
+    // jest.spyOn(React, 'useState').mockImplementation(() => [null, mockSetUser]); // Mock useState
 
-  //   render(<Profile />);
-  //   expect(true).toBe(true);
-  //   fireEvent.press(screen.getByTestId('settings-outline'));
-  //   fireEvent.changeText(screen.getByPlaceholderText('Enter weight'), '180');
-  //   expect(screen.getByDisplayValue('180')).toBeTruthy();
-  //   await waitFor(() => {
-  //     fireEvent.press(screen.getByText('SIGN OUT'));
-
-  //     expect(screen.queryByText('Loading...')).toBeNull(); // Ensures 'Loading' disappears
-  //     //should not change users data
-  //     expect(updateUserProfile).toHaveBeenCalledTimes(0);
-  //   });
-  // });
+    render(<Profile />);
+    expect(true).toBe(true);
+    fireEvent.press(screen.getByTestId('settings-outline'));
+    fireEvent.changeText(screen.getByPlaceholderText('Enter weight'), '180');
+    expect(screen.getByDisplayValue('180')).toBeTruthy();
+    fireEvent.press(screen.getByText('SIGN OUT'));
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).toBeNull(); // Ensures 'Loading' disappears
+      //should not change users data
+      expect(updateUserProfile).toHaveBeenCalledTimes(0);
+    });
+  });
 });
 describe('tests for attributes screen', () => {
   beforeEach(() => {
@@ -598,6 +598,7 @@ describe('tests for attributes screen', () => {
   });
   afterEach(() => {
     jest.clearAllMocks(); // Clear mock usage and state
+    jest.restoreAllMocks();
     cleanup();
   });
   it('successfully navigate to allocate screen', async () => {
