@@ -269,8 +269,8 @@ describe('Workout Service Functions', () => {
 
       // Check if user's exp has been updated correctly
       expect(mockUpdateDoc).toHaveBeenCalledWith(expect.objectContaining({}), {
-        exp: 3600,
-        attributePoints: 0,
+        exp: 500,
+        attributePoints: 2,
       });
     });
 

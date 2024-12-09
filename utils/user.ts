@@ -3,11 +3,10 @@ import { User } from '@/types/user';
 
 export const getUserExpThreshold = (user: User) => {
   return (
-    1000 + // Base exp
-    user.attributes.power * 200 +
-    user.attributes.speed * 200 +
-    user.attributes.health * 200 +
-    user.attributePoints * 200
+    user.attributes.power * 100 +
+    user.attributes.speed * 100 +
+    user.attributes.health * 100 +
+    user.attributePoints * 100
   );
 };
 
