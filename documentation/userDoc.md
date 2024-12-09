@@ -21,7 +21,7 @@ Prerequisites:
 
 Installation Steps:
 
-1. Click this [link](https://expo.dev/accounts/afuza/projects/fitquest/builds/b0692c95-ae5e-406f-9f07-c56be941caad) which takes you to the page where you can install the APK file to run the app.
+1. Click this [link](https://expo.dev/accounts/afuza/projects/fitquest/builds/5982ddb7-22ea-466b-ad09-0b80a1eca553) which takes you to the page where you can install the APK file to run the app.
 
 2. Once the page is loaded, simply click on the install button as shown in the screenshot below to download the apk file
 

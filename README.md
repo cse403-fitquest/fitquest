@@ -4,7 +4,7 @@
 <p align="center">Gamified fitness app that transforms users' fitness progress into engaging RPG-style adventures!</p>
 
 <p align="center">Download and install the app 
-   <a href="https://expo.dev/accounts/afuza/projects/fitquest/builds/b0692c95-ae5e-406f-9f07-c56be941caad">HERE</a>
+   <a href="https://expo.dev/accounts/afuza/projects/fitquest/builds/5982ddb7-22ea-466b-ad09-0b80a1eca553">HERE</a>
 </p>
 
 <div align="center">
