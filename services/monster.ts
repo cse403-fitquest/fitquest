@@ -66,6 +66,34 @@ export const getMonsterById = async (
   }
 };
 
+// Add a new function for API responses
+export const getMonsterByIdWithResponse = async (
+  monsterId: string,
+): Promise<MonsterResponse> => {
+  try {
+    const monsterDoc = await getDoc(doc(FIREBASE_DB, 'monsters', monsterId));
+    if (monsterDoc.exists()) {
+      return {
+        success: true,
+        data: { monsters: [monsterDoc.data() as Monster] },
+        error: undefined,
+      };
+    }
+    return {
+      success: false,
+      data: null,
+      error: 'Monster not found',
+    };
+  } catch (error) {
+    console.error('Error getting monster by ID:', error);
+    return {
+      success: false,
+      data: null,
+      error: 'Error getting monster. Please try again.',
+    };
+  }
+};
+
 // Add a function to get a random monster from a list of IDs
 export const getRandomMonster = async (
   monsterIds: string[],
@@ -76,7 +104,9 @@ export const getRandomMonster = async (
     const randomIndex = Math.floor(Math.random() * monsterIds.length);
     const randomMonsterId = monsterIds[randomIndex];
 
-    return await getMonsterById(randomMonsterId);
+    const response = await getMonsterByIdWithResponse(randomMonsterId);
+    if (!response.success || !response.data?.monsters?.[0]) return null;
+    return response.data.monsters[0];
   } catch (error) {
     console.error('Error getting random monster:', error);
     return null;

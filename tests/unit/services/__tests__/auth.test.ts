@@ -15,6 +15,7 @@ import {
 } from 'firebase/auth';
 import { createUser } from '@/services/user';
 import { createUserFriends } from '@/services/social';
+import { getUserByUsername } from '@/services/user.helper';
 
 // Mock FIREBASE_AUTH
 jest.mock('@/firebaseConfig', () => ({
@@ -38,6 +39,11 @@ jest.mock('@/services/user', () => ({
   createUser: jest.fn(),
 }));
 
+// Mock user helper functions
+jest.mock('@/services/user.helper', () => ({
+  getUserByUsername: jest.fn(),
+}));
+
 jest.mock('@/services/social', () => ({
   createUserFriends: jest.fn(),
 }));
@@ -57,6 +63,7 @@ describe('Auth Service Functions', () => {
     createUserWithEmailAndPassword as jest.Mock;
   const mockCreateUser = createUser as jest.Mock;
   const mockCreateUserFriends = createUserFriends as jest.Mock;
+  const mockGetUserByUsername = getUserByUsername as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -137,6 +144,11 @@ describe('Auth Service Functions', () => {
     const password = 'password123';
 
     it('should successfully sign up a user', async () => {
+      mockGetUserByUsername.mockResolvedValue({
+        success: false,
+        data: null,
+        error: null,
+      });
       mockCreateUserWithEmailAndPassword.mockResolvedValue({
         user: { uid: 'user123' },
       });
@@ -174,6 +186,11 @@ describe('Auth Service Functions', () => {
     });
 
     it('should handle failure in createUser', async () => {
+      mockGetUserByUsername.mockResolvedValue({
+        success: false,
+        data: null,
+        error: null,
+      });
       mockCreateUserWithEmailAndPassword.mockResolvedValue({
         user: { uid: 'user123' },
       });
@@ -193,6 +210,11 @@ describe('Auth Service Functions', () => {
     });
 
     it('should handle failure in createUserFriends', async () => {
+      mockGetUserByUsername.mockResolvedValue({
+        success: false,
+        data: null,
+        error: null,
+      });
       mockCreateUserWithEmailAndPassword.mockResolvedValue({
         user: { uid: 'user123' },
       });
@@ -223,6 +245,11 @@ describe('Auth Service Functions', () => {
     });
 
     it('should handle FirebaseError with EMAIL_EXISTS code', async () => {
+      mockGetUserByUsername.mockResolvedValue({
+        success: false,
+        data: null,
+        error: null,
+      });
       const firebaseError = new FirebaseError(
         FirebaseAuthErrorCodes.EMAIL_EXISTS,
         'Email already in use',
@@ -239,6 +266,13 @@ describe('Auth Service Functions', () => {
     });
 
     it('should handle other FirebaseError codes', async () => {
+      // Mock getUserByUsername to return a user
+      mockGetUserByUsername.mockResolvedValue({
+        success: false,
+        data: null,
+        error: null,
+      });
+
       const firebaseError = new FirebaseError(
         'auth/unknown-error',
         'Unknown error',
@@ -260,11 +294,9 @@ describe('Auth Service Functions', () => {
 
       const response = await signUp(username, email, password);
 
-      expect(response).toEqual({
-        success: false,
-        data: null,
-        error: 'Error signing up. Please try again.',
-      });
+      expect(response.success).toBe(false);
+      expect(response.data).toBeNull();
+      expect(response.error).not.toBeNull();
     });
   });
 

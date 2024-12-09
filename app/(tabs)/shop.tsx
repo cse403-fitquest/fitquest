@@ -47,21 +47,15 @@ const Shop = () => {
     });
   }, [user, items]);
 
-  // Turn user consumables ids into actual items
-  const userConsumables = useMemo(() => {
-    return userConsumablesIDs.map((id) => {
-      const consumable = items.find((item) => item.id === id);
-      if (!consumable) {
-        console.error('User consumable not found:', id);
-        return { ...BASE_ITEM, id: id, name: 'Unknown Consumable' };
-      }
-      return consumable;
-    });
-  }, [user, items]);
-
   const [userSmallHealthPotCount, userLargeHealthPotCount] = useMemo(() => {
-    return getUserHealthPotionsCountFromItems(userConsumables);
-  }, [user, userConsumables]);
+    if (!user || !items) return [0, 0];
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [smallHealthPotionsCount, _, largeHealthPotionsCount] =
+      getUserHealthPotionsCountFromItems(user, items);
+
+    return [smallHealthPotionsCount, largeHealthPotionsCount];
+  }, [user]);
 
   const handlePurchaseItem = async () => {
     if (!user || !selectedItem) return;

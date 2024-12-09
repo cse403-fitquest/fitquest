@@ -172,6 +172,8 @@ export const AnimatedSprite: FC<IAnimatedSprite> = ({
         return require('@/assets/sprites/animated/bosses/bear_brown.png');
       case AnimatedSpriteID.BEAR_BLUE:
         return require('@/assets/sprites/animated/bosses/bear_blue.png');
+      case AnimatedSpriteID.WEREWOLF_BROWN:
+        return require('@/assets/sprites/animated/bosses/werewolf_brown.png');
 
       default:
         return require('@/assets/sprites/animated/heroes/hero_01.png');

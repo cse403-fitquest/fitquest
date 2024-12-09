@@ -26,6 +26,7 @@ import { router } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { BASE_ITEM } from '@/constants/item';
 import { User } from '@/types/user';
+import { getUserHealthPotionsCountFromItems } from '@/utils/item';
 
 interface ItemCardProps {
   item: Item;
@@ -320,27 +321,13 @@ const Profile = () => {
     }
 
     // Only non-equipment items left are consumables
-
     let healthPotionsCount = 0;
 
-    const userConsumables = user.consumables.map((id) => {
-      const consumable = items.find((item) => item.id === id);
-      if (!consumable) {
-        console.error('User consumable not found:', id);
-        return { ...BASE_ITEM, id: id, name: 'Unknown Consumable' };
-      }
-      return consumable;
-    });
-
-    const userSmallHealthPotCount = userConsumables.filter(
-      (i) => i.type === ItemType.POTION_SMALL,
-    ).length;
-    const userMediumHealthPotCount = userConsumables.filter(
-      (i) => i.type === ItemType.POTION_MEDIUM,
-    ).length;
-    const userLargeHealthPotCount = userConsumables.filter(
-      (i) => i.type === ItemType.POTION_LARGE,
-    ).length;
+    const [
+      userSmallHealthPotCount,
+      userMediumHealthPotCount,
+      userLargeHealthPotCount,
+    ] = getUserHealthPotionsCountFromItems(user, items);
 
     if (selectedItem.type === ItemType.POTION_SMALL) {
       healthPotionsCount = userSmallHealthPotCount;
@@ -601,11 +588,10 @@ const Profile = () => {
         privacySettings: updates.privacySettings ?? user.privacySettings,
       });
       Alert.alert('Profile updated successfully');
+      setIsSettingsVisible(false);
     } else {
       Alert.alert('Error updating profile', response.error || '');
     }
-
-    setIsSettingsVisible(false);
   };
 
   const closeSettingsModal = () => {

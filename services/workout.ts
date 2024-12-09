@@ -1,7 +1,7 @@
 import { doc, getDoc, updateDoc, collection } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
-import { userConverter } from './user';
+import { userConverter } from './user.helper';
 import { addToUserWorkouts, updateUserAfterExpGain } from '@/utils/workout';
 import { ExerciseDisplay, Workout } from '@/types/workout';
 import { User } from '@/types/user';
@@ -97,9 +97,9 @@ export const finishAndSaveWorkout = async (
       workoutHistory: [newWorkout, ...userData.workoutHistory],
       exp: userAfterExpGain.exp,
       attributePoints: userAfterExpGain.attributePoints,
-      // Add workout duration to activeWorkoutMinutes
-      // TODO: Change duration from seconds to minutes
-      activeWorkoutMinutes: currentWorkoutMinutes + newWorkout.duration,
+      // Convert seconds to minutes
+      activeWorkoutMinutes:
+        currentWorkoutMinutes + Math.floor(newWorkout.duration / 60),
     });
 
     console.log(

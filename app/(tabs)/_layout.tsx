@@ -10,7 +10,7 @@ import { useItemStore } from '@/store/item';
 import { Alert, View } from 'react-native';
 import { MOCK_ITEMS } from '@/constants/item';
 import { useSocialStore } from '@/store/social';
-import { getUserFriends } from '@/services/social';
+import { getUserFriends, resetAllUserFriendsInDB } from '@/services/social';
 import { getUserExpThreshold } from '@/utils/user';
 import { fillMissingUserFields, updateAllUsersInDB } from '@/services/user';
 
@@ -91,6 +91,20 @@ export default function TabLayout() {
       }
     };
 
+    // Reset all user friends in DB (for testing)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const resetUserFriends = async () => {
+      const resetAllUserFriendsResponse = await resetAllUserFriendsInDB();
+
+      if (!resetAllUserFriendsResponse.success) {
+        if (resetAllUserFriendsResponse.error)
+          Alert.alert('Error', resetAllUserFriendsResponse.error);
+      }
+
+      console.log('Reset all user friends');
+    };
+
+    // resetUserFriends();
     // _setItemsData();
     // _setUserFields();
     // fillMissingUserFields();

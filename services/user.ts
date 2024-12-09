@@ -3,52 +3,17 @@ import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
 import { User } from '@/types/user';
 import { CreateUserResponse, GetUserResponse } from '@/types/user';
-import { Workout } from '@/types/workout';
 import { FirebaseError } from 'firebase/app';
 import {
   collection,
   doc,
   getDoc,
   getDocs,
-  QueryDocumentSnapshot,
   setDoc,
-  Timestamp,
   updateDoc,
   writeBatch,
 } from 'firebase/firestore';
-
-const fromTimestampToDate = (timestamp: Timestamp) => {
-  return new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
-};
-
-export const userConverter = {
-  toFirestore: (data: User) => data,
-  fromFirestore: (snap: QueryDocumentSnapshot) => {
-    // Convert workoutHistory startedAt to Date object
-    const data = snap.data() as Omit<User, 'createdAt' | 'workoutHistory'> & {
-      createdAt: Timestamp;
-      workoutHistory: Array<
-        Omit<Workout, 'startedAt'> & {
-          startedAt: Timestamp;
-        }
-      >;
-    };
-
-    const newWorkoutHistory = data.workoutHistory.map((workout) => {
-      return {
-        ...workout,
-        startedAt: fromTimestampToDate(workout.startedAt),
-      };
-    });
-
-    return {
-      ...data,
-      createdAt: fromTimestampToDate(data.createdAt),
-      workoutHistory: newWorkoutHistory,
-    };
-  },
-};
-
+import { getUserByUsername, userConverter } from './user.helper';
 /**
  * Fill missing user fields in Firestore based on changes to the User type
  */
@@ -311,6 +276,22 @@ export const updateUserProfile = async (
   updates: Partial<User>,
 ): Promise<APIResponse> => {
   try {
+    // Check if updates changes the username
+    if (updates.profileInfo?.username) {
+      // Check if the new username is already taken
+      const userByUsernameResponse = await getUserByUsername(
+        updates.profileInfo.username,
+      );
+
+      if (userByUsernameResponse.success) {
+        return {
+          success: false,
+          data: null,
+          error: 'Username is already taken.',
+        };
+      }
+    }
+
     const userRef = doc(FIREBASE_DB, 'users', userId);
     await updateDoc(userRef, updates);
     return {

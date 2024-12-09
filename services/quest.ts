@@ -6,9 +6,11 @@ import {
   collection,
   doc,
   getDocs,
+  query,
   QueryDocumentSnapshot,
   setDoc,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 
 export const questConverter = {
@@ -185,4 +187,20 @@ export const abandonQuest = async (
       };
     }
   }
+};
+
+export const getQuestByID = async (questID: string): Promise<Quest | null> => {
+  const userRef = collection(FIREBASE_DB, 'quests').withConverter(
+    questConverter,
+  );
+  const q = query(userRef, where('questId', '==', questID));
+  const querySnapshot = await getDocs(q);
+
+  if (querySnapshot.empty) {
+    return null;
+  }
+
+  // console.log('foundQuest', querySnapshot.docs[0].data());
+
+  return querySnapshot.docs[0].data();
 };

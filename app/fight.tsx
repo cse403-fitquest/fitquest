@@ -11,23 +11,22 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Easing,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '@/store/user';
-import { getRandomMonster } from '@/services/monster';
+// import { getRandomMonster } from '@/services/monster';
 import { getDoc, doc } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { updateUserProfile } from '@/services/user';
-
-type TurnInfo = {
-  id: string;
-  name: string;
-  speed: number;
-  isPlayer: boolean;
-};
+import { getMonsterById } from '@/services/monster';
+import clsx from 'clsx';
+import { getUserTotalAttributes } from '@/utils/user';
+import { useItemStore } from '@/store/item';
+import FQButton from '@/components/FQButton';
 
 const calculatePlayerLevel = (attributes: {
   power: number;
@@ -49,18 +48,19 @@ const Combat = () => {
 
   const { isBoss, uniqueKey, questMonsters } = params;
   const { user, setUser } = useUserStore();
+  const { items } = useItemStore();
 
-  const initialPlayer = {
-    id: user?.id || '',
-    name: user?.profileInfo.username || 'Player',
-    health: (user?.attributes.health || 6) * 20,
-    power: (user?.attributes.power || 15) * 2,
-    speed: user?.attributes.speed || 15,
-  };
+  const [playerCharge, setPlayerCharge] = useState(0);
+  const [monsterCharge, setMonsterCharge] = useState(0);
+
+  const [currentTurnEntity, setCurrentTurnEntity] = useState<
+    'player' | 'monster' | null
+  >(null);
 
   const [isInitializing, setIsInitializing] = useState(true);
 
   const [monster, setMonster] = useState({
+    id: '',
     name: 'Unknown Monster',
     maxHealth: 100,
     health: 100,
@@ -69,75 +69,93 @@ const Combat = () => {
     spriteId: AnimatedSpriteID.SLIME_GREEN,
   });
 
+  const [isPlayerInitialized, setIsPlayerInitialized] = useState(false);
   const [isMonsterInitialized, setIsMonsterInitialized] = useState(false);
 
   useEffect(() => {
     const initializeMonster = async () => {
-      setIsInitializing(true);
-      try {
-        const playerLevel = calculatePlayerLevel(
-          user?.attributes || { power: 15, speed: 15, health: 6 },
-        );
-        const difficultyMultiplier = calculateDifficultyMultiplier(playerLevel);
+      if (user && monster.id === '') {
+        setIsInitializing(true);
+        try {
+          const playerLevel = calculatePlayerLevel(user.attributes);
+          const difficultyMultiplier =
+            calculateDifficultyMultiplier(playerLevel);
 
-        if (isBoss === 'true') {
-          const formattedQuestId = `quest_${questId}`;
+          if (isBoss === 'true') {
+            const formattedQuestId = `quest_${questId}`;
+            const questDocRef = doc(FIREBASE_DB, 'quests', formattedQuestId);
+            const questDoc = await getDoc(questDocRef);
 
-          const questDocRef = doc(FIREBASE_DB, 'quests', formattedQuestId);
+            if (questDoc.exists()) {
+              const questData = questDoc.data();
+              const bossData = questData.boss;
 
-          const questDoc = await getDoc(questDocRef);
-
-          if (questDoc.exists()) {
-            const questData = questDoc.data();
-            const bossData = questData.boss;
-
-            setMonster({
-              name: questData.questName,
-              maxHealth: Math.floor(
-                bossData.health * 20 * difficultyMultiplier,
-              ),
-              health: Math.floor(bossData.health * 20 * difficultyMultiplier),
-              power: Math.floor(bossData.power * difficultyMultiplier),
-              speed: Math.floor(bossData.speed),
-              spriteId: bossData.spriteId,
-            });
+              setMonster({
+                id: questData.id,
+                name: questData.questName.replace(/^hunt\s+/i, ''),
+                maxHealth: Math.floor(
+                  bossData.health * 20 * difficultyMultiplier,
+                ),
+                health: Math.floor(bossData.health * 20 * difficultyMultiplier),
+                power: Math.floor(bossData.power * difficultyMultiplier),
+                speed: Math.floor(bossData.speed),
+                spriteId: bossData.spriteId,
+              });
+            } else {
+              setDefaultMonster(difficultyMultiplier);
+            }
           } else {
-            setDefaultMonster(difficultyMultiplier);
-          }
-        } else {
-          const monsterIds = (questMonsters as string).split(',');
-          const selectedMonster = await getRandomMonster(monsterIds);
+            const monsterIds =
+              typeof questMonsters === 'string'
+                ? questMonsters.split(',').filter((id) => id.trim() !== '')
+                : [];
 
-          if (selectedMonster) {
-            setMonster({
-              name: selectedMonster.name,
-              maxHealth: Math.floor(
-                selectedMonster.attributes.health * 20 * difficultyMultiplier,
-              ),
-              health: Math.floor(
-                selectedMonster.attributes.health * 20 * difficultyMultiplier,
-              ),
-              power: Math.floor(
-                selectedMonster.attributes.power * difficultyMultiplier,
-              ),
-              speed: Math.floor(selectedMonster.attributes.speed),
-              spriteId: selectedMonster.spriteId as AnimatedSpriteID,
-            });
-          } else {
-            setDefaultMonster(difficultyMultiplier);
+            if (monsterIds.length > 0) {
+              const randomIndex = Math.floor(Math.random() * monsterIds.length);
+              const selectedMonsterId = monsterIds[randomIndex];
+
+              const selectedMonster = await getMonsterById(selectedMonsterId);
+
+              if (selectedMonster) {
+                setMonster({
+                  id: selectedMonster.monsterId,
+                  name: selectedMonster.name,
+                  maxHealth: Math.floor(
+                    selectedMonster.attributes.health *
+                      20 *
+                      difficultyMultiplier,
+                  ),
+                  health: Math.floor(
+                    selectedMonster.attributes.health *
+                      20 *
+                      difficultyMultiplier,
+                  ),
+                  power: Math.floor(
+                    selectedMonster.attributes.power * difficultyMultiplier,
+                  ),
+                  speed: Math.floor(selectedMonster.attributes.speed),
+                  spriteId: selectedMonster.spriteId as AnimatedSpriteID,
+                });
+              } else {
+                setDefaultMonster(difficultyMultiplier);
+              }
+            } else {
+              setDefaultMonster(difficultyMultiplier);
+            }
           }
+        } catch (error) {
+          console.error('Error initializing monster:', error);
+          setDefaultMonster();
+        } finally {
+          setIsInitializing(false);
+          setIsMonsterInitialized(true);
         }
-        setIsMonsterInitialized(true);
-      } catch (error) {
-        console.error('Error initializing monster:', error);
-        setDefaultMonster();
-      } finally {
-        setIsInitializing(false);
       }
     };
 
     const setDefaultMonster = (multiplier = 1) => {
       setMonster({
+        id: '',
         name: 'Unknown Monster',
         maxHealth: Math.floor(100 * multiplier),
         health: Math.floor(100 * multiplier),
@@ -155,7 +173,30 @@ const Combat = () => {
     }
   }, [questId, isBoss, questMonsters, user?.attributes]);
 
-  const [player, setPlayer] = useState(initialPlayer);
+  const [player, setPlayer] = useState({
+    id: '',
+    name: '',
+    health: 0,
+    maxHealth: 0,
+    power: 0,
+    speed: 0,
+  });
+
+  useEffect(() => {
+    if (user && player.id === '') {
+      const { health, power, speed } = getUserTotalAttributes(user, items);
+      setPlayer({
+        id: user.id,
+        name: user.profileInfo.username,
+        health: health * 20,
+        maxHealth: health * 20,
+        power: power * 2,
+        speed: speed || 15,
+      });
+
+      setIsPlayerInitialized(true);
+    }
+  }, [user]);
 
   const [combatLog, setCombatLog] = useState<string[]>([]);
 
@@ -181,64 +222,106 @@ const Combat = () => {
     return isBoss === 'true';
   });
 
-  const [turnQueue, setTurnQueue] = useState<TurnInfo[]>([]);
-  const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
+  useEffect(() => {
+    if (
+      isMonsterInitialized &&
+      isPlayerInitialized &&
+      player &&
+      monster &&
+      !isInitializing
+    ) {
+      const maxSpeed = Math.max(player.speed, monster.speed);
+      const incrementValue = 25;
+      const speedBarInterval = setInterval(() => {
+        if (currentTurnEntity === null) {
+          setPlayerCharge((prev) => {
+            // Normalize gain rate based on max speed
+            const newCharge = prev + (player.speed / maxSpeed) * incrementValue;
+            console.log('Player charge:', newCharge);
+            return newCharge >= 100 ? 100 : newCharge;
+          });
 
-  // const gcd = (a: number, b: number): number => {
-  //   return b === 0 ? a : gcd(b, a % b);
-  // };
+          setMonsterCharge((prev) => {
+            const newCharge =
+              prev + (monster.speed / maxSpeed) * incrementValue;
+            console.log('Monster charge:', newCharge);
+            return newCharge >= 100 ? 100 : newCharge;
+          });
+        }
+      }, 500);
 
-  const calculateTurnOrder = (playerSpeed: number, monsterSpeed: number) => {
-    const turns: TurnInfo[] = [];
-    let playerNextTurn = 0;
-    let monsterNextTurn = 0;
-
-    const totalTurnsToCalculate = 20;
-
-    if (playerSpeed >= monsterSpeed) {
-      playerNextTurn = 0;
-      monsterNextTurn = 1 / monsterSpeed;
-    } else {
-      playerNextTurn = 1 / playerSpeed;
-      monsterNextTurn = 0;
+      return () => {
+        console.log('Clearing intervals');
+        clearInterval(speedBarInterval);
+      };
     }
-
-    for (let i = 0; i < totalTurnsToCalculate; i++) {
-      if (playerNextTurn <= monsterNextTurn) {
-        turns.push({
-          id: player.id,
-          name: player.name,
-          speed: playerSpeed,
-          isPlayer: true,
-        });
-        playerNextTurn += 1 / playerSpeed;
-      } else {
-        turns.push({
-          id: 'monster',
-          name: monster.name,
-          speed: monsterSpeed,
-          isPlayer: false,
-        });
-        monsterNextTurn += 1 / monsterSpeed;
-      }
-    }
-
-    return turns.map((turn) => ({
-      ...turn,
-      name: turn.isPlayer ? player.name : monster.name,
-    }));
-  };
-
-  const generateMoreTurns = () => {
-    const newTurns = calculateTurnOrder(player.speed, monster.speed);
-    setTurnQueue((prev) => [...prev, ...newTurns]);
-  };
+  }, [
+    player.speed,
+    monster.speed,
+    isMonsterInitialized,
+    isInitializing,
+    currentTurnEntity,
+  ]);
 
   useEffect(() => {
-    if (turnQueue.length - currentTurnIndex < 10) {
-      generateMoreTurns();
+    if (currentTurnEntity === 'monster') {
+      handleMonsterTurn();
     }
-  }, [currentTurnIndex]);
+  }, [currentTurnEntity]);
+
+  useEffect(() => {
+    console.log(
+      'Player charge:',
+      playerCharge,
+      'Monster charge:',
+      monsterCharge,
+    );
+    if (
+      isMonsterInitialized &&
+      isPlayerInitialized &&
+      (playerCharge >= 100 || monsterCharge >= 100)
+    ) {
+      // Reduce charge overflow for both entities if applicable
+      let overchargeAmount = 0;
+
+      let newPlayerCharge = playerCharge;
+      let newMonsterCharge = monsterCharge;
+
+      // If both entities are overcharged, reduce both by the same amount
+      if (newPlayerCharge >= 100 && newMonsterCharge >= 100) {
+        overchargeAmount = Math.max(newPlayerCharge, newMonsterCharge) - 100;
+        newPlayerCharge -= overchargeAmount;
+        newMonsterCharge -= overchargeAmount;
+      } else if (newPlayerCharge >= 100) {
+        overchargeAmount = newPlayerCharge - 100;
+        newPlayerCharge -= overchargeAmount;
+      } else if (newMonsterCharge >= 100) {
+        overchargeAmount = newMonsterCharge - 100;
+        newMonsterCharge -= overchargeAmount;
+      } else {
+        overchargeAmount = 0;
+      }
+
+      // Prioritize turn change based on charge
+      if (newPlayerCharge >= 100 && newMonsterCharge >= 100) {
+        console.log('Both entities are charged');
+        setCurrentTurnEntity('player');
+      } else if (newPlayerCharge >= 100) {
+        setCurrentTurnEntity('player');
+      } else if (newMonsterCharge >= 100) {
+        setCurrentTurnEntity('monster');
+      }
+
+      // if (playerCharge >= 100) {
+      //   // Player turn
+      //   setCurrentTurnEntity('player');
+      // }
+
+      // if (monsterCharge >= 100) {
+      //   setCurrentTurnEntity('monster');
+      // }
+    }
+  }, [playerCharge, monsterCharge, isMonsterInitialized, isPlayerInitialized]);
 
   const resetCombatState = () => {
     setStrongAttackCooldown(0);
@@ -301,7 +384,26 @@ const Combat = () => {
 
   useEffect(() => {
     const resetCombat = () => {
-      setPlayer({ ...initialPlayer });
+      if (user) {
+        const { health, power, speed } = getUserTotalAttributes(user, items);
+        setPlayer({
+          id: user.id,
+          name: user.profileInfo.username,
+          health: health * 20,
+          maxHealth: health * 20,
+          power: power * 2,
+          speed: speed || 15,
+        });
+      } else {
+        setPlayer({
+          id: '',
+          name: '',
+          health: 0,
+          maxHealth: 0,
+          power: 0,
+          speed: 0,
+        });
+      }
       setCombatLog([]);
     };
 
@@ -317,16 +419,22 @@ const Combat = () => {
     new Promise((resolve) => setTimeout(resolve, ms));
 
   const getRandomDamage = (baseDamage: number) => {
-    const variation = 0.5; // 50% variation
-    const randomFactor = 1 + Math.random() * 2 * variation;
+    const variation = 0.2; // 20% variation
+    const randomFactor = 1 + (Math.random() * 2 - 1) * variation;
     return Math.floor(baseDamage * randomFactor);
   };
 
-  const handleAttack = async (isStrong = false) => {
-    console.log('health', player.health);
-    if (isAnimating || !turnQueue[currentTurnIndex]?.isPlayer) return;
+  const endPlayerTurn = () => {
+    setPlayerCharge(0);
+    setCurrentTurnEntity(null);
+  };
 
-    const baseDamage = isStrong ? Math.floor(player.power * 1.5) : player.power;
+  const handleAttack = async (isStrong = false) => {
+    if (isAnimating) return;
+
+    const baseDamage = isStrong
+      ? Math.floor(player.power * 1.75)
+      : player.power;
     const damage = getRandomDamage(baseDamage);
 
     if (isStrong && strongAttackCooldown > 0) {
@@ -338,6 +446,7 @@ const Combat = () => {
     setPlayerSpriteState(
       isStrong ? SpriteState.ATTACK_1 : SpriteState.ATTACK_2,
     );
+    setMonsterSpriteState(SpriteState.DAMAGED);
 
     const newMonsterHealth = Math.max(0, monster.health - damage);
     setMonster((prev) => ({ ...prev, health: newMonsterHealth }));
@@ -355,20 +464,23 @@ const Combat = () => {
 
     await delay(500);
 
-    setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
     setIsAnimating(false);
     setPlayerSpriteState(SpriteState.IDLE);
+    setMonsterSpriteState(SpriteState.IDLE);
 
     if (strongAttackCooldown > 0) {
       setStrongAttackCooldown((prev) => prev - 1);
     }
+
+    endPlayerTurn();
   };
 
   const handlePotion = async (type: 'small' | 'large') => {
+    console.log(user, isAnimating, currentTurnEntity, potions[type]);
     if (
       !user?.id ||
       isAnimating ||
-      !turnQueue[currentTurnIndex]?.isPlayer ||
+      currentTurnEntity !== 'player' ||
       potions[type] <= 0
     )
       return;
@@ -378,11 +490,9 @@ const Combat = () => {
     const potionId =
       type === 'small' ? 'health_potion_small' : 'health_potion_large';
     const healPercentage = type === 'small' ? 0.2 : 0.5; // 20% for small, 50% for large
-    const maxHealth = (user.attributes.health || 6) * 20; // Calculate max health directly
+    const maxHealth = player.maxHealth;
     const healAmount = Math.floor(maxHealth * healPercentage);
     const newHealth = Math.min(maxHealth, player.health + healAmount);
-
-    console.log('newHealth', newHealth);
 
     const updatedConsumables = [...user.consumables];
     const potionIndex = updatedConsumables.indexOf(potionId);
@@ -406,8 +516,6 @@ const Combat = () => {
         setPotions((prev) => ({ ...prev, [type]: prev[type] - 1 }));
         setCombatLog((prev) => [...prev, `You healed for ${healAmount} HP!`]);
 
-        setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
-
         if (strongAttackCooldown > 0) {
           setStrongAttackCooldown((prev) => prev - 1);
         }
@@ -417,6 +525,7 @@ const Combat = () => {
       Alert.alert('Error', 'Failed to use potion. Please try again.');
     } finally {
       setIsAnimating(false);
+      endPlayerTurn();
     }
   };
 
@@ -478,68 +587,56 @@ const Combat = () => {
     setShowVictoryModal(true);
   };
 
-  useEffect(() => {
-    if (user) {
-      setPlayer((prev) => ({
-        ...prev,
-        power: (user.attributes.power || 15) * 2,
-        speed: user.attributes.speed || 15,
-      }));
-    }
-  }, [user]);
-
-  const getChargePercentage = (entityId: string) => {
-    if (turnQueue[currentTurnIndex]?.id === entityId) {
-      return 100;
-    }
-
-    if (
-      currentTurnIndex > 0 &&
-      turnQueue[currentTurnIndex - 1]?.id === entityId
-    ) {
-      return 0;
-    }
-
-    const nextTurnIndex = turnQueue.findIndex(
-      (turn, index) => index > currentTurnIndex && turn.id === entityId,
-    );
-
-    if (nextTurnIndex === -1) return 0;
-
-    const turnsUntilNext = nextTurnIndex - currentTurnIndex;
-    return Math.max(0, ((5 - turnsUntilNext) / 5) * 100);
-  };
-
   const playerPosition = useRef(new Animated.Value(0)).current;
   const monsterPosition = useRef(new Animated.Value(0)).current;
 
-  const animateSpriteToPosition = (
+  // const animateSpriteToPosition = (
+  //   animatedValue: Animated.Value,
+  //   toValue: number,
+  // ) => {
+  //   Animated.timing(animatedValue, {
+  //     toValue,
+  //     duration: 500,
+  //     useNativeDriver: false,
+  //   }).start();
+  // };
+
+  const animateSpriteToPosition: (
     animatedValue: Animated.Value,
     toValue: number,
-  ) => {
+  ) => void = (animatedValue, toValue) => {
+    const duration = 300;
     Animated.timing(animatedValue, {
       toValue,
-      duration: 500,
+      duration,
+      easing: Easing.linear,
       useNativeDriver: false,
     }).start();
   };
 
   useEffect(() => {
-    const playerCharge = getChargePercentage(player.id);
     animateSpriteToPosition(playerPosition, playerCharge);
-
-    const monsterCharge = getChargePercentage('monster');
     animateSpriteToPosition(monsterPosition, monsterCharge);
-  }, [currentTurnIndex, turnQueue]);
+  }, [playerCharge, monsterCharge]);
+
+  // useEffect(() => {
+  //   const playerCharge = getChargePercentage(player.id);
+  //   console.log(playerCharge);
+  //   animateSpriteToPosition(playerPosition, playerCharge);
+
+  //   const monsterCharge = getChargePercentage('monster');
+  //   console.log(monsterCharge);
+  //   animateSpriteToPosition(monsterPosition, monsterCharge);
+  // }, [currentTurnIndex, turnQueue]);
 
   const renderTurnOrder = () => {
     return (
-      <View className="mb-4">
+      <View className="my-4">
         <View className="h-24 rounded-xl p-4">
           <View className="h-full relative flex-row items-center">
-            <View className="absolute left-4 right-4 top-2/3 h-[5px] bg-yellow">
-              <View className="absolute top-[-3px] left-0 w-[6px] h-[12px] bg-yellow rounded-full" />
-              <View className="absolute top-[-3px] right-0 w-[6px] h-[12px] bg-yellow rounded-full" />
+            <View className="absolute left-4 right-4 top-2/3 h-[5px] bg-yellow border border-black">
+              <View className="absolute top-[-4px] -left-1 w-[6px] h-[12px] bg-yellow rounded-full border border-black" />
+              <View className="absolute top-[-4px] -right-1 w-[6px] h-[12px] bg-yellow rounded-full border border-black" />
             </View>
 
             <Animated.View
@@ -554,11 +651,10 @@ const Combat = () => {
                   { translateY: -24 },
                   { translateX: 0 },
                   {
-                    scale:
-                      turnQueue[currentTurnIndex]?.id === player.id ? 1.25 : 1,
+                    scale: currentTurnEntity === 'player' ? 1.25 : 1,
                   },
                 ],
-                zIndex: turnQueue[currentTurnIndex]?.id === player.id ? 2 : 1,
+                zIndex: currentTurnEntity === 'player' ? 2 : 1,
               }}
             >
               <AnimatedSprite
@@ -566,9 +662,10 @@ const Combat = () => {
                 width={48}
                 height={48}
                 state={
-                  turnQueue[currentTurnIndex]?.id === player.id
-                    ? SpriteState.ATTACK_2
-                    : SpriteState.IDLE
+                  currentTurnEntity === 'player' ||
+                  currentTurnEntity === 'monster'
+                    ? SpriteState.IDLE
+                    : SpriteState.MOVE
                 }
               />
             </Animated.View>
@@ -585,11 +682,10 @@ const Combat = () => {
                   { translateY: -24 },
                   { translateX: 0 },
                   {
-                    scale:
-                      turnQueue[currentTurnIndex]?.id === 'monster' ? 1.25 : 1,
+                    scale: currentTurnEntity === 'monster' ? 1.25 : 1,
                   },
                 ],
-                zIndex: turnQueue[currentTurnIndex]?.id === 'monster' ? 2 : 1,
+                zIndex: currentTurnEntity === 'monster' ? 2 : 1,
               }}
             >
               <AnimatedSprite
@@ -597,9 +693,10 @@ const Combat = () => {
                 width={48}
                 height={48}
                 state={
-                  turnQueue[currentTurnIndex]?.id === 'monster'
-                    ? SpriteState.ATTACK_2
-                    : SpriteState.IDLE
+                  currentTurnEntity === 'monster' ||
+                  currentTurnEntity === 'player'
+                    ? SpriteState.IDLE
+                    : SpriteState.MOVE
                 }
               />
             </Animated.View>
@@ -609,18 +706,11 @@ const Combat = () => {
     );
   };
 
-  useEffect(() => {
-    if (isMonsterInitialized && player && monster) {
-      const initialTurns = calculateTurnOrder(player.speed, monster.speed);
-      setTurnQueue(initialTurns);
-    }
-  }, [isMonsterInitialized, player, monster]);
-
   const handleMonsterTurn = async () => {
     if (
       isAnimating ||
-      turnQueue[currentTurnIndex]?.isPlayer ||
-      !isMonsterInitialized
+      currentTurnEntity !== 'monster' ||
+      (!isMonsterInitialized && !isBossFight)
     )
       return;
 
@@ -631,6 +721,7 @@ const Combat = () => {
     await delay(1000);
 
     setMonsterSpriteState(SpriteState.ATTACK_1);
+    setPlayerSpriteState(SpriteState.DAMAGED);
     await delay(500);
 
     setPlayer((prev) => ({
@@ -645,6 +736,7 @@ const Combat = () => {
 
     await delay(500);
     setMonsterSpriteState(SpriteState.IDLE);
+    setPlayerSpriteState(SpriteState.IDLE);
 
     if (player.health - monsterDamage <= 0) {
       setIsAnimating(false);
@@ -653,19 +745,21 @@ const Combat = () => {
     }
 
     await delay(500);
-    setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
+    // setCurrentTurnIndex((prev) => (prev + 1) % turnQueue.length);
+    setMonsterCharge(0);
+    setCurrentTurnEntity(null);
     setIsAnimating(false);
   };
 
-  useEffect(() => {
-    if (turnQueue.length && !isAnimating) {
-      if (turnQueue[currentTurnIndex]?.isPlayer) {
-        // Player turn
-      } else {
-        handleMonsterTurn();
-      }
-    }
-  }, [currentTurnIndex, turnQueue, isAnimating]);
+  // useEffect(() => {
+  //   if (turnQueue.length && !isAnimating) {
+  //     if (turnQueue[currentTurnIndex]?.isPlayer) {
+  //       // Player turn
+  //     } else {
+  //       handleMonsterTurn();
+  //     }
+  //   }
+  // }, [currentTurnIndex, turnQueue, isAnimating]);
 
   const spriteSize = useMemo(() => {
     const { width } = Dimensions.get('window');
@@ -674,7 +768,8 @@ const Combat = () => {
   }, []);
 
   const battleBackgrounds = [
-    require('@/assets/backgrounds/battle_background_1.png'),
+    require('@/assets/backgrounds/bg_fight_screen_1.png'),
+    require('@/assets/backgrounds/bg_fight_screen_2.png'),
     // Add more backgrounds as needed
   ];
 
@@ -683,35 +778,37 @@ const Combat = () => {
       battleBackgrounds[Math.floor(Math.random() * battleBackgrounds.length)],
   );
 
-  if (isInitializing) {
+  if (!isMonsterInitialized || !isPlayerInitialized || isInitializing) {
     return (
-      <ImageBackground source={battleBackground} className="flex-1">
-        <SafeAreaView className="flex-1 items-center justify-center">
+      <SafeAreaView className="flex-1">
+        <ImageBackground
+          source={battleBackground}
+          className="flex-1 items-center justify-center"
+        >
           <View className="bg-black/50 p-6 rounded-xl items-center">
             <ActivityIndicator size="large" color="#ffffff" />
             <Text className="text-xl text-white mt-4">
               Preparing for battle...
             </Text>
           </View>
-        </SafeAreaView>
-      </ImageBackground>
+        </ImageBackground>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ImageBackground source={battleBackground} className="flex-1">
-      <SafeAreaView className="flex-1 p-4 pb-20 px-6 mt-[-50px]">
-        <View className="h-2 bg-gray-200/50 rounded-full mb-12">
-          <View className="h-full bg-blue-500/70 rounded-full w-1/2" />
-        </View>
-
+    <SafeAreaView className="flex-1">
+      <ImageBackground
+        source={battleBackground}
+        className="flex-1 px-6 flex-col justify-between bg-yellow h-full mt-5"
+      >
         {renderTurnOrder()}
 
-        <View className="flex-1 px-6 justify-center items-center h-full">
-          <View className="h-[300px] w-full mb-40 rounded-xl p-4">
+        <View className="flex-1 justify-end items-center h-full">
+          <View className="w-full rounded-xl">
             <View className="flex-row justify-between items-start mb-[10px]">
-              <View className="w-1/2 pr-4 bg-black/30 p-2 rounded">
-                <Text className="text-lg font-bold mb-1 text-white">
+              <View className="w-1/2 pr-4 bg-black/40 p-2 rounded">
+                <Text className="text-md font-bold mb-1 text-white">
                   {monster.name}
                 </Text>
                 <View className="w-full h-4 bg-gray/80 rounded-full overflow-hidden border border-black border-2">
@@ -727,19 +824,35 @@ const Combat = () => {
                 </Text>
               </View>
 
-              <View className="w-1/2 items-end left-5">
-                <AnimatedSprite
-                  id={monster.spriteId}
-                  width={spriteSize}
-                  height={spriteSize}
-                  state={monsterSpriteState}
-                  direction="left"
-                />
+              <View
+                className="relative w-1/2 items-center"
+                style={{
+                  height: spriteSize,
+                }}
+              >
+                {isBoss === 'true' ? (
+                  <View className="absolute bottom-0">
+                    <AnimatedSprite
+                      id={monster.spriteId}
+                      width={spriteSize * 2}
+                      height={spriteSize * 2}
+                      state={monsterSpriteState}
+                      direction="left"
+                    />
+                  </View>
+                ) : (
+                  <AnimatedSprite
+                    id={monster.spriteId}
+                    width={spriteSize}
+                    height={spriteSize}
+                    state={monsterSpriteState}
+                  />
+                )}
               </View>
             </View>
 
             <View className="flex-row justify-between items-center">
-              <View className="w-1/2 items-start right-5">
+              <View className="w-1/2 items-center right-5">
                 <AnimatedSprite
                   id={user?.spriteID}
                   width={spriteSize}
@@ -748,53 +861,76 @@ const Combat = () => {
                 />
               </View>
 
-              <View className="w-1/2 pl-4 bg-black/30 p-2 rounded">
-                <Text className="text-lg font-bold mb-1 text-white">
+              <View className="w-1/2 pl-4 bg-black/40 p-2 rounded">
+                <Text className="text-md font-bold mb-1 text-white">
                   {player.name}
                 </Text>
                 <View className="w-full h-4 bg-gray/80 rounded-full overflow-hidden border border-black border-2">
                   <View
                     className="h-full bg-green"
                     style={{
-                      width: `${(player.health / initialPlayer.health) * 100}%`,
+                      width: `${(player.health / player.maxHealth) * 100}%`,
                     }}
                   />
                 </View>
                 <Text className="text-sm mt-1 text-white">
-                  HP: {player.health}/{initialPlayer.health}
+                  HP: {player.health}/{player.maxHealth}
                 </Text>
               </View>
             </View>
           </View>
         </View>
-
-        <View className="absolute left-6 w-full bottom-[170px] mb-4 p-2 bg-black/50 rounded">
-          {combatLog.slice(-3).map((log, index) => (
-            <Text key={index} className="text-sm mb-1 text-white">
-              {log}
-            </Text>
-          ))}
+        <View className="h-[90px] mt-8 mb-1 justify-end">
+          <View
+            className={clsx('w-full p-2 bg-black/50 rounded max-h-[90px]', {
+              hidden: combatLog.length === 0,
+            })}
+            testID="combat-log"
+          >
+            {combatLog.slice(-3).map((log, index) => (
+              <Text key={index} className="text-sm mb-1 text-white w-full">
+                {log}
+              </Text>
+            ))}
+          </View>
         </View>
 
-        <View className="absolute left-6 bottom-0 pb-8 flex-row w-full h-[160px]">
+        <View className="flex-row w-full mb-8">
           <View className="flex-1 mr-2">
-            <Text className="text-lg font-bold mb-2 text-white drop-shadow">
+            <Text
+              className="text-lg font-bold mb-2 text-white"
+              style={{
+                textShadowColor: '#000',
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 15,
+              }}
+            >
               MOVES
             </Text>
             <View className="space-y-2">
               <Pressable
-                className={`bg-white/90 p-3 rounded shadow ${isAnimating ? 'opacity-50' : ''}`}
+                className={`bg-white/90 p-3 rounded shadow ${isAnimating || currentTurnEntity !== 'player' ? 'opacity-50' : ''}`}
                 onPress={() => handleAttack(false)}
-                disabled={isAnimating}
+                disabled={isAnimating || currentTurnEntity !== 'player'}
+                testID="normal-attack-button"
               >
                 <Text className="text-center">Attack</Text>
               </Pressable>
               <Pressable
-                className={`bg-white/90 p-3 rounded shadow ${
-                  strongAttackCooldown > 0 || isAnimating ? 'opacity-50' : ''
+                className={`bg-white/90 py-3 rounded shadow ${
+                  strongAttackCooldown > 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                    ? 'opacity-50'
+                    : ''
                 }`}
                 onPress={() => handleAttack(true)}
-                disabled={strongAttackCooldown > 0 || isAnimating}
+                disabled={
+                  strongAttackCooldown > 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                }
+                testID="strong-attack-button"
               >
                 <Text className="text-center flex-row items-center justify-center">
                   Strong Attack
@@ -810,16 +946,32 @@ const Combat = () => {
           </View>
 
           <View className="flex-1 ml-2">
-            <Text className="text-lg font-bold mb-2 text-white drop-shadow">
+            <Text
+              className="text-lg font-bold mb-2 text-white drop-shadow"
+              style={{
+                textShadowColor: '#000',
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 15,
+              }}
+            >
               POTIONS
             </Text>
             <View className="space-y-2">
               <Pressable
                 className={`bg-white/90 p-3 rounded shadow ${
-                  potions.small <= 0 || isAnimating ? 'opacity-50' : ''
+                  potions.small <= 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                    ? 'opacity-50'
+                    : ''
                 }`}
+                testID="small-potion-button"
                 onPress={() => handlePotion('small')}
-                disabled={potions.small <= 0 || isAnimating}
+                disabled={
+                  potions.small <= 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                }
               >
                 <Text className="text-center">
                   Small Potion
@@ -828,10 +980,19 @@ const Combat = () => {
               </Pressable>
               <Pressable
                 className={`bg-white/90 p-3 rounded shadow ${
-                  potions.large <= 0 || isAnimating ? 'opacity-50' : ''
+                  potions.large <= 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                    ? 'opacity-50'
+                    : ''
                 }`}
+                testID="large-potion-button"
                 onPress={() => handlePotion('large')}
-                disabled={potions.large <= 0 || isAnimating}
+                disabled={
+                  potions.large <= 0 ||
+                  isAnimating ||
+                  currentTurnEntity !== 'player'
+                }
               >
                 <Text className="text-center">
                   Large Potion
@@ -853,8 +1014,7 @@ const Combat = () => {
               {modalType === 'victory' ? (
                 <>
                   <Text className="text-2xl font-bold mb-4">
-                    You have defeated {isBossFight ? 'the Boss' : 'the monster'}
-                    !
+                    You have defeated {monster.name}!
                   </Text>
 
                   <View className="w-full relative items-center justify-center h-[160px] overflow-hidden mb-10">
@@ -960,21 +1120,18 @@ const Combat = () => {
                 </>
               )}
 
-              <Pressable
-                className="w-full bg-blue py-4 rounded-xl shadow-lg active:bg-blue"
-                onPress={handleContinue}
-              >
+              <FQButton onPress={handleContinue} className="w-full">
                 <Text className="text-white text-xl font-bold tracking-wider text-center">
                   CONTINUE
                 </Text>
-              </Pressable>
+              </FQButton>
             </View>
           </View>
         </Modal>
 
         <StatusBar backgroundColor="#161622" style="light" />
-      </SafeAreaView>
-    </ImageBackground>
+      </ImageBackground>
+    </SafeAreaView>
   );
 };
 
