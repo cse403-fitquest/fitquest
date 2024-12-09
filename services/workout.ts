@@ -2,7 +2,7 @@ import { doc, getDoc, updateDoc, collection } from 'firebase/firestore';
 import { FIREBASE_DB } from '@/firebaseConfig';
 import { APIResponse } from '@/types/general';
 import { userConverter } from './user.helper';
-import { addToUserWorkouts, updateUserAfterExpGain } from '@/utils/workout';
+import { updateUserAfterExpGain } from '@/utils/workout';
 import { ExerciseDisplay, Workout } from '@/types/workout';
 import { User } from '@/types/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -36,7 +36,7 @@ export const updateEXP: (
       throw new Error('User data not found.');
     }
 
-    const expGain = duration * 500;
+    const expGain = duration;
 
     // Get new user exp amount
     const userAfterExpGain = updateUserAfterExpGain(userData, expGain);
@@ -87,7 +87,7 @@ export const finishAndSaveWorkout = async (
     }
 
     const newWorkout = workout;
-    const expGain = newWorkout.duration * 500;
+    const expGain = newWorkout.duration;
     const currentWorkoutMinutes = userData.activeWorkoutMinutes || 0;
 
     // Get new user exp amount
@@ -146,16 +146,39 @@ export const saveWorkoutTemplate: (
     const userData = userSnap.data();
 
     if (!userData) {
-      throw new Error('User data not found.');
+      return {
+        data: null,
+        success: false,
+        error: 'User data not found.',
+      };
     }
 
     const newWorkout = workout;
 
-    // Get new user exp amount
-    const userAfterWorkoutAdd = addToUserWorkouts(userData, newWorkout);
+    console.log('new workout', newWorkout);
+
+    // Check if workout template with the same title already exists
+    const isWorkoutTemplateExists = userData.savedWorkoutTemplates.some(
+      (workout) => workout.title === newWorkout.title,
+    );
+
+    if (isWorkoutTemplateExists) {
+      return {
+        data: null,
+        success: false,
+        error: 'Workout template with the same title already exists.',
+      };
+    }
+
+    console.log('user data', userData);
+
+    const newSavedWorkoutTemplates = [
+      newWorkout,
+      ...userData.savedWorkoutTemplates,
+    ];
 
     await updateDoc(userRef, {
-      savedWorkoutTemplates: userAfterWorkoutAdd.savedWorkoutTemplates,
+      savedWorkoutTemplates: newSavedWorkoutTemplates,
     });
 
     console.log('successfully added ' + newWorkout.title + 'to user workouts.');

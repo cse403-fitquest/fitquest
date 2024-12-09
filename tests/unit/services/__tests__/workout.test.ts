@@ -143,7 +143,7 @@ describe('Workout Service Functions', () => {
   const userData = {
     ...BASE_USER,
     id: 'user1234',
-    savedWorkouts: [],
+    savedWorkoutTemplates: [],
   };
 
   // basic chest workout
@@ -161,7 +161,7 @@ describe('Workout Service Functions', () => {
   const userDataWithWorkout = {
     ...BASE_USER,
     id: 'userwithworkout',
-    savedWorkouts: [exampleWorkout],
+    savedWorkoutTemplates: [exampleWorkout],
   };
 
   beforeEach(() => {
@@ -169,7 +169,7 @@ describe('Workout Service Functions', () => {
   });
 
   // Tests for saving and editing workouts
-  describe('saving and editing workout templates', () => {
+  describe('saving, editingm, and deleting workout templates', () => {
     const userId = 'user1234';
 
     it('should add to saved workouts successfully', async () => {
@@ -269,8 +269,8 @@ describe('Workout Service Functions', () => {
 
       // Check if user's exp has been updated correctly
       expect(mockUpdateDoc).toHaveBeenCalledWith(expect.objectContaining({}), {
-        exp: 2000,
-        attributePoints: 116,
+        exp: 500,
+        attributePoints: 2,
       });
     });
 
