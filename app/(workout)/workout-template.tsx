@@ -6,13 +6,17 @@ import { useUserStore } from '@/store/user';
 import { useWorkoutStore } from '@/store/workout';
 import { ExerciseTag } from '@/types/workout';
 import { Ionicons } from '@expo/vector-icons';
-import { Href, router } from 'expo-router';
+import { Href, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Text, TouchableOpacity, View, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // import { v4 as uuidv4 } from 'uuid';
 
 const WorkoutTemplate = () => {
+  const { onlyDisplay } = useLocalSearchParams<{
+    onlyDisplay: string;
+  }>();
+
   const { workout, workoutDisplay, setWorkout } = useWorkoutStore();
   const { user, setUser } = useUserStore();
   const { setLoading } = useGeneralStore();
@@ -240,18 +244,24 @@ const WorkoutTemplate = () => {
                 <Ionicons name="arrow-back" size={35} color="black" />
               </TouchableOpacity>
               <View className="flex-row items-center">
-                <TouchableOpacity onPress={onEditTemplatePress}>
-                  <Text className="font-semibold text-blue p-1">EDIT</Text>
-                </TouchableOpacity>
-                {!workoutDisplay.isSuggested ? (
-                  <TouchableOpacity
-                    className="ml-5"
-                    onPress={onDeleteTemplatePress}
-                  >
-                    <Text className="font-semibold text-red-500 p-1">
-                      DELETE
-                    </Text>
-                  </TouchableOpacity>
+                {onlyDisplay !== 'true' ? (
+                  <>
+                    <TouchableOpacity onPress={onEditTemplatePress}>
+                      <Text className="font-semibold text-blue p-1">EDIT</Text>
+                    </TouchableOpacity>
+                    <>
+                      {!workoutDisplay.isSuggested ? (
+                        <TouchableOpacity
+                          className="ml-5"
+                          onPress={onDeleteTemplatePress}
+                        >
+                          <Text className="font-semibold text-red-500 p-1">
+                            DELETE
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
+                    </>
+                  </>
                 ) : null}
               </View>
             </View>
@@ -341,11 +351,13 @@ const WorkoutTemplate = () => {
                 </View>
               )}
             />
-            <View className="w-full mb-8">
-              <FQButton onPress={onPerformWorkoutPress}>
-                PERFORM WORKOUT
-              </FQButton>
-            </View>
+            {onlyDisplay !== 'true' ? (
+              <View className="w-full mb-8">
+                <FQButton onPress={onPerformWorkoutPress}>
+                  PERFORM WORKOUT
+                </FQButton>
+              </View>
+            ) : null}
           </View>
         }
       />
