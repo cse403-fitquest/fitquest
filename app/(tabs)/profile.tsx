@@ -216,9 +216,25 @@ const Profile = () => {
         health: 0,
       };
 
-      const powerDiff = selectedItem.power - userEquippedItem.power;
-      const speedDiff = selectedItem.speed - userEquippedItem.speed;
-      const healthDiff = selectedItem.health - userEquippedItem.health;
+      let powerDiff = selectedItem.power - userEquippedItem.power;
+      let speedDiff = selectedItem.speed - userEquippedItem.speed;
+      let healthDiff = selectedItem.health - userEquippedItem.health;
+
+      let selectedItemPower = selectedItem.power;
+      let selectedItemSpeed = selectedItem.speed;
+      let selectedItemHealth = selectedItem.health;
+
+      // Check if the selected item is already equipped
+      // In which case, display the stats as if the item is unequipped
+      if (isItemEquipped) {
+        powerDiff = -userEquippedItem.power;
+        speedDiff = -userEquippedItem.speed;
+        healthDiff = -userEquippedItem.health;
+
+        selectedItemPower = 0;
+        selectedItemSpeed = 0;
+        selectedItemHealth = 0;
+      }
 
       return (
         <View>
@@ -257,34 +273,34 @@ const Profile = () => {
             <View className="justify-center items-center">
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.power > userEquippedItem.power,
-                  'text-red-500': selectedItem.power < userEquippedItem.power,
+                  'text-green': selectedItemPower > userEquippedItem.power,
+                  'text-red-500': selectedItemPower < userEquippedItem.power,
                 })}
               >
-                {selectedItem.power}
+                {selectedItemPower}
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.speed > userEquippedItem.speed,
-                  'text-red-500': selectedItem.speed < userEquippedItem.speed,
+                  'text-green': selectedItemSpeed > userEquippedItem.speed,
+                  'text-red-500': selectedItemSpeed < userEquippedItem.speed,
                 })}
               >
-                {selectedItem.speed}
+                {selectedItemSpeed}
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.health > userEquippedItem.health,
-                  'text-red-500': selectedItem.health < userEquippedItem.health,
+                  'text-green': selectedItemHealth > userEquippedItem.health,
+                  'text-red-500': selectedItemHealth < userEquippedItem.health,
                 })}
               >
-                {selectedItem.health}
+                {selectedItemHealth}
               </Text>
             </View>
             <View className="justify-center items-start">
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.power > userEquippedItem.power,
-                  'text-red-500': selectedItem.power < userEquippedItem.power,
+                  'text-green': selectedItemPower > userEquippedItem.power,
+                  'text-red-500': selectedItemPower < userEquippedItem.power,
                 })}
               >
                 {powerDiff == 0
@@ -295,8 +311,8 @@ const Profile = () => {
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.speed > userEquippedItem.speed,
-                  'text-red-500': selectedItem.speed < userEquippedItem.speed,
+                  'text-green': selectedItemSpeed > userEquippedItem.speed,
+                  'text-red-500': selectedItemSpeed < userEquippedItem.speed,
                 })}
               >
                 {speedDiff == 0
@@ -307,8 +323,8 @@ const Profile = () => {
               </Text>
               <Text
                 className={clsx('font-bold', {
-                  'text-green': selectedItem.health > userEquippedItem.health,
-                  'text-red-500': selectedItem.health < userEquippedItem.health,
+                  'text-green': selectedItemHealth > userEquippedItem.health,
+                  'text-red-500': selectedItemHealth < userEquippedItem.health,
                 })}
               >
                 {healthDiff == 0
