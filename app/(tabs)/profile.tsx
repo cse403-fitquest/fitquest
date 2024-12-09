@@ -16,7 +16,6 @@ import { updateUserProfile } from '@/services/user';
 import { signOut } from '@/services/auth';
 import { useUserStore } from '@/store/user';
 import { useItemStore } from '@/store/item';
-import { useSocialStore } from '@/store/social';
 import { AnimatedSpriteID, SpriteState } from '@/constants/sprite';
 import { Sprite } from '@/components/Sprite';
 import { AnimatedSprite } from '@/components/AnimatedSprite';
@@ -27,6 +26,7 @@ import { Colors } from '@/constants/colors';
 import { BASE_ITEM } from '@/constants/item';
 import { User } from '@/types/user';
 import { getUserHealthPotionsCountFromItems } from '@/utils/item';
+// import { useSocialStore } from '@/store/social';
 
 interface ItemCardProps {
   item: Item;
@@ -102,7 +102,7 @@ const Profile = () => {
 
   const { user, setUser } = useUserStore();
   const { items } = useItemStore();
-  const { resetSocialStore } = useSocialStore();
+  // const { userFriend, setUserFriend, resetSocialStore } = useSocialStore();
 
   const [isCurrentQuestPublic, setIsCurrentQuestPublic] = useState(
     user?.privacySettings.isCurrentQuestPublic,
@@ -514,15 +514,13 @@ const Profile = () => {
 
   const handleSignOut = async () => {
     console.log('Signing out...');
+
     const signOutResponse = await signOut();
 
     console.log('Sign out response:', signOutResponse);
     if (signOutResponse.error) {
       Alert.alert('Error signing out', signOutResponse.error);
     }
-
-    setUser(null);
-    resetSocialStore();
   };
 
   const handleUpdateProfile = async () => {
