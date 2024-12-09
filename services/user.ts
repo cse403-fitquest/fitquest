@@ -13,7 +13,7 @@ import {
   updateDoc,
   writeBatch,
 } from 'firebase/firestore';
-import { getUserByUsername, userConverter } from './user.helper';
+import { userConverter } from './user.helper';
 /**
  * Fill missing user fields in Firestore based on changes to the User type
  */
@@ -112,6 +112,7 @@ export const updateAllUsersInDB: () => Promise<APIResponse> = async () => {
           ...BASE_USER.privacySettings,
           ...user.privacySettings,
         },
+        activeWorkout: null,
         createdAt: user.createdAt || new Date(),
       };
 
@@ -277,20 +278,20 @@ export const updateUserProfile = async (
 ): Promise<APIResponse> => {
   try {
     // Check if updates changes the username
-    if (updates.profileInfo?.username) {
-      // Check if the new username is already taken
-      const userByUsernameResponse = await getUserByUsername(
-        updates.profileInfo.username,
-      );
+    // if (updates.profileInfo?.username) {
+    //   // Check if the new username is already taken
+    //   const userByUsernameResponse = await getUserByUsername(
+    //     updates.profileInfo.username,
+    //   );
 
-      if (userByUsernameResponse.success) {
-        return {
-          success: false,
-          data: null,
-          error: 'Username is already taken.',
-        };
-      }
-    }
+    //   if (userByUsernameResponse.success) {
+    //     return {
+    //       success: false,
+    //       data: null,
+    //       error: 'Username is already taken.',
+    //     };
+    //   }
+    // }
 
     const userRef = doc(FIREBASE_DB, 'users', userId);
     await updateDoc(userRef, updates);

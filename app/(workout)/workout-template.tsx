@@ -10,7 +10,6 @@ import { Href, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Text, TouchableOpacity, View, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-// import { v4 as uuidv4 } from 'uuid';
 
 const WorkoutTemplate = () => {
   const { onlyDisplay } = useLocalSearchParams<{
