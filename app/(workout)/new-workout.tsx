@@ -440,7 +440,7 @@ const NewWorkout = () => {
       return;
     }
 
-    const expGain = seconds * 500;
+    const expGain = seconds;
 
     setModalContent({
       title: 'Finished?',
@@ -558,10 +558,7 @@ const NewWorkout = () => {
     // Print workout object
     printWorkout(newWorkout);
 
-    const userAfterExpGain = updateUserAfterExpGain(
-      user,
-      newWorkout.duration * 500,
-    );
+    const userAfterExpGain = updateUserAfterExpGain(user, newWorkout.duration);
 
     // Optimistic update to user's workout history and exp
     const oldUser = user;

@@ -12,6 +12,7 @@ import {
   Dimensions,
   LayoutAnimation,
   ScrollView,
+  Alert,
 } from 'react-native';
 import 'react-native-get-random-values';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -335,6 +336,11 @@ const NewWorkout = () => {
       console.log('Successfully saved workout template');
     } else {
       console.error('Failed to save workout template');
+      Alert.alert(
+        'Error saving workout template',
+        saveWorkoutTemplateResponse.error ||
+          'An error occurred while saving the workout template.',
+      );
 
       // Revert user store
       setUser(oldUser);

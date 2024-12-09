@@ -26,6 +26,7 @@ import { router } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { BASE_ITEM } from '@/constants/item';
 import { User } from '@/types/user';
+import { getUserHealthPotionsCountFromItems } from '@/utils/item';
 
 interface ItemCardProps {
   item: Item;
@@ -80,18 +81,24 @@ const Profile = () => {
   const [selectedStatForBreakdown, setSelectedStatForBreakdown] = useState<
     'power' | 'health' | 'speed'
   >('power');
-  const [statContributions, setStatContributions] = useState<
-    StatContributions[]
-  >([]);
-  const [totalStats, setTotalStats] = useState<{
-    power: number;
-    health: number;
-    speed: number;
-  }>({
-    power: 0,
-    health: 0,
-    speed: 0,
-  });
+  // const [statContributions, setStatContributions] = useState<
+  //   StatContributions[]
+  // >([]);
+  // // const statContributions: StatContributions[] = [];
+  // const [totalStats, setTotalStats] = useState<{
+  //   power: number;
+  //   health: number;
+  //   speed: number;
+  // }>({
+  //   power: 0,
+  //   health: 0,
+  //   speed: 0,
+  // });
+  // const totalStats = {
+  //   power: 0,
+  //   health: 0,
+  //   speed: 0,
+  // };
 
   const { user, setUser } = useUserStore();
   const { items } = useItemStore();
@@ -135,6 +142,43 @@ const Profile = () => {
 
     return getUserExpThreshold(user) - user.exp;
   }, [user]);
+
+  if (!user) {
+    return <Text>Loading...</Text>;
+  }
+  // Memoized calculations for stats and contributions
+  const { totalStats, contributions } = useMemo(() => {
+    let computedPower = user.attributes.power;
+    let computedHealth = user.attributes.health;
+    let computedSpeed = user.attributes.speed;
+    const contributionsArray: StatContributions[] = [];
+
+    const equipped = items.filter((item) =>
+      user.equippedItems.includes(item.id),
+    );
+
+    equipped.forEach((item) => {
+      computedPower += item.power;
+      computedHealth += item.health;
+      computedSpeed += item.speed;
+
+      contributionsArray.push({
+        name: item.name,
+        power: item.power,
+        health: item.health,
+        speed: item.speed,
+      });
+    });
+
+    return {
+      totalStats: {
+        power: computedPower,
+        health: computedHealth,
+        speed: computedSpeed,
+      },
+      contributions: contributionsArray,
+    };
+  }, [user, items]);
 
   const userExpBarWidth: DimensionValue = useMemo(() => {
     if (!user) return `0%`;
@@ -277,27 +321,13 @@ const Profile = () => {
     }
 
     // Only non-equipment items left are consumables
-
     let healthPotionsCount = 0;
 
-    const userConsumables = user.consumables.map((id) => {
-      const consumable = items.find((item) => item.id === id);
-      if (!consumable) {
-        console.error('User consumable not found:', id);
-        return { ...BASE_ITEM, id: id, name: 'Unknown Consumable' };
-      }
-      return consumable;
-    });
-
-    const userSmallHealthPotCount = userConsumables.filter(
-      (i) => i.type === ItemType.POTION_SMALL,
-    ).length;
-    const userMediumHealthPotCount = userConsumables.filter(
-      (i) => i.type === ItemType.POTION_MEDIUM,
-    ).length;
-    const userLargeHealthPotCount = userConsumables.filter(
-      (i) => i.type === ItemType.POTION_LARGE,
-    ).length;
+    const [
+      userSmallHealthPotCount,
+      userMediumHealthPotCount,
+      userLargeHealthPotCount,
+    ] = getUserHealthPotionsCountFromItems(user, items);
 
     if (selectedItem.type === ItemType.POTION_SMALL) {
       healthPotionsCount = userSmallHealthPotCount;
@@ -325,13 +355,13 @@ const Profile = () => {
   }, [selectedItem, user]);
 
   // Calculate total stats based on user profile and equipped items
-  useEffect(() => {
+  /*useEffect(() => {
     if (!user) return;
 
     // Base stats from user profile
-    let computedPower = user.attributes.power;
-    let computedHealth = user.attributes.health;
-    let computedSpeed = user.attributes.speed;
+    // let computedPower = user.attributes.power;
+    // let computedHealth = user.attributes.health;
+    // let computedSpeed = user.attributes.speed;
 
     const contributions: StatContributions[] = [];
 
@@ -341,9 +371,9 @@ const Profile = () => {
     );
 
     equipped.forEach((item) => {
-      computedPower += item.power;
-      computedHealth += item.health;
-      computedSpeed += item.speed;
+      // computedPower += item.power;
+      // computedHealth += item.health;
+      // computedSpeed += item.speed;
 
       contributions.push({
         name: item.name,
@@ -353,14 +383,14 @@ const Profile = () => {
       });
     });
 
-    setTotalStats({
-      power: computedPower,
-      health: computedHealth,
-      speed: computedSpeed,
-    });
+    // setTotalStats({
+    //   power: computedPower,
+    //   health: computedHealth,
+    //   speed: computedSpeed,
+    // });
 
-    setStatContributions(contributions);
-  }, [user, items]);
+    // setStatContributions(contributions);
+  }, [user, items]);*/
 
   // Function to handle equipping an item
   const handleEquipItem = async (item: Item) => {
@@ -558,11 +588,10 @@ const Profile = () => {
         privacySettings: updates.privacySettings ?? user.privacySettings,
       });
       Alert.alert('Profile updated successfully');
+      setIsSettingsVisible(false);
     } else {
       Alert.alert('Error updating profile', response.error || '');
     }
-
-    setIsSettingsVisible(false);
   };
 
   const closeSettingsModal = () => {
@@ -584,7 +613,7 @@ const Profile = () => {
 
   const getStatBreakdown = (stat: 'power' | 'health' | 'speed') => {
     const baseStat = user?.attributes[stat] ?? 0;
-    const totalContribution = statContributions.reduce(
+    const totalContribution = contributions.reduce(
       (total, contribution) => total + contribution[stat],
       0,
     );
@@ -601,7 +630,7 @@ const Profile = () => {
         </View>
 
         {/* Contributions */}
-        {statContributions
+        {contributions
           .filter((contribution) => contribution[stat] !== 0)
           .map((contribution, index) => (
             <View key={index} className="flex-row justify-between mb-3">

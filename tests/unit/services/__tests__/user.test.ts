@@ -5,6 +5,7 @@ import { FirebaseError } from 'firebase/app';
 import { setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { BASE_USER } from '@/constants/user';
 import { CreateUserResponse, GetUserResponse, User } from '@/types/user';
+import { getUserByUsername } from '@/services/user.helper';
 
 // Mock Firebase Firestore
 jest.mock('@/firebaseConfig', () => ({
@@ -30,10 +31,16 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   clear: jest.fn(() => Promise.resolve()),
 }));
 
+// Mock user helper functions
+jest.mock('@/services/user.helper', () => ({
+  getUserByUsername: jest.fn(),
+}));
+
 describe('User Service Functions', () => {
   const mockSetDoc = setDoc as jest.Mock;
   const mockGetDoc = getDoc as jest.Mock;
   const mockUpdateDoc = updateDoc as jest.Mock;
+  const mockGetUserByUsername = getUserByUsername as jest.Mock;
 
   const id = 'user123';
   const username = 'testuser';
@@ -173,6 +180,13 @@ describe('User Service Functions', () => {
 
   describe('updateUserProfile', () => {
     it('should update partial profile info successfully', async () => {
+      // Mock getUserByUsername
+      mockGetUserByUsername.mockResolvedValue({
+        success: false,
+        data: null,
+        error: null,
+      });
+
       const userId = 'user123';
       const updates: Partial<User> = {
         profileInfo: {

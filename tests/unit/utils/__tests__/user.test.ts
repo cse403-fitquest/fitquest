@@ -17,7 +17,7 @@ describe('User Utility Functions', () => {
 
       const expThreshold = getUserExpThreshold(user);
 
-      expect(expThreshold).toBe(4000);
+      expect(expThreshold).toBe(1500);
     });
 
     it('should return the correct exp threshold #2', () => {
@@ -33,7 +33,7 @@ describe('User Utility Functions', () => {
 
       const expThreshold = getUserExpThreshold(user);
 
-      expect(expThreshold).toBe(4200);
+      expect(expThreshold).toBe(1600);
     });
 
     it('should return the correct exp threshold #3', () => {
@@ -49,7 +49,7 @@ describe('User Utility Functions', () => {
 
       const expThreshold = getUserExpThreshold(user);
 
-      expect(expThreshold).toBe(4800);
+      expect(expThreshold).toBe(1900);
     });
 
     it('should return the correct exp threshold #4', () => {
@@ -65,7 +65,7 @@ describe('User Utility Functions', () => {
 
       const expThreshold = getUserExpThreshold(user);
 
-      expect(expThreshold).toBe(5000);
+      expect(expThreshold).toBe(2000);
     });
 
     it('should return the correct exp threshold #5', () => {
@@ -81,7 +81,7 @@ describe('User Utility Functions', () => {
 
       const expThreshold = getUserExpThreshold(user);
 
-      expect(expThreshold).toBe(8000);
+      expect(expThreshold).toBe(3500);
     });
 
     it('should return the correct exp threshold #6', () => {
@@ -97,7 +97,7 @@ describe('User Utility Functions', () => {
 
       const expThreshold = getUserExpThreshold(user);
 
-      expect(expThreshold).toBe(13000);
+      expect(expThreshold).toBe(6000);
     });
 
     it('should return the correct exp threshold #7', () => {
@@ -113,7 +113,7 @@ describe('User Utility Functions', () => {
 
       const expThreshold = getUserExpThreshold(user);
 
-      expect(expThreshold).toBe(25000);
+      expect(expThreshold).toBe(12000);
     });
   });
 });

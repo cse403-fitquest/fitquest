@@ -13,6 +13,7 @@ import {
 
 import { createUser } from './user';
 import { createUserFriends } from './social';
+import { getUserByUsername } from './user.helper';
 
 export enum FirebaseAuthErrorCodes {
   INVALID_CREDENTIAL = 'auth/invalid-credential',
@@ -99,6 +100,17 @@ export const signUp: (
   password: string,
 ) => {
   try {
+    // Check if username is already taken
+    const getUserByUsernameResponse = await getUserByUsername(username);
+
+    if (getUserByUsernameResponse.success) {
+      return {
+        data: null,
+        success: false,
+        error: 'Username already taken.',
+      };
+    }
+
     // Sign up logic
     const userCredential = await createUserWithEmailAndPassword(
       FIREBASE_AUTH,
