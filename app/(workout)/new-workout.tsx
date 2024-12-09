@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import 'react-native-get-random-values';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { v4 as uuidv4 } from 'uuid';
+import uuid from 'react-native-uuid';
 import React from 'react';
 import FQModal from '@/components/FQModal';
 import {
@@ -214,7 +214,7 @@ const NewWorkout = () => {
           sets: [
             ...exercise.sets,
             {
-              id: uuidv4(),
+              id: uuid.v4(),
               weight: 0,
               reps: 0,
               distance: 0,
@@ -548,7 +548,7 @@ const NewWorkout = () => {
 
     // Create workout object
     const newWorkout: Workout = {
-      id: uuidv4(),
+      id: uuid.v4(),
       title: workout.name,
       startedAt: workout.startedAt,
       duration: seconds,

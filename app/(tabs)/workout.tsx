@@ -12,7 +12,7 @@ import { Colors } from '@/constants/colors';
 import { SUGGESTED_TEMPLATES } from '@/constants/workout';
 import { Href, router, useLocalSearchParams } from 'expo-router';
 import { useWorkoutStore } from '@/store/workout';
-import { v4 as uuidv4 } from 'uuid';
+import uuid from 'react-native-uuid';
 
 const WorkoutScreen = () => {
   const { didUserLevelUp } = useLocalSearchParams<{ didUserLevelUp: string }>();
@@ -103,7 +103,7 @@ const WorkoutScreen = () => {
     console.log('Add workout template clicked');
 
     setWorkoutDisplay(() => ({
-      id: uuidv4(),
+      id: uuid.v4(),
       name: 'New Workout Template',
       exercises: [],
       startedAt: new Date(),
@@ -149,7 +149,7 @@ const WorkoutScreen = () => {
     );
 
     setWorkoutDisplay(() => ({
-      id: uuidv4(), // Generate a new ID for the workout if it's a suggested template
+      id: uuid.v4(), // Generate a new ID for the workout if it's a suggested template
       name: workoutTemplate.title,
       exercises: workoutExercises,
       startedAt: new Date(),
@@ -204,7 +204,7 @@ const WorkoutScreen = () => {
           setModalVisible(false);
 
           setWorkout(() => ({
-            id: uuidv4(),
+            id: uuid.v4(),
             name: 'Empty Workout',
             exercises: [],
             startedAt: new Date(),
@@ -218,7 +218,7 @@ const WorkoutScreen = () => {
       });
     } else {
       setWorkout(() => ({
-        id: uuidv4(),
+        id: uuid.v4(),
         name: 'Empty Workout',
         exercises: [],
         startedAt: new Date(),
