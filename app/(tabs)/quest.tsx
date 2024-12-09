@@ -286,7 +286,7 @@ const Quest = () => {
 
   const handleAdvance = async () => {
     if (activeQuest && user?.id) {
-      if (user.activeWorkoutMinutes < 1) {
+      if (user.activeWorkoutMinutes < 30) {
         Alert.alert(
           'Not Strong Enough...',
           "You'll need to train more before challenging this foe. Return after training!",
@@ -314,13 +314,13 @@ const Quest = () => {
         const uniqueKey = Date.now();
 
         const result = await updateUserProfile(user.id, {
-          activeWorkoutMinutes: user.activeWorkoutMinutes - 1,
+          activeWorkoutMinutes: user.activeWorkoutMinutes - 30,
         });
 
         if (result.success) {
           setUser({
             ...user,
-            activeWorkoutMinutes: user.activeWorkoutMinutes - 1,
+            activeWorkoutMinutes: user.activeWorkoutMinutes - 30,
           });
 
           setLoading(false);
