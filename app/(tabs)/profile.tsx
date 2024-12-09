@@ -25,7 +25,10 @@ import { router } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { BASE_ITEM } from '@/constants/item';
 import { User } from '@/types/user';
-import { getUserHealthPotionsCountFromItems } from '@/utils/item';
+import {
+  getUserHealthPotionsCountFromItems,
+  itemTypeToString,
+} from '@/utils/item';
 // import { useSocialStore } from '@/store/social';
 
 interface ItemCardProps {
@@ -1049,7 +1052,7 @@ const Profile = () => {
             ? undefined
             : () => setSelectedItem(null)
         }
-        subtitle={selectedItem?.type}
+        subtitle={selectedItem ? itemTypeToString(selectedItem.type) : ''}
       >
         {equippedItemModalChildren}
       </FQModal>
