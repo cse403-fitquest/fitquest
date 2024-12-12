@@ -568,7 +568,7 @@ const NewWorkout = () => {
       exp: userAfterExpGain.exp,
       attributePoints: userAfterExpGain.attributePoints,
       activeWorkoutMinutes:
-        userAfterExpGain.activeWorkoutMinutes + newWorkout.duration,
+        userAfterExpGain.activeWorkoutMinutes + newWorkout.duration / 60,
     });
 
     console.log('User workout history and exp updated.');
