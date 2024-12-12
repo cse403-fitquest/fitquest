@@ -98,8 +98,7 @@ export const finishAndSaveWorkout = async (
       exp: userAfterExpGain.exp,
       attributePoints: userAfterExpGain.attributePoints,
       // Convert seconds to minutes
-      activeWorkoutMinutes:
-        currentWorkoutMinutes + Math.floor(newWorkout.duration / 60),
+      activeWorkoutMinutes: currentWorkoutMinutes + newWorkout.duration / 60,
     });
 
     console.log(
